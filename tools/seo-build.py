@@ -12,7 +12,7 @@ Also regenerates sitemap.xml so new pages are discoverable.
 """
 import re, glob, os, datetime
 
-SITE = "https://treasureacademyageva.vercel.app"
+SITE = "https://www.treasureacademyageva.com"
 
 # Hand-written, page-specific. Kept under ~158 chars so Google does not truncate.
 DESC = {

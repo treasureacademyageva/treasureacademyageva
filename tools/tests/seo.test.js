@@ -226,6 +226,14 @@ const noindexed = pages.filter(f => !indexable.includes(f));
   ok('robots allows crawling', /User-agent: \*/.test(rb) && /Allow: \//.test(rb));
   ok('robots blocks portal', /Disallow: \/portal\//.test(rb));
   ok('robots points at sitemap', /Sitemap: https:\/\/.*sitemap\.xml/.test(rb));
+  const canonicalHost = 'https://www.treasureacademyageva.com';
+  ok('sitemap uses the custom canonical host', locs.every(l => l.startsWith(canonicalHost + '/')));
+  ok('robots uses the custom canonical host', rb.includes(`Sitemap: ${canonicalHost}/sitemap.xml`));
+  const wrongCanonical = indexable.filter(f => {
+    const m = read(f).match(/rel="canonical" href="([^"]+)"/);
+    return !m || !m[1].startsWith(canonicalHost + '/');
+  });
+  ok('public pages use the custom canonical host', wrongCanonical.length === 0, wrongCanonical.join(','));
 }
 
 /* ---------- PWA manifest (needed for the Android wrapper too) ---------- */
@@ -293,6 +301,8 @@ const noindexed = pages.filter(f => !indexable.includes(f));
   ok('vercel serves sitemap+robots', srcs.includes('/sitemap.xml') && srcs.includes('/robots.txt'));
   const html = v.headers.find(h => h.source === '/(.*).html');
   ok('security headers on html', html.headers.some(h => h.key === 'X-Content-Type-Options'));
+  const apex = v.redirects.find(r => r.has && r.has.some(h => h.type === 'host' && h.value === 'treasureacademyageva\\.com'));
+  ok('apex permanently redirects to www', !!apex && apex.permanent === true && apex.destination === 'https://www.treasureacademyageva.com/:path*');
 }
 
 console.log(`\n==== SEO: ${pass} passed, ${fail} failed ====`);

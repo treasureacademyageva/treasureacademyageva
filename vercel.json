@@ -2,6 +2,17 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "treasureacademyageva\\.com"
+        }
+      ],
+      "destination": "https://www.treasureacademyageva.com/:path*",
+      "permanent": true
+    },
+    {
       "source": "/pupil.html",
       "destination": "/portal/pupil.html",
       "permanent": true

@@ -6,7 +6,7 @@ sitemap.xml, the web manifest and the docs. Changing it by hand means missing
 one and leaving the site pointing at two different addresses, so do it here.
 
     python3 tools/set-site-host.py --check
-    python3 tools/set-site-host.py https://treasureacademyageva.vercel.app
+    python3 tools/set-site-host.py https://www.treasureacademyageva.com
 
 Run the test suite afterwards. See docs/CANONICAL-HOST.md for why this exists.
 """

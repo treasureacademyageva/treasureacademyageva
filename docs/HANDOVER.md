@@ -79,7 +79,7 @@ Real data from owner only (never invent names/dates); WhatsApp 09063932487 only;
 
 ## Batch 49 additions (agent polish & fix pass, 26 Sept 2026 — preview)
 Re-applied on top of owner commit 14959de (which had independently bumped sw->v69 / assets 20260926-7-63).
-- **Canonical host fixed (long-standing SEO bug):** `tools/set-site-host.py https://treasureacademyageva.vercel.app` rewrote 250 refs across 40 files. Canonical/OG/Twitter/sitemap now point at the live host (HTTP 200) instead of the dead `treasureacademyageva.vercel.app` (404). Owner confirmed staying on ng-psi.vercel.app until a custom domain is bought.
+- **Canonical host fixed (long-standing SEO bug):** `tools/set-site-host.py https://www.treasureacademyageva.com` rewrote 250 refs across 40 files. Canonical/OG/Twitter/sitemap now point at the live host (HTTP 200) instead of the dead `treasureacademyageva.vercel.app` (404). Owner confirmed staying on ng-psi.vercel.app until a custom domain is bought.
 - **Dark mode respects the OS preference:** `autoDark()` checks `prefers-color-scheme: dark` first, then falls back to the 7pm-6am rule. jsdom has no matchMedia so verify-batch16's 10am/10pm pins still hold.
 - **Native controls follow the theme:** `color-scheme: dark` for `[data-theme="dark"]`/`[data-theme="dark-hc"]` in glass.css.
 - **Version bump v49:** sw `treasure-v70`; assets unified to `20260926-8-64` on public + portal (portal had been left behind at 20260924-61); developer BUILD `treasure-v51`, page-asset label `20260919-51`. verify-batch47 exact-version guard updated to the new strings.
@@ -100,7 +100,7 @@ Re-applied on top of owner commit 14959de (which had independently bumped sw->v6
 
 ## Batch 49d (canonical host flipped back to the live URL, 27 Sept 2026 — preview)
 - The Vercel project was renamed, which FLIPPED the live URL: `treasureacademyageva.vercel.app` is now live (HTTP 200) and `ng-psi.vercel.app` now 404s — the reverse of the Batch 49 situation. Verified with live HTTP checks before changing anything.
-- `tools/set-site-host.py https://treasureacademyageva.vercel.app` rewrote 254 references across 42 files (canonical, og:url/og:image, Twitter, JSON-LD url/logo/image + SearchAction, robots.txt Sitemap:, all sitemap.xml <loc>). Live check now 200, no stragglers in code.
+- `tools/set-site-host.py https://www.treasureacademyageva.com` rewrote 254 references across 42 files (canonical, og:url/og:image, Twitter, JSON-LD url/logo/image + SearchAction, robots.txt Sitemap:, all sitemap.xml <loc>). Live check now 200, no stragglers in code.
 - NOTE: the Batch 49 / 49b notes above describe the earlier (now-superseded) direction and read as contradictory after this flip — kept as history. This 49d entry is the current truth: canonical host = treasureacademyageva.vercel.app.
 
 ## Batch 49e (Privacy Policy + Safeguarding pages, 27 Sept 2026 — preview)
@@ -197,12 +197,19 @@ Still intentionally parked: current-session/news archive restructure; self-hosti
 - Rebuilt `assets/data/kb.json` (**98 documents**), bumped local assets to `20260929-ui51` and the service worker to `treasure-v72`, and added `verify-batch51.js`.
 - Verification: **57 suites / 12,670 checks green**, plus **34 light/no-JS responsive browser checks** and **10 dark-mode/keyboard browser checks**, all passing. Desktop, tablet and 390px mobile layouts were exercised. This work remains on `preview`; do not merge to `main` without explicit owner authorization.
 
-## Experimental corpus review gateway (1 Oct 2026 — preview only)
+## Experimental corpus review gateway (1 Oct 2026 — released with owner authorisation)
 - Added hidden/noindex `developer-review.html`, linked from the authenticated developer console but also usable by a candidate reviewer through its direct URL and a separate shared review passphrase.
 - The public repository contains only an AES-256-GCM authenticated ciphertext package. PBKDF2-HMAC-SHA-256 uses a random salt and 310,000 iterations. The passphrase is environment-only at build time and must never be committed.
 - After browser-only decryption, a reviewer can read the complete extracted candidate or original pilot text on content-bearing tracks, record only an allowed decision for the required role and exact item hash, and keep drafts in browser `localStorage`. Reloading requires the passphrase again.
 - JSON download, copy, device-share and strict import are available. Exports remain `trainingApprovalGranted:false`; no human decisions or training approvals were imported by this deployment.
 - Controlled workloads remain exactly 54 candidate-licence, 50 candidate-teacher, 50 candidate-safeguarding, 96 pilot-teacher, 96 pilot-safeguarding and 4 conditional-rights legal records. The default track is the content-bearing 96-item pilot-teacher track.
 - `robots.txt`, page metadata, Vercel `X-Robots-Tag`/`no-store` rules and service-worker exclusions keep the gateway unlisted and out of offline caches. The route remains absent from `sitemap.xml`.
-- Owner authorisation and its explicit exclusions are recorded in `model/reports/review-gateway-authorisation.json`. Public plaintext, training, experimental-model connection and a `main` merge remain unauthorised.
-- Verification: gateway regression **6/6 passed with live decryption**, all model tests **67 passed / 1 skipped**, and repository JavaScript tests passed after bringing the new private page into the SEO contract. This work must stay on `preview` until an explicit owner go-live instruction.
+- Owner authorisation and its explicit exclusions are recorded in `model/reports/review-gateway-authorisation.json`. Public plaintext, training and experimental-model connection remain unauthorised.
+- The owner subsequently gave an explicit instruction to publish the gateway on `main`; production commit `742780c` completed that release without merging the wider experimental model branch.
+- Verification: gateway regression **6/6 passed with live decryption**, all model tests **67 passed / 1 skipped**, and repository JavaScript tests passed after bringing the new private page into the SEO contract.
+
+## Custom-domain migration (20 Oct 2026 — production)
+- Owner registered `treasureacademyageva.com` through Northwest Registered Agent. DNS remains safely hosted on Northwest/Business Identity nameservers; existing MX, SPF, DKIM, DMARC and other TXT records were preserved.
+- Vercel project `treasureacademyageva` now has both `treasureacademyageva.com` and `www.treasureacademyageva.com`, with valid HTTPS. The intended canonical host is `https://www.treasureacademyageva.com`; the original `treasureacademyageva.vercel.app` alias remains attached.
+- `tools/set-site-host.py https://www.treasureacademyageva.com` rewrote 270 canonical/OG/Twitter/JSON-LD/robots/sitemap/documentation references across 44 files. `sitemap.xml` was regenerated with 36 URLs.
+- `vercel.json` now contains a hostname-conditioned permanent redirect so every apex-domain path maps to the matching `www` path with HTTP 308. The temporary Vercel domain-level 307 must be removed after deployment by assigning the apex directly to the project; the repository rule then provides the permanent redirect.

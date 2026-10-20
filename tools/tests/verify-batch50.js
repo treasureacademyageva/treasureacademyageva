@@ -75,7 +75,7 @@ ok('copy says resumes on Monday',!/(resumes back on Monday)/i.test(index+site)&&
 ok('ticker is lost-and-found only',/function renderTicker\(\)/.test(site)&&!site.slice(site.indexOf('function renderTicker()'),site.indexOf('function renderBday()')).includes('newsEvents'));
 
 /* Protected ground rules */
-ok('SEO canonical and School JSON-LD remain',index.includes('https://treasureacademyageva.vercel.app/')&&index.includes('"@type": "School"'));
+ok('SEO canonical and School JSON-LD remain',index.includes('https://www.treasureacademyageva.com/')&&index.includes('"@type": "School"'));
 ok('school phone and RC remain exact',index.includes('+234 814 194 3478')&&index.includes('RC 9634403')&&site.includes('RC 9634403'));
 ok('no Ministry approval number invented',!/(Ministry (?:approval|registration) (?:no|number)\.?\s*[:#]?\s*[A-Z0-9/-]+)/i.test(index+about));
 ok('portal and chatbot assets remain wired',index.includes('chat-core.js?v=20260930-ui54')&&index.includes('auth-ui.js?v=20260930-ui54')&&fs.existsSync(path.join(SITE,'portal/pupil.html')));

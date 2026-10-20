@@ -76,7 +76,7 @@ dependencies {
 
     <meta-data
         android:name="android.support.customtabs.trusted.DEFAULT_URL"
-        android:value="https://treasureacademyageva.vercel.app/" />
+        android:value="https://www.treasureacademyageva.com/" />
 
     <meta-data
         android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
@@ -93,7 +93,7 @@ dependencies {
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
         <data android:scheme="https"
-              android:host="treasureacademyageva.vercel.app" />
+              android:host="www.treasureacademyageva.com" />
     </intent-filter>
 </activity>
 ```
@@ -106,7 +106,7 @@ Without this the app opens with a browser address bar visible. The site must
 serve a file at:
 
 ```
-https<no>://treasureacademyageva.vercel.app/.well-known/assetlinks.json
+https<no>://www.treasureacademyageva.com/.well-known/assetlinks.json
 ```
 
 ```json
