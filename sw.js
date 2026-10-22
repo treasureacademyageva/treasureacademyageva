@@ -1,40 +1,79 @@
-/* Treasure Academy offline support — key pages keep working without internet */
-const CACHE = 'treasure-v75';
+/* Treasure Academy offline shell. Never cache private, operational or review routes. */
+const CACHE = 'treasure-v20261022-ux1';
 const CORE = [
-  'index.html', 'contact.html', 'calendar.html', 'admissions.html', 'news.html',
-  '404.html',
-  'assets/css/main.css', 'assets/css/extra.css', 'assets/css/corporate.css',
-  'assets/css/motion.css', 'assets/css/glass.css',
-  'assets/js/theme-init.js', 'assets/js/store.js', 'assets/js/verify.js', 'assets/js/notify.js', 'assets/js/site.js', 'assets/js/sync.js', 'assets/js/auth-ui.js', 'assets/js/db-live.js',
-  'assets/js/chat-entities.js', 'assets/js/chat-rag.js', 'assets/js/chat-core.js', 'assets/js/chat-ui.js', 'assets/data/kb.json',
-  'assets/img/logo.jpg',
-  'assets/img/icons.svg',
-  /* Self-hosted faces: without these an offline visitor drops to a system font
-     and the whole page reflows. */
-  'assets/fonts/general-sans-400.woff2',
-  'assets/fonts/clash-display-600.woff2'
+  '/', '/index.html', '/about.html', '/academics.html', '/admissions.html',
+  '/contact.html', '/news.html', '/privacy.html', '/safeguarding.html', '/explore.html', '/search.html', '/404.html',
+  '/assets/css/site.css?v=20261022-ux1',
+  '/assets/js/theme-init.js?v=20261022-ux1', '/assets/js/public-shell.js?v=20261022-ux1',
+  '/assets/img/logo.jpg', '/assets/img/icons.svg',
+  '/assets/fonts/general-sans-400.woff2', '/assets/fonts/clash-display-600.woff2'
 ];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()).catch(() => {}));
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => Promise.all(CORE.map(url => cache.add(url).catch(() => null))))
+      .then(() => self.skipWaiting())
+  );
 });
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
 });
-self.addEventListener('fetch', e => {
-  const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  /* Never put the encrypted human-review gateway, payload or controller in an
-     offline cache. Review progress belongs only in its explicit localStorage. */
-  if (url.pathname === '/developer-review' || url.pathname === '/developer-review.html' ||
-      url.pathname === '/assets/js/developer-review.js' ||
-      url.pathname === '/assets/data/review-gateway.enc.json') return;
-  if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js') || url.pathname.match(/\.(png|jpg|jpeg|svg|webp|ico|woff2)$/)) {
-    e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return res;
-    }).catch(() => caches.match('index.html'))));
+
+function isPrivate(pathname) {
+  return pathname.startsWith('/portal/') ||
+    pathname === '/developer.html' || pathname === '/developer-operations.html' ||
+    pathname === '/developer-review' || pathname === '/developer-review.html' ||
+    pathname === '/admission-form.html' || pathname === '/receipt.html' ||
+    pathname === '/assets/js/developer-review.js' ||
+    pathname === '/assets/data/review-gateway.enc.json';
+}
+
+async function cacheOk(request, response) {
+  if (response && response.ok && response.type === 'basic') {
+    const cache = await caches.open(CACHE);
+    await cache.put(request, response.clone());
+  }
+  return response;
+}
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin || isPrivate(url.pathname)) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => cacheOk(request, response))
+        .catch(async () => (await caches.match(request, {ignoreSearch: true})) ||
+          (await caches.match('/index.html')) ||
+          new Response('<!doctype html><title>Offline</title><h1>You are offline</h1><p>Please reconnect to open this page.</p>', {
+            status: 503, headers: {'Content-Type': 'text/html; charset=utf-8'}
+          }))
+    );
+    return;
+  }
+
+  const isAsset = /\.(?:css|js|png|jpe?g|svg|webp|ico|woff2)$/i.test(url.pathname);
+  if (!isAsset) return;
+
+  /* Versioned requests are immutable by URL. Unversioned code uses network-first
+     so a returning family receives safety fixes without clearing browser data. */
+  if (url.search) {
+    event.respondWith(
+      caches.match(request).then(hit => hit || fetch(request).then(response => cacheOk(request, response)))
+    );
   } else {
-    e.respondWith(fetch(e.request).then(res => {
-      const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return res;
-    }).catch(() => caches.match(e.request).then(hit => hit || caches.match('index.html'))));
+    event.respondWith(
+      fetch(request)
+        .then(response => cacheOk(request, response))
+        .catch(() => caches.match(request))
+    );
   }
 });

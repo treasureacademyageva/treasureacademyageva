@@ -1,0 +1,42 @@
+# Development, database and internal documentation must never be public web assets.
+.git/
+.github/
+.gitignore
+.pytest_cache/
+.well-known/
+ai/
+android/
+model/
+cms/
+db/
+docs/
+tools/
+node_modules/
+README.md
+package.json
+package-lock.json
+supabase-schema.sql
+assets/js/auth-ui.js
+assets/js/chat-*.js
+assets/js/db-live.js
+assets/js/notify.js
+assets/js/sync.js
+assets/js/verify.js
+assets/js/site.js
+# Source styles are bundled into assets/css/site.css for one render-blocking request.
+assets/css/main.css
+assets/css/extra.css
+assets/css/glass.css
+assets/css/corporate.css
+assets/css/motion.css
+assets/css/ux.css
+assets/data/kb.json
+# Private photographed records and unapproved third-party marks remain excluded.
+# Other existing website media was restored at the owner's direction on 22 Oct 2026;
+# final provenance/authority decisions are tracked in the restoration register.
+assets/img/graduates/
+assets/img/partners/
+assets/img/class-feature.jpg
+*.log
+*.md
+*.sql

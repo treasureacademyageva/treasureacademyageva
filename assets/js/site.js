@@ -1,7 +1,4 @@
-/* ============================================================
-   TREASURE ACADEMY — shared public-site engine
-   theme • nav • footer • chatbot • clock • sliders • captcha
-   ============================================================ */
+/* Treasure Academy shared public-site presentation and accessibility helpers. */
 const Site = { page: document.body.dataset.page || "home" };
 
 /* ---------------- THEME (day/night) ---------------- */
@@ -44,24 +41,24 @@ const SEARCH_INDEX=[
  {t:"Home",u:"index.html",k:"home main start treasure academy ageva"},
  {t:"About Us",u:"about.html",k:"about story headmistress founder motto mission history"},
  {t:"Admissions",u:"admissions.html",k:"admissions apply enrol register form join track application requirements receipt verify payment check confirm authentic"},
- {t:"Admission Form",u:"admission-form.html",k:"admission form buy entrance paid price download print fill code track"},
+ {t:"Request an Admission Form",u:"admission-form.html",k:"admission form safe verified office request"},
  {t:"Academics",u:"academics.html",k:"academics classes creche nursery primary curriculum subjects"},
  {t:"Contact Us",u:"contact.html",k:"contact phone call whatsapp address location map email message faq directions suggestion box idea vote"},
- {t:"News & Events",u:"news.html",k:"news event sport party excursion graduation video photo gallery story rsvp seats reserve"},
+ {t:"News & Updates",u:"news.html",k:"news verified update admissions current"},
  {t:"Staff",u:"alumni.html#staff",k:"staff teachers names who teaches team alumni meet our staff"},
  {t:"E-Learning",u:"elearning.html",k:"elearning practice cbt common entrance primary 6 past questions"},
- {t:"Shop",u:"shop.html",k:"shop buy books uniform price textbook notebook order pickup"},
+ {t:"School Supplies Guidance",u:"shop.html",k:"supplies books uniform price stock office"},
  {t:"PTA",u:"pta.html",k:"pta parents association meeting levy"},
- {t:"Alumni & Graduates",u:"alumni.html",k:"alumni graduates old pupils secondary success wall share story class of hall of fame"},
+ {t:"Staff & Graduate Privacy",u:"alumni.html",k:"staff teachers graduate privacy achievements"},
  {t:"Birthdays",u:"birthdays.html",k:"birthday staff celebrate wish song headmistress"},
  {t:"Calendar",u:"calendar.html",k:"calendar term dates resumption holiday events countdown"},
  {t:"Notice Board",u:"board.html",k:"notice board announcements news"},
  {t:"Homework Board",u:"homework.html",k:"homework assignment class study"},
  {t:"Lost & Found",u:"lost-found.html",k:"lost found missing item claim clothes"},
- {t:"Photo Day",u:"photo-day.html",k:"photo day picture portrait booking photography"},
+ {t:"Photo Day Archive",u:"photo-day.html",k:"photo day closed consent photography"},
  {t:"Uniform List",u:"uniform.html",k:"uniform price list clothes wear dress shop"},
- {t:"Open Day",u:"openday.html",k:"open day visit tour reserve seat prospective"},
- {t:"Reading Corner",u:"reading.html",k:"reading books library story month leaderboard top readers"},
+ {t:"School Visit Guidance",u:"openday.html",k:"open day closed visit appointment tour"},
+ {t:"Reading at Home",u:"reading.html",k:"reading books home guidance teacher"},
  {t:"Exam Timetable",u:"exams.html",k:"exam timetable test date papers revision"},
  {t:"Holiday Assignments",u:"holiday.html",k:"holiday assignment break work home"},
  {t:"Welcome Pack",u:"welcome.html",k:"welcome pack new parents guide steps start"},
@@ -72,9 +69,9 @@ const SEARCH_INDEX=[
  {t:"Anthem & Creed",u:"anthem.html",k:"anthem creed pledge song lyrics audio hymn school song"},
  {t:"Support Us",u:"support.html",k:"support donate pledge give project library fans thank you wall well-wisher"},
  {t:"Search",u:"search.html",k:"search find pages everything results lookup"},
- {t:"Portal Login",u:"portal/login.html",k:"portal login register results password dashboard pupil parent teacher admin"},
- {t:"Parent Reviews",u:"testimonials.html",k:"testimonials reviews parents say rating all reviews"},
- {t:"Class Pages",u:"class.html",k:"class page creche nursery primary activities gallery"}
+ {t:"Parent & Staff Support",u:"portal/login.html",k:"portal retired results attendance parent staff support"},
+ {t:"Family Feedback",u:"testimonials.html",k:"private feedback consent headmistress"},
+ {t:"Class Pages",u:"academics.html",k:"class page creche nursery primary learning"}
 ];
 const Search={
  init(){
@@ -89,7 +86,7 @@ const Search={
   b.onclick=e=>{e.preventDefault();this.open();};
   if(document.getElementById("searchVeil"))return;
   const v=document.createElement("div"); v.id="searchVeil"; v.className="search-veil";
-  v.innerHTML='<div class="search-box"><div class="search-row"><input id="searchInput" placeholder="Search pages, e.g. fees, bus, uniform..." autocomplete="off"><button id="searchX" aria-label="Close">×</button></div><div id="searchRes" class="search-res"></div></div>';
+  v.innerHTML='<div class="search-box"><label for="searchInput"><b>Search this website</b></label><div class="search-row"><input id="searchInput" type="search" placeholder="e.g. fees, transport or uniform" autocomplete="off"><button id="searchX" aria-label="Close search">×</button></div><div id="searchRes" class="search-res"></div></div>';
   document.body.appendChild(v);
   v.addEventListener("click",e=>{ if(e.target===v)this.close(); });
   document.getElementById("searchX").onclick=()=>this.close();
@@ -135,7 +132,7 @@ const Search={
   try{
     const db=DB.load(), today=U.todayStr();
     const news=(db.newsEvents||[]).filter(n=>(!n.publishAt||n.publishAt<=today)&&match(n.title+" "+(n.text||""),q)).slice(0,3);
-    if(news.length)extra+='<p class="sub">News & events</p>'+news.map(n=>`<a href="story.html?id=${n.id}">${hl(n.title)}</a>`).join("");
+    if(news.length)extra+='<p class="sub">News & events</p>'+news.map(n=>`<a href="${U.esc(n.link||'news.html')}">${hl(n.title)}</a>`).join("");
     const staff=(db.staffWall||db.teachers||[]).filter(t=>match((t.name||"")+" "+(t.class||"")+" "+((t.subjects||[]).join(" ")),q)).slice(0,3);
     if(staff.length)extra+='<p class="sub">Staff</p>'+staff.map(t=>`<a href="alumni.html#staff">${hl(t.name)} — ${U.esc(t.class||"")}</a>`).join("");
     const ex=(db.exams||[]).filter(x=>match(x.subject||"",q)).slice(0,2);
@@ -185,40 +182,18 @@ function renderNav(current){
   ).join("");
 }
 function renderFooter(){
-  const box = document.getElementById("siteFooter");
-  if(!box) return;
-  let s = {...SCHOOL_DEFAULTS};
-  try{ s = DB.load().school; }catch(e){}
-  const year = new Date().getFullYear();
-  box.innerHTML = `
-  <div class="site-footer"><div class="container">
+  const box=document.getElementById("siteFooter");
+  if(!box)return;
+  let school={...SCHOOL_DEFAULTS};
+  try{school=DB.load().school||school;}catch(e){}
+  const year=new Date().getFullYear();
+  box.innerHTML=`<div class="site-footer"><div class="container">
     <div class="foot-main">
-      <div class="foot-brand">
-        <a class="logo" href="index.html"><span>${U.esc(s.name)}</span></a>
-        <p>"${U.esc(s.motto)}"<br>Creche, Nursery and Primary education in Ageva, Okene. Discipline, character and results since 2016.</p>
-      </div>
-      <div class="foot-col foot-quick"><h2>Quick Links</h2><nav class="foot-quick-grid" aria-label="Quick links"><a href="calendar.html">Calendar</a><a href="fees.html">Fees</a><a href="uniform.html">Uniform</a><a href="transport.html">Transport</a><a href="pta.html">PTA</a><a href="birthdays.html">Birthdays</a><a href="exams.html">Exams</a><a href="homework.html">Homework</a><a href="elearning.html">E-Learning</a><a href="portal/login.html">Portal</a><a href="support.html">Support</a><a href="careers.html">Careers</a><a href="alumni.html">Alumni</a><a href="shop.html">Shop</a></nav></div>
-      <div class="foot-col foot-contact"><h2>Contact</h2>
-        <div class="foot-contact-row"><span class="foot-line"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>${U.esc(s.email)}</span><span class="foot-line"><span class="fi"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span>${U.esc(s.phone)}</div>
-        <p class="foot-hours"> ${U.esc((s.hours||"Mon \u2013 Fri \u2022 7:30am \u2013 3:00pm").replace("4:00pm","3:00pm"))}</p>
-      </div>
-      <div class="foot-col foot-visit"><h2>Visit Us</h2>
-        <p><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>${U.esc(s.address)}</p>
-        <a class="btn btn-white btn-sm" href="contact.html#visit">Get Directions</a>
-      </div>
-      <div class="foot-col"><h2>Follow Us</h2>
-        <div class="social-3d">
-          <a href="https://www.facebook.com/profile.php?id=100093241642093" title="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M13.5 9H16V6h-2.5C11.6 6 10 7.6 10 9.5V11H8v3h2v7h3v-7h2.4l.6-3h-3V9.5c0-.3.2-.5.5-.5z"/></svg></a><a href="#" title="Instagram" onclick="return soonSocial('Instagram')"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.6" cy="7.4" r="1.2" fill="currentColor" stroke="none"/></svg></a><a href="#" title="X (Twitter)" onclick="return soonSocial('X (Twitter)')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 4l7.1 9.2L4.4 20h2.5l5.3-6 4.2 6H20l-7.4-9.6L19.3 4h-2.5l-4.8 5.5L8.2 4H4z"/></svg></a><a href="#" title="TikTok" onclick="return soonSocial('TikTok')"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v9.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 4c.5 2.6 2.1 4.2 4.6 4.4"/></svg></a><a href="#" title="YouTube" onclick="return soonSocial('YouTube')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg></a><a href="contact.html" title="WhatsApp"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></a>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="foot-partners"><div class="container">
-    <p class="acc-cap">Approved &amp; Registered With</p>
-    <div class="acc-logos"><a href="https://moest.kogistate.gov.ng/" target="_blank" rel="noopener noreferrer" title="Kogi State Ministry of Education, Science and Technology — moest.kogistate.gov.ng"><img src="assets/img/partners/badge-kogimoe.png" alt="Kogi State Ministry of Education, Science and Technology"></a><a href="https://www.nappsng.org/" target="_blank" rel="noopener noreferrer" title="NAPPS Nigeria — nappsng.org"><img src="assets/img/partners/badge-napps.webp" alt="NAPPS Nigeria"></a><a href="https://www.nysc.gov.ng/" target="_blank" rel="noopener noreferrer" title="National Youth Service Corps — nysc.gov.ng"><img src="assets/img/partners/badge-nysc.png" alt="National Youth Service Corps"></a></div>
-    <p class="acc-note">Approved Common Entrance Examination Centre &middot; Centre No. BS/OKN/141</p>
-  </div></div>
-  <div class="foot-bottom"><div class="container foot-center foot-bottom-row"><nav class="foot-legal"><a href="privacy.html">Privacy Policy</a><a href="safeguarding.html">Safeguarding</a></nav><span>Treasure Academy Ageva Limited &middot; RC 9634403</span><span>\u00A9 ${year} ${U.esc(s.name)}. All Rights Reserved.</span><span id="textSizeBtns" title="Text size"><button type="button" data-fs="s" aria-label="Small text">S</button><button type="button" data-fs="m" aria-label="Normal text" class="on">A</button><button type="button" data-fs="l" aria-label="Large text">L</button></span></div></div>
+      <div class="foot-brand"><a class="logo" href="index.html"><span>${U.esc(school.name)}</span></a><p>Creche, Nursery and Primary education in Ageva, Okene. Caring teaching, disciplined routines and strong foundations.</p></div>
+      <div class="foot-col foot-quick"><h2>Essential Links</h2><nav class="foot-quick-grid" aria-label="Essential links"><a href="about.html">About</a><a href="academics.html">Academics</a><a href="admissions.html">Admissions</a><a href="fees.html">Fees</a><a href="calendar.html">Calendar</a><a href="news.html">News</a><a href="safeguarding.html">Safeguarding</a><a href="privacy.html">Privacy</a></nav></div>
+      <div class="foot-col foot-contact"><h2>Verified Contact</h2><p><a href="tel:+2348141943478">+234 814 194 3478</a><br><a href="https://wa.me/2349063932487">WhatsApp 09063932487</a><br><a href="mailto:${U.esc(school.email)}">${U.esc(school.email)}</a></p><p>${U.esc(school.address)}</p><a class="btn btn-white btn-sm" href="contact.html#visit">Visit &amp; Directions</a></div>
+    </div></div>
+    <div class="foot-bottom"><div class="container foot-center foot-bottom-row"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© ${year} ${U.esc(school.name)}. All Rights Reserved.</span><span id="textSizeBtns" title="Text size"><button type="button" data-fs="s" aria-label="Small text">S</button><button type="button" data-fs="m" aria-label="Normal text" class="on">A</button><button type="button" data-fs="l" aria-label="Large text">L</button></span></div></div>
   </div>`;
 }
 /* batch30: remember-able text size for weaker eyes */
@@ -441,71 +416,7 @@ function makeDraggable(el, handle){
   handle.addEventListener("pointerup", ()=>dragging=false);
 }
 
-/* ---------------- CHATBOT (Treasure) ---------------- */
-/* The keyword chatbot that used to live here has been replaced by the
-   Treasure Support AI: assets/js/chat-rag.js (retrieval), chat-core.js
-   (conversation, history, handoff, analytics) and chat-ui.js (widget).
-   It retrieves from assets/data/kb.json, which tools/build-kb.py
-   generates from the site's own pages and school data. */
-
-/* ---------------- ANALOG CLOCK + timetable ---------------- */
-const ClockWidget = {
-  schedule(h, m, day){
-    if(day===0||day===6) return ["WEEKEND","Weekend — school resumes on Monday."];
-    const t = h + m/60;
-    if(t>=7 && t<7.75)  return ["OPENING TIME","School is now open."];
-    if(t>=7.75 && t<8)  return ["ASSEMBLY TIME","Morning assembly in progress."];
-    if(t>=8 && t<10)    return ["STUDY TIME","Classes are in session."];
-    if(t>=10 && t<10.5) return ["BREAK TIME","Short break in progress."];
-    if(t>=10.5 && t<15) return ["STUDY TIME","Classes are in session."];
-    if(t>=15 && t<24)   return ["CLOSING TIME","School has closed for the day."];
-    return ["SCHOOL CLOSED","Reopens at 7:00am."];
-  },
-  init(){
-    if(document.getElementById("clockWidget")) return;
-    const w=document.createElement("div");
-    w.className="clock-widget"; w.id="clockWidget";
-    w.innerHTML=`<button class="clock-toggle" id="clockToggle">–</button>
-      <div class="clock-body"><canvas id="clockFace" width="120" height="120"></canvas>
-      <div class="clock-time" id="clockTime"></div><div class="clock-status" id="clockStatus"></div></div>
-      <div id="clockMini" style="display:none;font-weight:700"><span id="clockMiniT"></span></div>`;
-    document.body.appendChild(w);
-    makeDraggable(w);
-    document.getElementById("clockToggle").onclick=(e)=>{ e.stopPropagation();
-      const min=w.classList.toggle("min");
-      document.querySelector("#clockWidget .clock-body").style.display=min?"none":"block";
-      document.getElementById("clockMini").style.display=min?"block":"none";
-    };
-    const autoMin=()=>{ w.classList.add("min"); document.querySelector("#clockWidget .clock-body").style.display="none"; document.getElementById("clockMini").style.display="block"; };
-    let seenClock=0; try{ seenClock=sessionStorage.getItem("ta_clock_seen"); }catch(e){}
-    if(seenClock){ autoMin(); }
-    else { setTimeout(()=>{ autoMin(); try{ sessionStorage.setItem("ta_clock_seen","1"); }catch(e){} }, 5000); }
-    const cv=document.getElementById("clockFace"), ctx=cv.getContext("2d");
-    const draw=()=>{
-      const now=new Date(), h=now.getHours(), m=now.getMinutes(), s=now.getSeconds()+now.getMilliseconds()/1000;
-      const dark=document.documentElement.dataset.theme==="dark";
-      ctx.clearRect(0,0,120,120);
-      ctx.save(); ctx.translate(60,60);
-      ctx.beginPath(); ctx.arc(0,0,55,0,7); ctx.fillStyle=dark?"#0F1722":"#F7F9FB"; ctx.fill();
-      ctx.lineWidth=3.5; ctx.strokeStyle="#C9A227"; ctx.stroke();
-      for(let n=0;n<12;n++){ const a=n*Math.PI/6;
-        ctx.beginPath(); ctx.arc(Math.cos(a)*45,Math.sin(a)*45,n%3===0?3.4:1.8,0,7);
-        ctx.fillStyle=n%3===0?(dark?"#C9A227":"#0E3B21"):(dark?"#9AA7B8":"#5D6B7D"); ctx.fill(); }
-      const hand=(ang,len,wd,col)=>{ ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.moveTo(0,5); ctx.lineTo(0,-len);
-        ctx.lineWidth=wd; ctx.lineCap="round"; ctx.strokeStyle=col; ctx.stroke(); ctx.restore(); };
-      hand(((h%12)+m/60)*Math.PI/6, 27, 5, dark?"#EAF0F6":"#203040");
-      hand((m+s/60)*Math.PI/30, 40, 3.4, dark?"#EAF0F6":"#1F2A5B");
-      hand(s*Math.PI/30, 43, 1.6, "#C9A227");
-      ctx.beginPath(); ctx.arc(0,0,4,0,7); ctx.fillStyle="#C9A227"; ctx.fill();
-      ctx.restore();
-      const tstr=now.toLocaleTimeString("en-NG",{hour:"numeric",minute:"2-digit",second:"2-digit"});
-      document.getElementById("clockTime").textContent=tstr;
-      document.getElementById("clockMiniT").textContent=tstr;
-      const [title,sub]=this.schedule(h,m,now.getDay());
-      document.getElementById("clockStatus").innerHTML=`<b>${title}</b><br>${sub}`;
-    }; draw(); setInterval(draw,250);
-  }
-};
+/* Retired chatbot and live timetable widgets are intentionally absent. */
 
 /* ---------------- TREASURE CAPTCHA ---------------- */
 const Treasure = {
@@ -885,8 +796,6 @@ function initInputFilters(scope){
 function bootSafe(fn){ try{ fn(); }catch(e){ if(window.console&&console.warn) console.warn("boot step skipped:", e&&e.message); } }
 function bootWidgets(){
   if(document.body.dataset.widgets==="off") return;
-  bootSafe(()=>{ if(window.TAChatUI) TAChatUI.init(); });
-  bootSafe(()=>ClockWidget.init());
 }
 document.addEventListener("DOMContentLoaded", ()=>{
   bootSafe(()=>Theme.init());

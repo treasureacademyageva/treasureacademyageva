@@ -1,19 +1,24 @@
 {
-  "name": "user",
-  "version": "1.0.0",
-  "main": "render-test.js",
+  "name": "treasure-academy-public-site",
+  "version": "2.0.0",
+  "private": true,
   "scripts": {
-    "test:batch53": "node tools/tests/verify-batch53.js",
+    "build:content": "python3 tools/build-safe-utility-pages.py && python3 tools/build-class-pages.py && python3 tools/build-history-pages.py && python3 tools/seo-build.py && python3 tools/build-search-index.py && python3 tools/build-public-assets.py && python3 tools/enhance-public-ux.py && python3 tools/build-media-restoration-inventory.py",
+    "test": "python3 tools/audit-production-site.py && node tools/tests/verify-production-audit.js && node tools/tests/verify-visitor-ux.js",
+    "test:production": "python3 tools/audit-production-site.py && node tools/tests/verify-production-audit.js && node tools/tests/verify-visitor-ux.js",
+    "test:legacy-batch53": "node tools/tests/verify-batch53.js",
     "test:header-browser": "node tools/tests/header-browser.e2e.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "jsdom": "^29.1.1"
-  },
+  "keywords": [
+    "school",
+    "static-site",
+    "accessibility",
+    "seo"
+  ],
+  "license": "UNLICENSED",
+  "description": "Privacy-safe public brochure site for Treasure Academy, Ageva",
   "devDependencies": {
+    "jsdom": "^29.1.1",
     "playwright": "^1.56.1"
   }
 }

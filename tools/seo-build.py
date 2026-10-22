@@ -10,7 +10,7 @@ canonical and social card. Run after adding or renaming a page:
 
 Also regenerates sitemap.xml so new pages are discoverable.
 """
-import re, glob, os, datetime
+import re, glob, os, datetime, html as html_lib
 
 SITE = "https://www.treasureacademyageva.com"
 
@@ -20,45 +20,77 @@ DESC = {
  "about.html": "Our story, mission and the people behind Treasure Academy, Ageva — a Creche to Primary 6 school serving Ageva and Okene, Kogi State.",
  "academics.html": "Phonics, mathematics, science and computer studies from Creche to Primary 6 at Treasure Academy, Ageva, Okene — how we teach and assess.",
  "admissions.html": "How to enrol your child at Treasure Academy, Ageva. Entry classes, required documents, fees and the admission steps for the 2026/2027 session.",
- "admission-form.html": "Complete the Treasure Academy, Ageva paid admission form online and receive a receipt you can present at the school office in Okene.",
- "alumni.html": "Meet our staff and the Common Entrance graduates of Treasure Academy, Ageva — exam records for the 2023 and 2025 classes, Okene, Kogi State.",
- "anthem.html": "The school anthem, creed and pledge recited every morning at Treasure Academy, Ageva, Okene.",
- "birthdays.html": "Staff birthdays at Treasure Academy, Ageva — send a message to the teachers and staff celebrating this month.",
- "board.html": "Latest notices for parents, pupils and staff of Treasure Academy, Ageva — meetings, deadlines and term announcements.",
- "calendar.html": "Term dates, mid-term break, examinations and resumption for the current session at Treasure Academy, Ageva, Okene.",
- "careers.html": "Teaching and support vacancies at Treasure Academy, Ageva. See open roles and how to apply to join our team in Okene, Kogi State.",
+ "admission-form.html": "Safe admission-form guidance for Treasure Academy, Ageva — confirm the current fee and bank details with the verified school office before paying.",
+ "alumni.html": "Former-pupil record requests and consent-cleared achievement updates at Treasure Academy, Ageva, with clear privacy and safeguarding boundaries.",
+ "anthem.html": "The restored Treasure Academy school anthem, creed, pledge and motto, preserved from the previous website for final owner review.",
+ "birthdays.html": "Staff birthday-notice guidance for Treasure Academy, Ageva. Children’s birthdays are not displayed publicly; contact the office to pass on a private greeting.",
+ "board.html": "School-notice guidance for Treasure Academy, Ageva. Check published news and confirm dates, closures, deadlines and payment instructions with the office.",
+ "calendar.html": "Current term-date guidance for Treasure Academy, Ageva, with verified office contacts for resumption, breaks, examinations and closing dates.",
+ "careers.html": "Careers at Treasure Academy, Ageva — ask the office whether any verified vacancy is open and confirm the approved application process before sending documents.",
  "class.html": "Creche, Pre-Nursery, Nursery and Primary 1 to 6 at Treasure Academy, Ageva — what each class covers and the daily activities.",
  "contact.html": "Call, email, WhatsApp or visit Treasure Academy, Ageva — opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.",
- "elearning.html": "Free Common Entrance practice questions for Primary 6 pupils of Treasure Academy, Ageva — English, Mathematics and General Paper.",
- "exams.html": "Examination timetable for the current term at Treasure Academy, Ageva — dates, subjects and papers by class.",
- "fees.html": "School fees per class at Treasure Academy, Ageva, Okene — tuition and what each term covers, with bank transfer payment details.",
- "holiday.html": "Holiday assignments for every class at Treasure Academy, Ageva — keep your child learning through the break.",
- "homework.html": "Daily homework posted by class teachers at Treasure Academy, Ageva so parents can follow their child's work at home.",
- "lost-found.html": "Lost and found items at Treasure Academy, Ageva — report a missing item or claim property handed in at the school office.",
- "news.html": "News and events from Treasure Academy, Ageva — excursions, prize-giving, open day, cultural day and school announcements.",
- "openday.html": "Visit Treasure Academy, Ageva on Open Day — tour the classrooms, meet the teachers and see the school before you enrol.",
- "photo-day.html": "Book a school photograph session for your child at Treasure Academy, Ageva — dates, packages and how to pay.",
- "poster.html": "Full price list for uniforms, books and supplies from the Treasure Academy, Ageva school shop.",
- "privacy.html": "How Treasure Academy, Ageva collects, uses and protects the personal information of pupils and parents. Your rights and how to contact us about your data.",
+ "elearning.html": "Three Common Entrance-style practice questions for Primary 6 revision in Mathematics, English and Basic Science. Scores stay on the page.",
+ "explore.html": "Explore every part of the Treasure Academy, Ageva website by task — admissions, classes, fees, family information, school news and support.",
+ "exams.html": "Examination guidance for Treasure Academy, Ageva — ask the school for the current class timetable. Public candidate records and results are not published.",
+ "fees.html": "School fee and safe-payment guidance for Treasure Academy, Ageva, with verified contacts to request current amounts and confirm bank details before transfer.",
+ "holiday.html": "Holiday-learning guidance for Treasure Academy, Ageva. Ask the class teacher for current work; assignments are not submitted through the public website.",
+ "homework.html": "Homework guidance for Treasure Academy, Ageva. Confirm current work with the class teacher; the public website does not accept assignment submissions.",
+ "lost-found.html": "Lost-property guidance for Treasure Academy, Ageva — contact the school office to report or claim an item without publishing a child’s private details.",
+ "news.html": "Published news and verified website updates from Treasure Academy, Ageva, with current admissions guidance and official contact channels.",
+ "openday.html": "The previous Treasure Academy Open Day campaign is closed. Contact the verified school office to arrange a current school visit by appointment.",
+ "photo-day.html": "The previous Treasure Academy Photo Day booking is closed. Ask the office about any current arrangement, consent process, price and collection method.",
+ "poster.html": "Current uniform and school-supply guidance for Treasure Academy, Ageva — confirm approved items, prices and stock with the school office.",
+ "privacy.html": "How Treasure Academy, Ageva handles website preferences, verified contact channels and school records, including children's privacy and parent rights.",
  "safeguarding.html": "Safeguarding and child protection at Treasure Academy, Ageva — how we keep every pupil safe and how parents, pupils and staff can raise a concern.",
- "pta.html": "Parents-Teachers Association of Treasure Academy, Ageva — meeting dates, minutes and how parents can get involved.",
- "reading.html": "The Reading Corner at Treasure Academy, Ageva — book of the week, the reading leaderboard and stories for our pupils.",
- "receipt.html": "Your Treasure Academy, Ageva admission form payment receipt — print it or present it at the school office.",
+ "pta.html": "Parents–Teachers Association information for Treasure Academy, Ageva — ask the office for the next confirmed meeting, agenda and approved contributions.",
+ "reading.html": "Reading-at-home guidance from Treasure Academy, Ageva. The former device-only log and leaderboard were retired and did not create a school record.",
+ "receipt.html": "Verify a Treasure Academy receipt through the school office. A public browser-only lookup cannot prove that a payment reached the school.",
  "search.html": "Search the Treasure Academy, Ageva website — fees, uniform, transport, admissions, calendar and more.",
- "shop.html": "Buy uniforms, textbooks, notebooks, crayons and sportswear from the Treasure Academy, Ageva school shop.",
+ "shop.html": "School-supply guidance for Treasure Academy, Ageva — confirm approved items, current stock, price and bank details with the office before ordering.",
  "story.html": "Read the full story from Treasure Academy, Ageva, Okene — news, events and life at our school.",
- "support.html": "Support Treasure Academy, Ageva — how parents, alumni and well-wishers can contribute to the school's growth.",
- "testimonials.html": "What parents say about Treasure Academy, Ageva — reviews from families in Ageva and Okene, Kogi State.",
- "transport.html": "School bus routes, pick-up points and transport fees for pupils of Treasure Academy, Ageva, Okene.",
- "uniform.html": "The complete Treasure Academy, Ageva uniform list with prices — daily wear, sportswear and where to buy.",
- "volunteer.html": "Volunteer at Treasure Academy, Ageva — read to a class, help at events or share a skill with our pupils.",
- "welcome.html": "New-parent welcome pack for Treasure Academy, Ageva — school routine, resumption times, uniform and what your child needs.",
+ "support.html": "How to discuss a proposed contribution to Treasure Academy, Ageva safely and confirm the purpose and bank details through verified school contacts.",
+ "testimonials.html": "Private family-feedback guidance for Treasure Academy, Ageva. Unverified sample endorsements have been removed and publication requires review and consent.",
+ "transport.html": "School transport enquiry guidance for Treasure Academy, Ageva — ask the office to confirm current availability, pickup arrangements and fees.",
+ "uniform.html": "Uniform guidance for Treasure Academy, Ageva — ask the office to confirm the current approved list, sizes, prices and stock before paying.",
+ "volunteer.html": "Volunteer enquiries for Treasure Academy, Ageva — contact the office to discuss skills, supervision and required safeguarding checks before a visit.",
+ "welcome.html": "New-family checklist for Treasure Academy, Ageva — confirm admission, start date, fees, uniform, books, transport and parent support with the office.",
 }
+
+DESC["news/2026-2027-admissions-open.html"] = "Treasure Academy, Ageva is receiving 2026/2027 admission enquiries from Creche to Primary 6. Follow the verified, bank-transfer-safe application steps."
+DESC.update({
+    "news/2017-first-graduation-ceremony.html": "Treasure Academy’s school archive records its first full graduation ceremony in 2017 and the early history of the school in Ageva.",
+    "news/2018-second-graduation-ceremony.html": "Treasure Academy’s school archive looks back at the second graduation ceremony held in Ageva in July 2018.",
+    "news/2019-third-graduation-ceremony.html": "Treasure Academy’s school archive looks back at its third graduation ceremony and the 2019 graduands’ next-stage preparation.",
+    "news/2020-fourth-graduation-ceremony.html": "Treasure Academy’s school archive records how the fourth graduating set was recognised during the Covid-19 period in 2020.",
+    "news/2021-fifth-graduation-ceremony.html": "Treasure Academy’s school archive records its fifth graduation and a Common Entrance centre milestone in August 2021.",
+})
+
+for _slug, _name, _focus in [
+    ("creche", "Creche", "gentle early care, routines and speech development"),
+    ("pre-nursery", "Pre-Nursery", "play-based letters, numbers, colours and social learning"),
+    ("nursery-1", "Nursery 1", "phonics, handwriting and early numeracy"),
+    ("nursery-2", "Nursery 2", "reading fluency, spelling and primary-school readiness"),
+    ("primary-1", "Primary 1", "English, Mathematics, handwriting and study habits"),
+    ("primary-2", "Primary 2", "vocabulary, multiplication and confident writing"),
+    ("primary-3", "Primary 3", "reasoning, science discovery and computer skills"),
+    ("primary-4", "Primary 4", "wide reading, problem solving and independent learning"),
+    ("primary-5", "Primary 5", "advanced topics, exam technique and leadership"),
+    ("primary-6", "Primary 6", "Common Entrance practice and secondary-school readiness"),
+]:
+    DESC[f"classes/{_slug}.html"] = f"{_name} at Treasure Academy, Ageva — {_focus}, taught with care in Ageva, Okene, Kogi State."
 
 # Private/receipt utilities that must never appear in search results or the
 # sitemap. The owner explicitly approved admission-form, story and search as
 # public discoverable pages in Batch 53.
-NOINDEX = {"developer.html", "receipt.html"}
+NOINDEX = {
+    "developer.html", "admission-form.html", "receipt.html", "search.html", "class.html", "story.html", "anthem.html",
+    "birthdays.html", "board.html", "holiday.html", "homework.html", "lost-found.html",
+    "openday.html", "photo-day.html", "poster.html", "reading.html",
+    "shop.html", "support.html", "testimonials.html", "volunteer.html",
+    "news/2017-first-graduation-ceremony.html", "news/2018-second-graduation-ceremony.html",
+    "news/2019-third-graduation-ceremony.html", "news/2020-fourth-graduation-ceremony.html",
+    "news/2021-fifth-graduation-ceremony.html",
+}
 
 # PRIVATE is stricter than NOINDEX. A noindex utility page (receipt, search) is
 # still a normal page and keeps its canonical and social tags. A private page
@@ -79,7 +111,9 @@ ORG_LD = {
   "@context": "https://schema.org",
   "@type": "School",
   "name": "Treasure Academy, Ageva",
+  "legalName": "Treasure Academy Ageva Limited",
   "alternateName": "Treasure Academy",
+  "foundingDate": "2016",
   "slogan": "Our God is able",
   "description": "A Creche to Primary 6 private school in Ageva, Okene, Kogi State, Nigeria.",
   "url": SITE + "/",
@@ -98,7 +132,7 @@ ORG_LD = {
   "openingHoursSpecification": [{
     "@type": "OpeningHoursSpecification",
     "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    "opens": "07:00", "closes": "15:00",
+    "opens": "07:30", "closes": "15:00",
   }],
 }
 
@@ -110,12 +144,12 @@ def esc(s):
 
 def title_of(html):
     m = re.search(r"<title>(.*?)</title>", html, re.S)
-    return re.sub(r"\s+", " ", m.group(1)).strip() if m else "Treasure Academy, Ageva"
+    return html_lib.unescape(re.sub(r"\s+", " ", m.group(1))).strip() if m else "Treasure Academy, Ageva"
 
 
 def build():
     import json
-    pages = sorted(glob.glob("*.html"))
+    pages = sorted(glob.glob("*.html") + glob.glob("classes/*.html") + glob.glob("news/*.html"))
     changed = 0
     for p in pages:
         html = open(p, encoding="utf-8").read()
@@ -173,12 +207,15 @@ def build():
             '<meta name="geo.placename" content="Ageva, Okene, Kogi State">',
         ]
         if p == "index.html":
-            ld = dict(ORG_LD)
-            ld["potentialAction"] = {
-                "@type": "SearchAction",
-                "target": {"@type": "EntryPoint", "urlTemplate": SITE + "/search.html?q={search_term_string}"},
-                "query-input": "required name=search_term_string",
+            school = dict(ORG_LD)
+            school.pop("@context", None)
+            school["@id"] = SITE + "/#school"
+            website = {
+              "@type": "WebSite", "@id": SITE + "/#website", "url": SITE + "/",
+              "name": "Treasure Academy, Ageva", "alternateName": "Treasure Academy",
+              "publisher": {"@id": SITE + "/#school"}, "inLanguage": "en-NG",
             }
+            ld = {"@context": "https://schema.org", "@graph": [school, website]}
             block.append('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + "</script>")
         else:
             crumb = {
@@ -189,6 +226,18 @@ def build():
               ],
             }
             block.append('<script type="application/ld+json">' + json.dumps(crumb, ensure_ascii=False) + "</script>")
+            if p == "news/2026-2027-admissions-open.html":
+                article = {
+                  "@context": "https://schema.org", "@type": "NewsArticle",
+                  "headline": "2026/2027 Admissions Are Open",
+                  "datePublished": "2026-09-15", "dateModified": "2026-10-21",
+                  "mainEntityOfPage": canon, "inLanguage": "en-NG",
+                  "author": {"@type": "Organization", "name": "Treasure Academy, Ageva", "url": SITE + "/"},
+                  "publisher": {"@type": "Organization", "name": "Treasure Academy, Ageva", "logo": {"@type": "ImageObject", "url": SITE + "/assets/img/logo.jpg"}},
+                  "image": [SITE + "/assets/img/og-cover.png"],
+                  "description": desc,
+                }
+                block.append('<script type="application/ld+json">' + json.dumps(article, ensure_ascii=False) + "</script>")
         block.append("<!-- seo:end -->")
 
         # Insert before the first stylesheet, whichever it is. Anchoring on one

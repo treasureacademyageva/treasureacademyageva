@@ -3,6 +3,7 @@ Allow: /
 Disallow: /portal/
 Disallow: /developer.html
 Disallow: /developer-review.html
+Disallow: /developer-operations.html
 Disallow: /assets/data/review-gateway.enc.json
 
 Sitemap: https://www.treasureacademyageva.com/sitemap.xml

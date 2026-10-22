@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "prepared": "2026-10-21",
+  "scope": "Public brochure content only; never pupil records, results, health, passwords, payments or safeguarding cases.",
+  "contentTypes": {
+    "page": {
+      "label": "Core Page",
+      "public": true,
+      "fields": ["title", "slug", "summary", "body", "content_owner", "source_reference", "last_reviewed", "next_review", "approval_status"]
+    },
+    "taa_class": {
+      "label": "Class Guide",
+      "public": true,
+      "fields": ["title", "slug", "learning_focus", "highlights", "parent_questions", "content_owner", "source_reference", "last_reviewed", "next_review", "approval_status"]
+    },
+    "taa_update": {
+      "label": "Published Update",
+      "public": true,
+      "fields": ["title", "slug", "summary", "body", "published_date", "expires_at", "content_owner", "source_reference", "last_reviewed", "approval_status"]
+    },
+    "taa_event": {
+      "label": "Confirmed Event",
+      "public": true,
+      "fields": ["title", "slug", "summary", "start_at", "end_at", "location_text", "organiser", "booking_status", "expires_at", "source_reference", "last_reviewed", "approval_status"]
+    },
+    "taa_guidance": {
+      "label": "Office Guidance",
+      "public": true,
+      "allowedTopics": ["fees", "uniform", "transport", "calendar", "pta"],
+      "fields": ["title", "topic", "summary", "body", "effective_from", "expires_at", "content_owner", "source_reference", "last_reviewed", "approval_status"]
+    },
+    "taa_staff": {
+      "label": "Staff Profile",
+      "public": true,
+      "fields": ["public_name", "public_role", "class_or_area", "public_qualification", "approved_biography", "media_record", "source_reference", "last_reviewed", "approval_status"],
+      "forbiddenFields": ["private_phone", "home_address", "date_of_birth", "password", "payroll", "identity_document"]
+    },
+    "taa_policy": {
+      "label": "Policy",
+      "public": true,
+      "fields": ["title", "body", "policy_owner", "effective_date", "last_reviewed", "next_review", "approval_status"]
+    },
+    "attachment": {
+      "label": "Media Record",
+      "public": "Only when media approval is complete",
+      "fields": ["file", "alt_text", "source_or_owner", "authority_reference", "permitted_placements", "review_date", "expiry_date", "approval_status"]
+    }
+  },
+  "approvalStatuses": ["draft", "factual_review", "privacy_review", "owner_approved", "published", "archived"],
+  "requiredForPublication": ["content_owner", "source_reference", "last_reviewed", "approval_status=owner_approved"],
+  "globalRules": {
+    "bankAccountInContent": false,
+    "publicChildRecord": false,
+    "browserGeneratedReceipt": false,
+    "unverifiedReview": false,
+    "mediaWithoutProvenanceAndAuthority": false,
+    "expiredOperationalContentInNavigation": false
+  }
+}
