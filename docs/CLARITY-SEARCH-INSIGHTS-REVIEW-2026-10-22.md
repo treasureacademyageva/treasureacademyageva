@@ -4,7 +4,7 @@
 **Branch:** `improve/clarity-search-insights-20261022`
 **Base commit:** `71fabf986b2e879dff3c1e326aca27ae95116449`
 **Release candidate:** `20261022-ux2`
-**State:** Built and verified locally; not committed, pushed or deployed.
+**State:** Owner-approved production release. Commit `9377d5c` was deployed on 22 October 2026; a follow-up disables automatic requests to the unavailable Web Analytics script.
 
 ## Review summary
 
@@ -38,7 +38,7 @@ It remains deterministic, on-device search. It is not described as AI and does n
 
 The implementation deliberately separates three kinds of information:
 
-- **Anonymous page/performance measurement:** first-party Vercel scripts only, disabled when Do Not Track or Global Privacy Control is active. Speed Insights is loaded from the documented first-party route. Web Analytics is probed and loaded only if the Vercel project starts serving it successfully.
+- **Anonymous page/performance measurement:** first-party Vercel scripts only, disabled when Do Not Track or Global Privacy Control is active. Speed Insights is loaded from the documented first-party route. Web Analytics has an explicit disabled release flag, so visitor pages do not request its missing script.
 - **Session diagnostics:** at most 16 coarse action categories in `sessionStorage`, with no persistent visitor ID, raw search text, typed form data, names, phone numbers, payment details, passwords or child records.
 - **Voluntary reports:** the Website Help page creates a WhatsApp draft containing only broad selected categories, the current page path and an optional `TAUX1-` diagnostic code. It does not copy typed report details or raw search words. The visitor reviews the draft and taps Send; the website does not claim prior delivery.
 
@@ -112,14 +112,12 @@ The implementation follows these external references reviewed for this round:
 - The service worker does not cache private routes or `/_vercel/` insight requests.
 - The prior production archive and rollback branch remain unchanged.
 
-## Owner actions before production
+## Follow-up owner actions
 
-1. Review Search, Website Help, Privacy and Developer Operations wording.
-2. Confirm that the broad WhatsApp problem categories are appropriate.
-3. Revoke the previously exposed temporary GitHub token; do not reuse it.
-4. After approval, create and push a review commit on this branch for a separate Vercel preview.
-5. Keep Web Analytics described as unavailable until the owner enables it in Vercel and a live check succeeds.
-6. Promote only after protected-preview review and a final production crawl.
+1. Revoke every GitHub token exposed during deployment; do not reuse either token.
+2. Review real Website Help reports and confirm that the broad categories remain useful.
+3. Keep Web Analytics unavailable until the owner enables it in Vercel, a live check succeeds and the website release flag is reviewed.
+4. Review Core Web Vitals after enough Speed Insights traffic exists.
 
 ## Suggestions for the next round
 

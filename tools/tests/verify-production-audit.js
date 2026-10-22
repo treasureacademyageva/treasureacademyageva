@@ -37,7 +37,7 @@ ok('chatbot and live timetable are not initialised',!site.includes('TAChatUI.ini
 ok('mobile navigation does not expose a hamburger',css.includes('.menu-toggle{display:none!important}'));
 ok('verified operational fallback is the owner WhatsApp',safe.includes('2349063932487'));
 const insights=read('assets/js/visitor-insights.js');
-ok('anonymous insights are first-party, preference-gated and do not capture form data',insights.includes('/_vercel/speed-insights/script.js')&&insights.includes('navigator.doNotTrack')&&insights.includes('navigator.globalPrivacyControl')&&!/FormData|fingerprint/i.test(insights));
+ok('anonymous insights are first-party, preference-gated and do not capture form data',insights.includes('/_vercel/speed-insights/script.js')&&insights.includes('navigator.doNotTrack')&&insights.includes('navigator.globalPrivacyControl')&&insights.includes('WEB_ANALYTICS_ENABLED = false')&&!insights.includes('fetch("/_vercel/insights')&&!/FormData|fingerprint/i.test(insights));
 ok('CMS strategy and fail-closed starter exist',fs.existsSync(path.join(ROOT,'docs/CMS-SEO-AEO-STRATEGY-2026.md'))&&read('cms/wordpress-migration/treasure-academy-core.php').includes('taa_fail_closed_publication'));
 ok('internal directories excluded from Vercel', ['docs/','db/','tools/','cms/'].every(x=>read('.vercelignore').split(/\r?\n/).includes(x)));
 

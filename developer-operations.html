@@ -28,7 +28,7 @@ main{max-width:1120px;margin:auto;padding:42px 20px 70px}main>section{padding:30
 <div class="sec-head"><span class="sec-tag">Privacy first</span><h2>Understand Use Without Watching People</h2></div>
 <div class="ops-grid">
 <article class="ops-card"><h3>Real performance</h3><p><b>Vercel Speed Insights</b> measures anonymous Core Web Vitals by route, device and network class. Review slow pages in the Vercel dashboard.</p><p>No form content or raw search words are sent.</p></article>
-<article class="ops-card"><h3>Anonymous page trends</h3><p id="analyticsState" class="status-hold"><b>Check required.</b> Web Analytics begins automatically after it is enabled in the Vercel project.</p><p>It should be used for page, device and referrer trends—not raw search text.</p></article>
+<article class="ops-card"><h3>Anonymous page trends</h3><p id="analyticsState" class="status-hold"><b>Not enabled.</b> Web Analytics stays off until the service and website release flag are both reviewed.</p><p>It should be used for page, device and referrer trends—not raw search text.</p></article>
 <article class="ops-card"><h3>Voluntary problem reports</h3><p>Visitors can report missing, unclear, slow or broken pages through verified WhatsApp. Optional diagnostics include only coarse page, browser, screen and action categories.</p><p><a href="/website-help.html">Open the visitor report page</a></p></article>
 </div>
 </section>
@@ -63,7 +63,7 @@ main{max-width:1120px;margin:auto;padding:42px 20px 70px}main>section{padding:30
 <div class="ops-grid">
 <section class="ops-card"><h3>Public posture</h3><ul><li>No public pupil database or browser authentication.</li><li>No browser-generated payment receipt.</li><li>Operational enquiries use verified office channels.</li><li>Private records and internal files remain deployment-excluded.</li></ul></section>
 <section class="ops-card"><h3>Build and test</h3><p><code>npm run build:content</code><br><code>npm test</code><br><code>node tools/tests/browser-visitor-qa.js</code></p><p>Review clarity metrics and search-family tests before release.</p></section>
-<section class="ops-card"><h3>External actions</h3><ul><li>Enable Vercel Web Analytics for anonymous page trends.</li><li>Review Speed Insights by route and device.</li><li>Verify Search Console and sitemap.</li><li>Keep media authority and operational facts current.</li></ul></section>
+<section class="ops-card"><h3>External actions</h3><ul><li>Enable and live-check Web Analytics before changing its release flag.</li><li>Review Speed Insights by route and device.</li><li>Verify Search Console and sitemap.</li><li>Keep media authority and operational facts current.</li></ul></section>
 </div>
 </section>
 <p><a class="btn btn-mint" href="developer-review.html">Encrypted Review Gateway</a> <a class="btn btn-white" href="developer.html">Developer Status</a> <a class="btn btn-white" href="/">Public Website</a></p>
@@ -89,7 +89,7 @@ document.getElementById("runHealth").onclick=function(){
  Promise.all(health.map(function(item){return fetch(item.url,{cache:"no-store"}).then(function(r){return{item:item,status:r.status,ok:r.status===item.expect};}).catch(function(){return{item:item,status:"offline",ok:false};});})).then(function(rows){
   box.innerHTML=rows.map(function(row){var label=row.ok?"Ready":row.item.optional?"Not enabled":"Needs attention";return '<div class="health-item"><b>'+esc(row.item.label)+'</b><span class="'+(row.ok?"status-ok":row.item.optional?"status-hold":"status-bad")+'">'+label+' · '+esc(row.status)+'</span></div>';}).join("");
   var analytics=rows.find(function(row){return row.item.label==="Web Analytics";});
-  var state=document.getElementById("analyticsState");state.className=analytics&&analytics.ok?"status-ok":"status-hold";state.innerHTML=analytics&&analytics.ok?"<b>Enabled.</b> Review anonymous page trends in Vercel.":"<b>Not enabled.</b> Turn on Web Analytics in the Vercel project; the public loader will detect it automatically.";
+  var state=document.getElementById("analyticsState");state.className=analytics&&analytics.ok?"status-ok":"status-hold";state.innerHTML=analytics&&analytics.ok?"<b>Service available.</b> Review privacy, set the website release flag and retest before collecting page views.":"<b>Not enabled.</b> Web Analytics remains off and visitor pages do not request its missing script.";
  });
 };
 function runLab(){

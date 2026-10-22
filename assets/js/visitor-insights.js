@@ -130,20 +130,16 @@
     script.defer = true; script.src = src; script.setAttribute(marker, "1");
     document.head.appendChild(script);
   }
+  var WEB_ANALYTICS_ENABLED = false;
   function enableAnonymousInsights() {
     if (!canMeasure()) return;
-    /* Speed Insights is already enabled for this Vercel project. It records
-       aggregate Web Vitals, route/device/browser class and country, not form values. */
+    /* Speed Insights is enabled for this Vercel project. It records aggregate
+       Web Vitals and broad route/device/browser classes, not form values. */
     loadRemoteScript("/_vercel/speed-insights/script.js", "data-ta-speed-insights");
-    /* Web Analytics is optional. Probe once per session; when the owner enables it
-       in Vercel, page views begin without another website code change. */
-    var probed = "";
-    try { probed = sessionStorage.getItem("taa_analytics_probe") || ""; } catch (error) {}
-    if (probed) return;
-    try { sessionStorage.setItem("taa_analytics_probe", "1"); } catch (error) {}
-    fetch("/_vercel/insights/script.js", {method:"HEAD", cache:"no-store", credentials:"same-origin"}).then(function (response) {
-      if (response.ok && /javascript/i.test(response.headers.get("content-type") || "")) loadRemoteScript("/_vercel/insights/script.js", "data-ta-web-analytics");
-    }).catch(function () {});
+    /* Web Analytics currently returns 404 and must not be requested on visitor
+       pages. Set this reviewed flag only after the owner enables the service and
+       the Developer Operations live check confirms that its script is available. */
+    if (WEB_ANALYTICS_ENABLED) loadRemoteScript("/_vercel/insights/script.js", "data-ta-web-analytics");
   }
 
   window.TA_VISITOR_INSIGHTS = {record:record, snapshot:snapshot, encode:encode, decode:decode, pathGroup:pathGroup};
