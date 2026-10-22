@@ -2,7 +2,7 @@
 
 **Date:** 22 October 2026
 **Scope:** Every public page family in the Treasure Academy website
-**Status:** Implemented for owner review on a separate branch; not deployed to production
+**Status:** Owner approved and deployed to production on 22 October 2026
 
 ## Visitor problems this phase addresses
 

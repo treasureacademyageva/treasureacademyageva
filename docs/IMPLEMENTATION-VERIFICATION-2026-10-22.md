@@ -2,8 +2,9 @@
 
 **Date:** 22 October 2026
 **Branch:** `improve/full-site-audit-20261021`
-**Release state:** Review commit prepared on a separate branch; not deployed to production
-**Production remains:** commit `22f910ec9b54c646960e577fb1a82f405faa5018`
+**Release state:** Owner approved and deployed to production on 22 October 2026
+**Production release:** commit `edba9124dbd91c653b5127dc9b1f474f894a6598`
+**Rollback branch:** `backup/pre-audit-production-20261022` at commit `22f910ec9b54c646960e577fb1a82f405faa5018`
 
 ## Code-side implementation completed
 
@@ -92,6 +93,17 @@
 
 Representative mobile and desktop captures were inspected for the homepage, explore, search, admissions, fees and a class page. The homepage now identifies the school and exposes search/actions above the fold on desktop, while mobile preserves the same tasks in a compact sequence. An initial attempt to defer/reveal content left blank areas in full-page captures; that behavior was removed rather than accepted. The regenerated captures show content without a scroll-trigger dependency. The final 320-pixel run also found and corrected contact/alumni grid overflow.
 
+## Production release verification
+
+- GitHub `main` was fast-forwarded from `22f910e` to the owner-approved release commit `edba912`.
+- Vercel reported the production deployment successful.
+- `https://treasureacademyageva.com/` permanently redirects to `https://www.treasureacademyageva.com/`.
+- The canonical production homepage serves the `20261022-ux1` shell, consolidated stylesheet, Explore route and homepage finder with CSP and HSTS headers.
+- Representative public pages, class/news routes and the new CSS/JavaScript assets returned HTTP 200.
+- Internal database, documentation and tooling paths; private graduate records; the known placeholder; source CSS; and the retired legacy public script returned HTTP 404.
+- The complete production Chromium suite passed 1,384/1,384 checks across 55 public pages at 320×700, 390×844 and 1365×768.
+- The previous release remains recoverable from the remote rollback branch and the separately retained ZIP archive.
+
 ## Owner/external actions that code cannot honestly complete
 
 1. Review the restoration register and identify media or wording that is not real, current or authorised.
@@ -104,6 +116,6 @@ Representative mobile and desktop captures were inspected for the homepage, expl
 8. Complete manual keyboard, 200% zoom, TalkBack/VoiceOver and representative real-device checks. Automated Chromium checks substantially improve confidence but are not assistive-technology certification.
 9. Run Lighthouse/WebPageTest and collect Core Web Vitals/availability data against the eventual preview and production deployment.
 
-## Release recommendation
+## Post-release recommendation
 
-Do not deploy silently. Use the separate review-branch commit to create a Vercel preview, complete owner review against the restoration register, and add any requested corrections before production promotion. DNS and email records do not need to change for this website release. Promote to production only after the owner approves the restored content and preview behavior.
+Keep the rollback branch and archive until the owner has completed an extended real-device review. Record any later wording, media-authority or operational-data corrections as small, separately reviewed commits rather than rewriting release history. DNS and domain-email records require no change for this website release.

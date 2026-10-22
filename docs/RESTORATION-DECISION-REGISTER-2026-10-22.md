@@ -1,7 +1,7 @@
 # Content and Media Restoration Decision Register
 
 **Created:** 22 October 2026
-**Status:** Owner-review register for the preview branch; not production-approved
+**Status:** Owner approved the release on 22 October 2026; unresolved provenance and publication-evidence items remain tracked for later confirmation
 **Owner direction recorded:** Restore the previous website’s writing and media now; the owner will later identify anything that is not real or should change.
 
 This register preserves that direction without pretending that unresolved provenance, publication authority or factual freshness has already been verified. The inventory contains 108 files: 80 restored/held source assets plus 28 locally generated responsive WebP derivatives. It records SHA-256 hashes, present references and item-level treatment in `docs/MEDIA-RESTORATION-INVENTORY-2026-10-22.csv`.
