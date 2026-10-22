@@ -57,7 +57,56 @@ KEYWORDS = {
     "board.html": "notice announcement current update",
     "holiday.html": "holiday assignment learning break",
     "poster.html": "poster uniform supplies list",
+    "website-help.html": "website help broken page missing information unclear writing error problem report feedback accessibility slow loading search not useful",
 }
+
+PAGE_FAMILIES = {
+    "index.html": "identity admissions classes learning",
+    "about.html": "identity location",
+    "admissions.html": "admissions classes fees",
+    "admission-form.html": "admissions fees",
+    "academics.html": "learning classes",
+    "fees.html": "fees",
+    "contact.html": "contact location time feedback",
+    "calendar.html": "dates time",
+    "news.html": "news dates",
+    "uniform.html": "uniform fees shop",
+    "transport.html": "transport fees",
+    "safeguarding.html": "safety contact",
+    "privacy.html": "privacy",
+    "portal/login.html": "records contact",
+    "elearning.html": "learning homework",
+    "receipt.html": "fees records",
+    "pta.html": "contact news",
+    "careers.html": "careers contact",
+    "shop.html": "shop fees uniform",
+    "explore.html": "website",
+    "welcome.html": "admissions uniform transport fees",
+    "anthem.html": "identity",
+    "alumni.html": "alumni records",
+    "exams.html": "learning records dates",
+    "homework.html": "homework learning",
+    "reading.html": "learning homework",
+    "lost-found.html": "contact",
+    "support.html": "contact fees",
+    "volunteer.html": "contact safety",
+    "testimonials.html": "feedback contact",
+    "openday.html": "location admissions",
+    "photo-day.html": "privacy news",
+    "birthdays.html": "news",
+    "board.html": "news dates",
+    "holiday.html": "homework dates learning",
+    "poster.html": "uniform shop",
+    "website-help.html": "website feedback contact",
+}
+
+
+def families_for(path: str) -> str:
+    if path.startswith("classes/"):
+        return "classes learning"
+    if path.startswith("news/"):
+        return "news dates" + (" admissions" if "admissions" in path else " alumni identity")
+    return PAGE_FAMILIES.get(path, "")
 
 
 def category_for(path: str) -> str:
@@ -67,7 +116,7 @@ def category_for(path: str) -> str:
         return "News & dates"
     if path in {"admissions.html", "admission-form.html", "fees.html", "uniform.html", "transport.html", "welcome.html", "openday.html", "receipt.html"}:
         return "Admissions & visits"
-    if path in {"contact.html", "safeguarding.html", "privacy.html", "pta.html", "lost-found.html", "testimonials.html", "portal/login.html"}:
+    if path in {"contact.html", "safeguarding.html", "privacy.html", "pta.html", "lost-found.html", "testimonials.html", "portal/login.html", "website-help.html"}:
         return "Family help"
     if path in {"about.html", "anthem.html", "alumni.html", "careers.html", "support.html", "volunteer.html", "shop.html", "poster.html"}:
         return "Our school"
@@ -110,6 +159,7 @@ for path in paths:
         "d": description,
         "c": category,
         "k": " ".join(filter(None, [KEYWORDS.get(rel, ""), name_words, title, description])),
+        "f": families_for(rel),
         "p": priority,
     })
 

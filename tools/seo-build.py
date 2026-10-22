@@ -54,6 +54,7 @@ DESC = {
  "uniform.html": "Uniform guidance for Treasure Academy, Ageva — ask the office to confirm the current approved list, sizes, prices and stock before paying.",
  "volunteer.html": "Volunteer enquiries for Treasure Academy, Ageva — contact the office to discuss skills, supervision and required safeguarding checks before a visit.",
  "welcome.html": "New-family checklist for Treasure Academy, Ageva — confirm admission, start date, fees, uniform, books, transport and parent support with the office.",
+ "website-help.html": "Report a missing, unclear or broken Treasure Academy website page through verified WhatsApp, with optional privacy-safe diagnostics.",
 }
 
 DESC["news/2026-2027-admissions-open.html"] = "Treasure Academy, Ageva is receiving 2026/2027 admission enquiries from Creche to Primary 6. Follow the verified, bank-transfer-safe application steps."
@@ -86,7 +87,7 @@ NOINDEX = {
     "developer.html", "admission-form.html", "receipt.html", "search.html", "class.html", "story.html", "anthem.html",
     "birthdays.html", "board.html", "holiday.html", "homework.html", "lost-found.html",
     "openday.html", "photo-day.html", "poster.html", "reading.html",
-    "shop.html", "support.html", "testimonials.html", "volunteer.html",
+    "shop.html", "support.html", "testimonials.html", "volunteer.html", "website-help.html",
     "news/2017-first-graduation-ceremony.html", "news/2018-second-graduation-ceremony.html",
     "news/2019-third-graduation-ceremony.html", "news/2020-fourth-graduation-ceremony.html",
     "news/2021-fifth-graduation-ceremony.html",
@@ -147,6 +148,19 @@ def title_of(html):
     return html_lib.unescape(re.sub(r"\s+", " ", m.group(1))).strip() if m else "Treasure Academy, Ageva"
 
 
+def insert_seo_block(html, block):
+    """Insert one clean block before the first stylesheet and remain idempotent."""
+    marker = (re.search(r'([ \t]*)<link rel="stylesheet"', html)
+              or re.search(r'([ \t]*)<title[ >]', html)
+              or re.search(r'([ \t]*)</head>', html))
+    if not marker:
+        return None
+    indent = marker.group(1)
+    prefix = html[:marker.start()].rstrip()
+    suffix = html[marker.start():].lstrip("\r\n")
+    return prefix + "\n\n" + indent + ("\n" + indent).join(block) + "\n\n" + suffix
+
+
 def build():
     import json
     pages = sorted(glob.glob("*.html") + glob.glob("classes/*.html") + glob.glob("news/*.html"))
@@ -174,13 +188,9 @@ def build():
             # asking crawlers to ignore is self-defeating.
             block.append('<meta name="robots" content="noindex, nofollow">')
             block.append("<!-- seo:end -->")
-            marker = (re.search(r'([ \t]*)<link rel="stylesheet"', html)
-                      or re.search(r'([ \t]*)<title[ >]', html)
-                      or re.search(r'([ \t]*)</head>', html))
-            if not marker:
+            html = insert_seo_block(html, block)
+            if html is None:
                 print("  no anchor:", p); continue
-            ind = "\n" + marker.group(1)
-            html = html[:marker.start()] + ind + ind.join(block) + html[marker.start():]
             if html != orig:
                 open(p, "w", encoding="utf-8").write(html); changed += 1
             continue
@@ -243,13 +253,9 @@ def build():
         # Insert before the first stylesheet, whichever it is. Anchoring on one
         # specific filename broke silently when fonts.css was retired, so fall
         # back through <link rel=stylesheet>, then <title>, then <head>.
-        marker = (re.search(r'([ \t]*)<link rel="stylesheet"', html)
-                  or re.search(r'([ \t]*)<title[ >]', html)
-                  or re.search(r'([ \t]*)</head>', html))
-        if not marker:
+        html = insert_seo_block(html, block)
+        if html is None:
             print("  no anchor:", p); continue
-        ind = "\n" + marker.group(1)
-        html = html[:marker.start()] + ind + ind.join(block) + html[marker.start():]
 
         if html != orig:
             open(p, "w", encoding="utf-8").write(html)

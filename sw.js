@@ -1,10 +1,11 @@
 /* Treasure Academy offline shell. Never cache private, operational or review routes. */
-const CACHE = 'treasure-v20261022-ux1';
+const CACHE = 'treasure-v20261022-ux2';
 const CORE = [
   '/', '/index.html', '/about.html', '/academics.html', '/admissions.html',
   '/contact.html', '/news.html', '/privacy.html', '/safeguarding.html', '/explore.html', '/search.html', '/404.html',
-  '/assets/css/site.css?v=20261022-ux1',
-  '/assets/js/theme-init.js?v=20261022-ux1', '/assets/js/public-shell.js?v=20261022-ux1',
+  '/assets/css/site.css?v=20261022-ux2',
+  '/assets/js/theme-init.js?v=20261022-ux2', '/assets/js/visitor-insights.js?v=20261022-ux2',
+  '/assets/js/public-shell.js?v=20261022-ux2',
   '/assets/img/logo.jpg', '/assets/img/icons.svg',
   '/assets/fonts/general-sans-400.woff2', '/assets/fonts/clash-display-600.woff2'
 ];
@@ -45,7 +46,7 @@ async function cacheOk(request, response) {
 self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
-  if (request.method !== 'GET' || url.origin !== self.location.origin || isPrivate(url.pathname)) return;
+  if (request.method !== 'GET' || url.origin !== self.location.origin || isPrivate(url.pathname) || url.pathname.startsWith('/_vercel/')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(

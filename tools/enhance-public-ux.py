@@ -9,7 +9,7 @@ from urllib.parse import quote
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "20261022-ux1"
+VERSION = "20261022-ux2"
 SKIP_SHELL = {"developer.html", "developer-review.html", "developer-operations.html"}
 STORE_PAGES = {"index.html", "contact.html"}
 SAFE_ACTION_PAGES = {"admissions.html", "contact.html"}
@@ -17,6 +17,7 @@ SAFE_ACTION_PAGES = {"admissions.html", "contact.html"}
 
 def page_group(rel: str) -> str:
     if rel in {"search.html", "explore.html", "404.html"}: return "other"
+    if rel == "website-help.html": return "contact"
     if rel == "index.html": return "home"
     if rel in {"about.html", "anthem.html", "alumni.html", "careers.html", "support.html", "volunteer.html"}: return "about"
     if rel in {"admissions.html", "admission-form.html", "welcome.html", "openday.html"} or rel == "news/2026-2027-admissions-open.html": return "admissions"
@@ -95,7 +96,7 @@ def footer() -> str:
     return '''<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid">
 <div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt=""><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
 <div class="uf-col"><h2>Find it fast</h2><nav class="uf-links" aria-label="Popular pages"><a href="/admissions.html">Admissions</a><a href="/academics.html">Classes</a><a href="/fees.html">Fees</a><a href="/calendar.html">Term dates</a><a href="/uniform.html">Uniform</a><a href="/transport.html">Transport</a></nav></div>
-<div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/about.html">About the school</a><a href="/news.html">News &amp; updates</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/search.html">Search</a></nav></div>
+<div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/about.html">About the school</a><a href="/news.html">News &amp; updates</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/website-help.html">Website help</a></nav></div>
 <div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
 </div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span></div></div></footer>'''
 
@@ -194,9 +195,11 @@ for path in paths:
 
     # Preserve the shared shell's current position on script-dependent core pages.
     shell_rx = r'<script\b[^>]*src=["\'][^"\']*assets/js/(?:site|public-shell)\.js[^"\']*["\'][^>]*></script>'
+    insight_rx = r'\s*<script\b[^>]*src=["\'][^"\']*assets/js/visitor-insights\.js[^"\']*["\'][^>]*></script>'
+    text = re.sub(insight_rx, "", text, flags=re.I)
     text, shell_count = re.subn(shell_rx, "__UX_SHELL__", text, count=1, flags=re.I)
     text = re.sub(shell_rx, "", text, flags=re.I)
-    shell_tag = f'<script src="/assets/js/public-shell.js?v={VERSION}"></script>'
+    shell_tag = f'<script src="/assets/js/visitor-insights.js?v={VERSION}"></script>\n<script src="/assets/js/public-shell.js?v={VERSION}"></script>'
     if shell_count:
         text = text.replace("__UX_SHELL__", shell_tag, 1)
     else:
@@ -237,7 +240,7 @@ for path in paths:
     text = text.replace("</body>", mobile_dock(rel) + "\n</body>", 1)
 
     text = optimize_images(text)
-    text = text.replace("20261022-restoration1", VERSION)
+    text = text.replace("20261022-restoration1", VERSION).replace("20261022-ux1", VERSION)
     text = "\n".join(line.rstrip() for line in text.split("\n"))
     path.write_text(text, encoding="utf-8")
     enhanced_count += 1

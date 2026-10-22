@@ -148,7 +148,7 @@ def main():
         forbidden=[
           ('demo credential','head001'),('demo phone','0805 111 2222'),('candidate number','bs/okn/141001'),
           ('fabricated performance claim','100% common entrance'),('fake result portal','results published to parent portal'),
-          ('unsafe success','order received!'),('unsafe success','application received.'),('failed analytics','/_vercel/insights/script.js'),
+          ('unsafe success','order received!'),('unsafe success','application received.'),
           ('known placeholder','class-feature.jpg')]
         if not rel.startswith('developer-review'):
             for label,needle in forbidden:

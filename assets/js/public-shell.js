@@ -114,6 +114,29 @@
     });
   }
 
+  function initPageOutline() {
+    var main = document.querySelector("main#main");
+    if (!main || /\/$/.test(location.pathname) || /\/(?:index|search|explore|404|website-help)\.html$/.test(location.pathname)) return;
+    var headings = Array.prototype.slice.call(main.querySelectorAll("h2")).filter(function (heading) {
+      return heading.textContent.trim().length > 2 && !heading.closest(".page-outline") && !heading.closest("[hidden]");
+    });
+    var unique = [];
+    headings.forEach(function (heading) {
+      var label = heading.textContent.replace(/\s+/g, " ").trim();
+      if (unique.some(function (item) { return item.label === label; }) || unique.length >= 7) return;
+      if (!heading.id) heading.id = "section-" + (unique.length + 1);
+      unique.push({id:heading.id,label:label});
+    });
+    if (unique.length < 3) return;
+    var wrap = document.createElement("div");
+    wrap.className = "page-outline-wrap container";
+    wrap.innerHTML = '<details class="page-outline"><summary>On this page</summary><nav aria-label="On this page">' + unique.map(function (item) {
+      return '<a href="#' + escapeHtml(item.id) + '">' + escapeHtml(item.label) + '</a>';
+    }).join("") + '</nav></details>';
+    main.insertBefore(wrap, main.firstChild);
+    try { if (window.matchMedia("(min-width: 960px)").matches) wrap.firstElementChild.open = true; } catch (error) {}
+  }
+
   function registerServiceWorker() {
     if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
     navigator.serviceWorker.register("/sw.js").catch(function () {});
@@ -137,6 +160,7 @@
     initTheme();
     initReveal();
     enhanceFaqs();
+    initPageOutline();
     markCurrentDockItem();
     registerServiceWorker();
   });

@@ -1,4 +1,120 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Website Operations — Treasure Academy</title><style>main{max-width:920px;margin:auto;padding:50px 20px}.ops-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}.ops-card{border:1px solid var(--line);border-radius:16px;padding:20px;background:var(--surface)}code{overflow-wrap:anywhere}.status-ok{color:#087a42}.status-hold{color:#9a6200}</style>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="/assets/js/theme-init.js?v=20261022-ux2"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Website Operations — Treasure Academy</title>
+<style>
+main{max-width:1120px;margin:auto;padding:42px 20px 70px}main>section{padding:30px 0}.ops-lead{max-width:72ch}.ops-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 28px}.ops-nav a{padding:8px 11px;border:1px solid var(--line);border-radius:999px;text-decoration:none;font-weight:750}.ops-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.ops-card{border:1px solid var(--line);border-radius:16px;padding:20px;background:var(--surface)}.ops-card h2,.ops-card h3{margin-top:0}code{overflow-wrap:anywhere}.status-ok{color:#087a42}.status-hold{color:#9a6200}.status-bad{color:#a11b2b}.metric{font-size:1.8rem;font-weight:850;color:var(--green)}.lab-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.lab-row input,.report-input{width:100%}.lab-output{margin-top:14px;padding:14px;border-radius:12px;background:var(--bg-2);min-height:58px}.lab-output ol{margin-bottom:0}.health-list{display:grid;gap:8px;margin-top:14px}.health-item{display:flex;justify-content:space-between;gap:12px;padding:10px;border-radius:10px;background:var(--bg-2)}.quality-table{width:100%;border-collapse:collapse;font-size:.84rem}.quality-table th,.quality-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left}.quality-table th{color:var(--muted)}.report-list{display:grid;gap:8px;margin-top:12px}.report-item{padding:12px;border:1px solid var(--line);border-radius:10px}.report-item code{display:block;font-size:.76rem}@media(max-width:680px){.lab-row{grid-template-columns:1fr}.quality-scroll{overflow:auto}.health-item{display:grid}}
+</style>
 
-<link rel="stylesheet" href="/assets/css/site.css?v=20261022-ux1">
-</head><body><main><span class="sec-tag">Developer Operations</span><h1>Public Website Quality and CMS Plan</h1><p>This noindex page summarises the code-side operating model. It contains no credentials and is not the school-record portal.</p><div class="ops-grid"><section class="ops-card"><h2>Production posture</h2><p class="status-ok"><b>Static brochure and verified contacts</b></p><ul><li>No public pupil database or browser authentication.</li><li>No browser-generated payment receipt.</li><li>Operational enquiries open the verified school office channel.</li><li>Retired portal routes redirect to support.</li></ul></section><section class="ops-card"><h2>SEO and AEO</h2><ul><li>Canonical host: <code>www.treasureacademyageva.com</code></li><li>Unique metadata, class URLs and published-news URL.</li><li>School/WebSite, Breadcrumb and NewsArticle JSON-LD.</li><li>Indexable sitemap excludes utilities and retired campaigns.</li><li>No fake review schema, AI-only markup or invented facts.</li></ul></section><section class="ops-card"><h2>CMS direction</h2><p><b>Managed conventional WordPress</b> is the proposed owner-friendly public CMS. Keep pupil records and payments in a separate authenticated system.</p><p>Repository plan: <code>docs/CMS-SEO-AEO-STRATEGY-2026.md</code><br>Starter: <code>cms/wordpress-migration/</code></p></section><section class="ops-card"><h2>Content workflow</h2><p>Draft → factual review → privacy/safeguarding review → owner approval → publish → scheduled review → archive.</p><p>Operational content needs a source, owner, last-reviewed date and expiry/review date.</p></section><section class="ops-card"><h2>Build commands</h2><p><code>python3 tools/build-safe-utility-pages.py</code><br><code>python3 tools/build-class-pages.py</code><br><code>python3 tools/seo-build.py</code><br><code>python3 tools/audit-production-site.py</code></p></section><section class="ops-card"><h2>Owner/account actions</h2><p class="status-hold"><b>External verification required</b></p><ul><li>Search Console and sitemap submission</li><li>Google Business Profile and exact map pin</li><li>Domain mailbox</li><li>Owner-approved media register</li><li>Managed WordPress staging account</li></ul></section></div><p><a class="btn btn-mint" href="developer-review.html">Encrypted Review Gateway</a> <a class="btn btn-white" href="developer.html">Developer Status</a> <a class="btn btn-white" href="/">Public Website</a></p></main></body></html>
+<link rel="stylesheet" href="/assets/css/site.css?v=20261022-ux2">
+</head>
+<body>
+<main>
+<span class="sec-tag">Developer Operations</span>
+<h1>Website Quality &amp; User-Problem Dashboard</h1>
+<p class="ops-lead">A noindex, browser-local operations page. It contains no credentials or pupil records. Search tests and imported problem diagnostics stay in this browser.</p>
+<nav class="ops-nav" aria-label="Operations sections"><a href="#health">Live health</a><a href="#insights">User insights</a><a href="#search-lab">Search lab</a><a href="#clarity">Writing clarity</a><a href="#reports">Problem reports</a><a href="#release">Release checks</a></nav>
+
+<section id="health">
+<div class="sec-head"><span class="sec-tag">Live checks</span><h2>Website Health</h2><p>Check the production routes and insight services without exposing credentials.</p></div>
+<div class="ops-card"><button class="btn btn-mint" id="runHealth" type="button">Run Live Health Check</button><div id="healthList" class="health-list" aria-live="polite"><p>Checks have not run.</p></div></div>
+</section>
+
+<section id="insights">
+<div class="sec-head"><span class="sec-tag">Privacy first</span><h2>Understand Use Without Watching People</h2></div>
+<div class="ops-grid">
+<article class="ops-card"><h3>Real performance</h3><p><b>Vercel Speed Insights</b> measures anonymous Core Web Vitals by route, device and network class. Review slow pages in the Vercel dashboard.</p><p>No form content or raw search words are sent.</p></article>
+<article class="ops-card"><h3>Anonymous page trends</h3><p id="analyticsState" class="status-hold"><b>Check required.</b> Web Analytics begins automatically after it is enabled in the Vercel project.</p><p>It should be used for page, device and referrer trends—not raw search text.</p></article>
+<article class="ops-card"><h3>Voluntary problem reports</h3><p>Visitors can report missing, unclear, slow or broken pages through verified WhatsApp. Optional diagnostics include only coarse page, browser, screen and action categories.</p><p><a href="/website-help.html">Open the visitor report page</a></p></article>
+</div>
+</section>
+
+<section id="search-lab">
+<div class="sec-head"><span class="sec-tag">Meaning-aware retrieval</span><h2>Search Relevance Lab</h2><p>Test wording, related word families and misspellings locally.</p></div>
+<div class="ops-card">
+<label for="labQuery">Test a visitor question</label>
+<div class="lab-row"><input id="labQuery" type="search" placeholder="For example: What are the school charges?"><button class="btn btn-mint" id="runLab" type="button">Analyse</button></div>
+<div id="labOutput" class="lab-output" aria-live="polite">Enter a question to see families, stems and ranked pages.</div>
+</div>
+</section>
+
+<section id="clarity">
+<div class="sec-head"><span class="sec-tag">Content quality</span><h2>Writing Clarity</h2><p>Generated checks flag long blocks, vague links, missing H1s and unlabelled forms.</p></div>
+<div id="clarityCards" class="ops-grid"></div>
+<div class="ops-card" style="margin-top:16px"><h3>Pages needing attention</h3><div class="quality-scroll"><table class="quality-table"><thead><tr><th>Page</th><th>Words</th><th>Longest block</th><th>Issues</th></tr></thead><tbody id="qualityRows"></tbody></table></div></div>
+</section>
+
+<section id="reports">
+<div class="sec-head"><span class="sec-tag">Browser-local review</span><h2>Problem Report Diagnostics</h2><p>Paste a <code>TAUX1-...</code> code from a WhatsApp problem report. Only the safe diagnostics are imported; the visitor’s written message is not stored here.</p></div>
+<div class="ops-card">
+<label for="reportCode">Diagnostic code or report text</label>
+<textarea id="reportCode" class="report-input" rows="4" placeholder="Paste TAUX1 code"></textarea>
+<p><button class="btn btn-mint" id="addReport" type="button">Import Safe Diagnostics</button> <button class="btn btn-white" id="exportReports" type="button">Export Summary CSV</button> <button class="btn btn-white" id="clearReports" type="button">Clear Local Reports</button></p>
+<div id="reportStatus" role="status" aria-live="polite"></div><div id="reportList" class="report-list"></div>
+</div>
+</section>
+
+<section id="release">
+<div class="sec-head"><span class="sec-tag">Operations</span><h2>Release &amp; Content Controls</h2></div>
+<div class="ops-grid">
+<section class="ops-card"><h3>Public posture</h3><ul><li>No public pupil database or browser authentication.</li><li>No browser-generated payment receipt.</li><li>Operational enquiries use verified office channels.</li><li>Private records and internal files remain deployment-excluded.</li></ul></section>
+<section class="ops-card"><h3>Build and test</h3><p><code>npm run build:content</code><br><code>npm test</code><br><code>node tools/tests/browser-visitor-qa.js</code></p><p>Review clarity metrics and search-family tests before release.</p></section>
+<section class="ops-card"><h3>External actions</h3><ul><li>Enable Vercel Web Analytics for anonymous page trends.</li><li>Review Speed Insights by route and device.</li><li>Verify Search Console and sitemap.</li><li>Keep media authority and operational facts current.</li></ul></section>
+</div>
+</section>
+<p><a class="btn btn-mint" href="developer-review.html">Encrypted Review Gateway</a> <a class="btn btn-white" href="developer.html">Developer Status</a> <a class="btn btn-white" href="/">Public Website</a></p>
+</main>
+<script src="/assets/js/search-index.js?v=20261022-ux2"></script>
+<script src="/assets/js/smart-search.js?v=20261022-ux2"></script>
+<script src="/assets/js/content-quality.js?v=20261022-ux2"></script>
+<script>
+(function(){
+"use strict";
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function statusClass(ok){return ok?"status-ok":"status-bad";}
+var health=[
+ {label:"Homepage",url:"/",expect:200},
+ {label:"Search",url:"/search.html",expect:200},
+ {label:"Website help",url:"/website-help.html",expect:200},
+ {label:"Sitemap",url:"/sitemap.xml",expect:200},
+ {label:"Speed Insights",url:"/_vercel/speed-insights/script.js",expect:200},
+ {label:"Web Analytics",url:"/_vercel/insights/script.js",expect:200,optional:true}
+];
+document.getElementById("runHealth").onclick=function(){
+ var box=document.getElementById("healthList");box.innerHTML="<p>Checking…</p>";
+ Promise.all(health.map(function(item){return fetch(item.url,{cache:"no-store"}).then(function(r){return{item:item,status:r.status,ok:r.status===item.expect};}).catch(function(){return{item:item,status:"offline",ok:false};});})).then(function(rows){
+  box.innerHTML=rows.map(function(row){var label=row.ok?"Ready":row.item.optional?"Not enabled":"Needs attention";return '<div class="health-item"><b>'+esc(row.item.label)+'</b><span class="'+(row.ok?"status-ok":row.item.optional?"status-hold":"status-bad")+'">'+label+' · '+esc(row.status)+'</span></div>';}).join("");
+  var analytics=rows.find(function(row){return row.item.label==="Web Analytics";});
+  var state=document.getElementById("analyticsState");state.className=analytics&&analytics.ok?"status-ok":"status-hold";state.innerHTML=analytics&&analytics.ok?"<b>Enabled.</b> Review anonymous page trends in Vercel.":"<b>Not enabled.</b> Turn on Web Analytics in the Vercel project; the public loader will detect it automatically.";
+ });
+};
+function runLab(){
+ var query=document.getElementById("labQuery").value.trim(),box=document.getElementById("labOutput");
+ if(!query){box.textContent="Enter a question first.";return;}
+ var a=TA_SMART_SEARCH.analyze(query),answer=TA_SMART_SEARCH.directAnswer(query),ranked=(window.TA_SEARCH_INDEX||[]).map(function(e){return{e:e,s:TA_SMART_SEARCH.score(e,query)};}).filter(function(x){return x.s>=16;}).sort(function(a,b){return b.s-a.s;}).slice(0,5);
+ box.innerHTML='<p><b>Families:</b> '+esc(a.families.map(function(f){return f.label;}).join(", ")||"No reviewed family yet")+'<br><b>Base forms:</b> '+esc(a.roots.join(", ")||"—")+'<br><b>Direct answer:</b> '+esc(answer?answer.title:"None")+'</p><ol>'+ranked.map(function(x){return '<li><b>'+esc(x.e.t)+'</b> <small>score '+x.s+'</small></li>';}).join("")+'</ol>';
+}
+document.getElementById("runLab").onclick=runLab;document.getElementById("labQuery").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();runLab();}});
+var quality=window.TA_CONTENT_QUALITY||{pageCount:0,totals:{},pages:[]};
+document.getElementById("clarityCards").innerHTML=[
+ [quality.pageCount,"Public pages checked"],[quality.totals.longBlocks||0,"Blocks over 65 words"],[quality.totals.vagueLinks||0,"Vague link labels"],[quality.totals.pagesWithIssues||0,"Pages with flagged issues"]
+].map(function(x){return '<article class="ops-card"><div class="metric">'+x[0]+'</div><p>'+esc(x[1])+'</p></article>';}).join("");
+var flagged=(quality.pages||[]).filter(function(p){return p.issues.length;});
+document.getElementById("qualityRows").innerHTML=flagged.length?flagged.map(function(p){return '<tr><td>'+esc(p.page)+'</td><td>'+p.words+'</td><td>'+p.longest+'</td><td>'+esc(p.issues.join(", "))+'</td></tr>';}).join(""):'<tr><td colspan="4" class="status-ok">No automated clarity issues.</td></tr>';
+var REPORT_KEY="taa_dev_safe_reports_v1";
+function reports(){try{var r=JSON.parse(localStorage.getItem(REPORT_KEY)||"[]");return Array.isArray(r)?r:[];}catch(e){return[];}}
+function save(r){localStorage.setItem(REPORT_KEY,JSON.stringify(r.slice(-100)));renderReports();}
+function decode(value){var m=String(value||"").match(/TAUX1-[A-Za-z0-9_-]+/);if(!m)throw new Error("No TAUX1 code found.");var b=m[0].slice(6).replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";var binary=atob(b),bytes=Uint8Array.from(binary,function(c){return c.charCodeAt(0);}),r=JSON.parse(new TextDecoder().decode(bytes));if(!r||r.v!==1||!Array.isArray(r.events))throw new Error("Unsupported diagnostic code.");return r;}
+function renderReports(){var list=reports(),box=document.getElementById("reportList");box.innerHTML=list.length?list.slice().reverse().map(function(r){var searches=r.events.filter(function(e){return e.t==="search"||e.t==="search_refine";});var errors=r.events.filter(function(e){return /error/.test(e.t);});return '<article class="report-item"><b>'+esc(r.page)+' · '+esc(r.viewport)+' · '+esc(r.browser)+'</b><p>'+searches.length+' search signal(s), '+errors.length+' error signal(s), '+r.events.length+' safe action(s).</p><code>'+esc(r.path)+'</code></article>';}).join(""):'<p>No safe diagnostics imported in this browser.</p>';}
+document.getElementById("addReport").onclick=function(){var out=document.getElementById("reportStatus");try{var r=decode(document.getElementById("reportCode").value);var all=reports();all.push(r);save(all);out.className="status-ok";out.textContent="Safe diagnostics imported. Written problem details were not stored.";document.getElementById("reportCode").value="";}catch(e){out.className="status-bad";out.textContent=e.message;}};
+document.getElementById("clearReports").onclick=function(){localStorage.removeItem(REPORT_KEY);renderReports();document.getElementById("reportStatus").textContent="Local reports cleared.";};
+document.getElementById("exportReports").onclick=function(){var rows=[["page","path","viewport","browser","theme","online","actions","searches","errors"]].concat(reports().map(function(r){return[r.page,r.path,r.viewport,r.browser,r.theme,r.online,r.events.length,r.events.filter(function(e){return e.t==="search"||e.t==="search_refine";}).length,r.events.filter(function(e){return /error/.test(e.t);}).length];}));var csv=rows.map(function(row){return row.map(function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"';}).join(",");}).join("\n");var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="treasure-academy-safe-problem-summary.csv";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);};
+renderReports();
+})();
+</script>
+</body>
+</html>

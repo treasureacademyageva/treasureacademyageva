@@ -52,13 +52,35 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
  for(const rel of ['index.html','explore.html','search.html','admissions.html','fees.html','classes/primary-1.html']){
   const page=await context.newPage();await page.goto(new URL(rel,BASE).href,{waitUntil:'networkidle'});await page.screenshot({path:path.join(OUT,rel.replaceAll('/','-').replace('.html','')+'-mobile.png'),fullPage:true});await page.close();
  }
+ const homeSearch=await context.newPage();
+ await homeSearch.goto(new URL('index.html',BASE).href,{waitUntil:'domcontentloaded'});
+ await homeSearch.fill('#homeQuery','school dress');await homeSearch.click('.home-finder button[type="submit"]');await homeSearch.waitForURL(/search\.html$/);
+ ok('homepage search transfers privately without a query-string leak',await homeSearch.inputValue('#smartQuery')==='school dress'&&!homeSearch.url().includes('?'));
+ await homeSearch.close();
  const search=await context.newPage();
  await search.goto(new URL('search.html',BASE).href,{waitUntil:'domcontentloaded'});
  await search.fill('#smartQuery','unifrom');await search.click('#smartSearchForm button[type="submit"]');
  ok('browser smart search finds a misspelled uniform query',await search.locator('.search-result h2',{hasText:'Uniform'}).count()>0);
- await search.fill('#smartQuery','how much are the school fees');await search.click('#smartSearchForm button[type="submit"]');
- ok('browser smart search renders a direct fee answer',await search.locator('.answer-card',{hasText:'current written fee schedule'}).count()>0);
- await search.close();await context.close();
+ await search.fill('#smartQuery','how much are the school charges');await search.click('#smartSearchForm button[type="submit"]');
+ ok('browser smart search renders a direct fee answer from related wording',await search.locator('.answer-card',{hasText:'current written fee schedule'}).count()>0);
+ ok('browser search keeps raw query text out of the URL',!search.url().includes('charges'),search.url());
+ await search.fill('#smartQuery','former student history');await search.click('#smartSearchForm button[type="submit"]');
+ ok('browser meaning search connects former students to alumni',await search.locator('.search-result h2',{hasText:/Former Pupil|Alumni/i}).count()>0);
+ const help=await context.newPage();await help.goto(new URL('website-help.html',BASE).href,{waitUntil:'domcontentloaded'});
+ await help.click('#previewDiagnostics');
+ const diagnosticText=await help.locator('#diagnosticPreview').innerText();
+ ok('website problem report can preview a safe diagnostic code',/^Safe diagnostic code: TAUX1-/.test(diagnosticText));
+ await help.evaluate(()=>{window.open=url=>{window.__reportUrl=url;};});
+ await help.selectOption('#problemType',{label:'Writing was unclear'});await help.selectOption('#problemGoal',{label:'Fees or payment guidance'});await help.click('#problemForm button[type="submit"]');
+ const reportDraft=decodeURIComponent(await help.evaluate(()=>window.__reportUrl||''));
+ ok('WhatsApp report draft contains categories but no typed form details',/wa\.me\/2349063932487/.test(reportDraft)&&/Problem category: Writing was unclear/.test(reportDraft)&&/Task area: Fees or payment guidance/.test(reportDraft)&&!/I was trying to:|What happened:/.test(reportDraft));
+ const dev=await context.newPage();await dev.goto(new URL('developer-operations.html',BASE).href,{waitUntil:'domcontentloaded'});
+ await dev.fill('#labQuery','school charges');await dev.click('#runLab');
+ ok('developer search lab explains related fee wording',await dev.locator('#labOutput',{hasText:'Fees & payments'}).count()>0);
+ await dev.fill('#reportCode',diagnosticText);await dev.click('#addReport');
+ ok('developer dashboard imports only safe problem diagnostics',await dev.locator('#reportStatus',{hasText:'Safe diagnostics imported'}).count()>0&&await dev.locator('.report-item').count()===1);
+ await dev.click('#clearReports');
+ await dev.close();await help.close();await search.close();await context.close();
  const dark=await browser.newContext({viewport:{width:390,height:844},colorScheme:'dark'});
  for(const rel of ['index.html','fees.html','search.html']){
   const page=await dark.newPage();await page.goto(new URL(rel,BASE).href,{waitUntil:'domcontentloaded'});
