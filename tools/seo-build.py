@@ -118,7 +118,6 @@ ORG_LD = {
   "slogan": "Our God is able",
   "description": "A Creche to Primary 6 private school in Ageva, Okene, Kogi State, Nigeria.",
   "url": SITE + "/",
-  "logo": SITE + "/assets/img/logo.jpg",
   "image": SITE + "/assets/img/og-cover.png",
   "telephone": "+234 814 194 3478",
   "email": "treasuregroupofschool@gmail.com",
@@ -243,7 +242,7 @@ def build():
                   "datePublished": "2026-09-15", "dateModified": "2026-10-21",
                   "mainEntityOfPage": canon, "inLanguage": "en-NG",
                   "author": {"@type": "Organization", "name": "Treasure Academy, Ageva", "url": SITE + "/"},
-                  "publisher": {"@type": "Organization", "name": "Treasure Academy, Ageva", "logo": {"@type": "ImageObject", "url": SITE + "/assets/img/logo.jpg"}},
+                  "publisher": {"@type": "Organization", "name": "Treasure Academy, Ageva", "url": SITE + "/"},
                   "image": [SITE + "/assets/img/og-cover.png"],
                   "description": desc,
                 }

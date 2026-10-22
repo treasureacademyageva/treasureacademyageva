@@ -2,119 +2,133 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script src="/assets/js/theme-init.js?v=20261022-ux2"></script>
+<script src="/assets/js/theme-init.js?v=20261022-ux3"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>Website Operations — Treasure Academy</title>
+<title>Experience &amp; Brand Operations — Treasure Academy</title>
 <style>
-main{max-width:1120px;margin:auto;padding:42px 20px 70px}main>section{padding:30px 0}.ops-lead{max-width:72ch}.ops-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 28px}.ops-nav a{padding:8px 11px;border:1px solid var(--line);border-radius:999px;text-decoration:none;font-weight:750}.ops-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.ops-card{border:1px solid var(--line);border-radius:16px;padding:20px;background:var(--surface)}.ops-card h2,.ops-card h3{margin-top:0}code{overflow-wrap:anywhere}.status-ok{color:#087a42}.status-hold{color:#9a6200}.status-bad{color:#a11b2b}.metric{font-size:1.8rem;font-weight:850;color:var(--green)}.lab-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.lab-row input,.report-input{width:100%}.lab-output{margin-top:14px;padding:14px;border-radius:12px;background:var(--bg-2);min-height:58px}.lab-output ol{margin-bottom:0}.health-list{display:grid;gap:8px;margin-top:14px}.health-item{display:flex;justify-content:space-between;gap:12px;padding:10px;border-radius:10px;background:var(--bg-2)}.quality-table{width:100%;border-collapse:collapse;font-size:.84rem}.quality-table th,.quality-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left}.quality-table th{color:var(--muted)}.report-list{display:grid;gap:8px;margin-top:12px}.report-item{padding:12px;border:1px solid var(--line);border-radius:10px}.report-item code{display:block;font-size:.76rem}@media(max-width:680px){.lab-row{grid-template-columns:1fr}.quality-scroll{overflow:auto}.health-item{display:grid}}
+:root{--ops-green:#0e5a2e;--ops-deep:#0a3b20;--ops-gold:#c9a227;--ops-ink:#172536;--ops-muted:#566575;--ops-line:#dfe5df;--ops-soft:#f4f7f2;--ops-warm:#fbf8ed;--ops-bad:#9b1c2e}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:18px}body{margin:0;background:#f8faf8;color:var(--ops-ink)}.skip-link{position:fixed;z-index:100;left:12px;top:-60px;padding:10px 14px;background:#fff;color:var(--ops-deep);border:2px solid var(--ops-deep);border-radius:8px}.skip-link:focus{top:12px}
+.ops-header{padding:38px 20px 28px;background:linear-gradient(120deg,#092f1a,#0e5a2e);color:#fff}.ops-header-inner,.ops-shell{width:min(1380px,94%);margin:auto}.ops-kicker{color:#f3d66d;font-size:.78rem;font-weight:850;letter-spacing:.16em;text-transform:uppercase}.ops-header h1{max-width:22ch;margin:.45rem 0 .7rem;color:#fff;font-size:clamp(2rem,5vw,4rem);line-height:1.02}.ops-header p{max-width:76ch;margin:0;color:#edf5ef;line-height:1.65}.ops-safety{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.ops-safety span{padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(255,255,255,.08);font-size:.78rem}
+.ops-nav{position:sticky;z-index:30;top:0;display:flex;gap:7px;overflow:auto;padding:9px max(3%,calc((100% - 1380px)/2));background:rgba(255,255,255,.97);border-bottom:1px solid var(--ops-line);box-shadow:0 4px 18px rgba(23,37,54,.06);scrollbar-width:thin}.ops-nav a{flex:none;min-height:42px;display:inline-flex;align-items:center;padding:8px 12px;border-radius:10px;color:var(--ops-ink);font-size:.84rem;font-weight:800;text-decoration:none}.ops-nav a:hover,.ops-nav a:focus-visible{background:var(--ops-soft);color:var(--ops-green)}
+.ops-shell{padding:24px 0 70px}.ops-section{padding:42px 0;border-bottom:1px solid var(--ops-line)}.ops-section:last-child{border-bottom:0}.section-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,.42fr);gap:24px;align-items:end;margin-bottom:20px}.section-head h2{margin:.35rem 0 0;font-size:clamp(1.65rem,3.2vw,2.5rem)}.section-head p{margin:0;color:var(--ops-muted);line-height:1.6}.eyebrow{color:var(--ops-green);font-size:.76rem;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.metric-grid,.card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.metric-card,.ops-card{padding:19px;border:1px solid var(--ops-line);border-radius:16px;background:#fff;box-shadow:0 8px 26px rgba(23,37,54,.045)}.metric-card strong{display:block;color:var(--ops-green);font-size:clamp(1.65rem,3vw,2.3rem);line-height:1}.metric-card h3{margin:.7rem 0 .35rem;font-size:1rem}.metric-card p,.ops-card p,.ops-card li{color:var(--ops-muted);line-height:1.55}.metric-card.good{border-left:5px solid #16804a}.metric-card.warn{border-left:5px solid #bd7c08}.metric-card.bad{border-left:5px solid var(--ops-bad)}.ops-card h3{margin-top:0}.ops-card h4{margin-bottom:.35rem}
+.priority-list{display:grid;gap:9px;margin:0;padding:0;list-style:none}.priority-list li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;padding:12px;border-radius:11px;background:var(--ops-soft)}.priority-list b{color:var(--ops-green)}
+.asset-kit{display:grid;grid-template-columns:180px minmax(0,1fr);gap:22px;align-items:center}.asset-logo{display:grid;place-items:center;min-height:170px;padding:16px;border:1px dashed #9aab9e;border-radius:15px;background:var(--ops-warm)}.asset-logo img{width:132px;height:132px;object-fit:contain;border-radius:18px}.asset-actions{display:flex;gap:8px;flex-wrap:wrap}.asset-actions a{min-height:42px;display:inline-flex;align-items:center;padding:9px 12px;border:1px solid var(--ops-line);border-radius:9px;color:var(--ops-green);font-weight:800;text-decoration:none}
+.table-scroll{overflow:auto;border:1px solid var(--ops-line);border-radius:14px;background:#fff}.ops-table{width:100%;min-width:760px;border-collapse:collapse;font-size:.84rem}.ops-table th,.ops-table td{padding:11px;border-bottom:1px solid var(--ops-line);text-align:left;vertical-align:top}.ops-table th{position:sticky;top:0;background:#edf4ee;color:var(--ops-deep);font-size:.74rem;letter-spacing:.05em;text-transform:uppercase}.ops-table tr:last-child td{border-bottom:0}.ops-table td small{display:block;max-width:50ch;margin-top:3px;color:var(--ops-muted)}.ops-table textarea{min-width:170px;width:100%;resize:vertical}.status-chip{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:.74rem;font-weight:850;white-space:nowrap}.status-chip.good{background:#e1f5e9;color:#096b3b}.status-chip.warn{background:#fff2cf;color:#855500}.status-chip.bad{background:#fde7ea;color:#8f1022}.good-text{color:#087a42;font-weight:750}.bad-text{color:#9b1c2e;font-weight:750}
+label{display:block;margin-bottom:6px;color:var(--ops-deep);font-weight:800}input,select,textarea{width:100%;min-height:44px;padding:10px 12px;border:1.5px solid #aebcae;border-radius:9px;background:#fff;color:var(--ops-ink);font:inherit}textarea{line-height:1.5}button,.ops-button{min-height:44px;padding:9px 14px;border:1px solid var(--ops-green);border-radius:9px;background:var(--ops-green);color:#fff;font:inherit;font-weight:800;cursor:pointer}.secondary{background:#fff;color:var(--ops-green)}button:hover,.ops-button:hover{box-shadow:0 6px 16px rgba(14,59,33,.12)}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #d7b83d;outline-offset:3px;box-shadow:0 0 0 2px #0a3b20}.button-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field.full{grid-column:1/-1}.privacy-note{padding:11px;border-left:4px solid var(--ops-gold);background:var(--ops-warm);color:#4f4931!important;font-size:.87rem}.notice{padding:14px;border-radius:12px;background:#edf4ee;color:var(--ops-deep)}
+.health-list,.report-list{display:grid;gap:8px;margin-top:14px}.health-item{display:flex;justify-content:space-between;gap:12px;padding:11px;border-radius:10px;background:var(--ops-soft)}.report-item{padding:12px;border:1px solid var(--ops-line);border-radius:10px}.report-item p{margin:.35rem 0}.report-item code{overflow-wrap:anywhere}.lab-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.lab-output{min-height:80px;margin-top:12px;padding:14px;border-radius:12px;background:var(--ops-soft)}
+details.research-block{margin-top:14px;border:1px solid var(--ops-line);border-radius:14px;background:#fff}details.research-block>summary{min-height:50px;display:flex;align-items:center;padding:12px 16px;cursor:pointer;color:var(--ops-deep);font-weight:850}details.research-block>summary::after{content:"+";margin-left:auto;font-size:1.25rem}details[open].research-block>summary::after{content:"−"}.research-body{padding:0 16px 18px}.agent-preview{min-height:420px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.82rem}.limitation{border-left:5px solid #bd7c08}
+.footer-actions{display:flex;gap:9px;flex-wrap:wrap;padding-top:26px}.footer-actions a{min-height:44px;display:inline-flex;align-items:center;padding:9px 13px;border:1px solid var(--ops-line);border-radius:9px;color:var(--ops-green);font-weight:800;text-decoration:none;background:#fff}
+@media(max-width:1050px){.metric-grid,.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.three-col{grid-template-columns:1fr}.section-head{grid-template-columns:1fr}}
+@media(max-width:680px){.ops-header{padding-inline:4%}.ops-shell{width:92%}.metric-grid,.card-grid,.two-col,.field-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.asset-kit{grid-template-columns:1fr}.priority-list li{grid-template-columns:1fr}.lab-row{grid-template-columns:1fr}.button-row button,.button-row .ops-button{width:100%}.ops-nav{padding-inline:4%}.ops-section{padding-block:32px}.health-item{display:grid}}
 </style>
 
-<link rel="stylesheet" href="/assets/css/site.css?v=20261022-ux2">
+<link rel="stylesheet" href="/assets/css/site.css?v=20261022-ux3">
 </head>
 <body>
-<main>
-<span class="sec-tag">Developer Operations</span>
-<h1>Website Quality &amp; User-Problem Dashboard</h1>
-<p class="ops-lead">A noindex, browser-local operations page. It contains no credentials or pupil records. Search tests and imported problem diagnostics stay in this browser.</p>
-<nav class="ops-nav" aria-label="Operations sections"><a href="#health">Live health</a><a href="#insights">User insights</a><a href="#search-lab">Search lab</a><a href="#clarity">Writing clarity</a><a href="#reports">Problem reports</a><a href="#release">Release checks</a></nav>
-
-<section id="health">
-<div class="sec-head"><span class="sec-tag">Live checks</span><h2>Website Health</h2><p>Check the production routes and insight services without exposing credentials.</p></div>
-<div class="ops-card"><button class="btn btn-mint" id="runHealth" type="button">Run Live Health Check</button><div id="healthList" class="health-list" aria-live="polite"><p>Checks have not run.</p></div></div>
+<a class="skip-link" href="#main">Skip to dashboard content</a>
+<header class="ops-header"><div class="ops-header-inner">
+<span class="ops-kicker">Developer Experience Studio</span>
+<h1>Brand, Accessibility &amp; Journey Operations</h1>
+<p>Turn site evidence and voluntary privacy-safe diagnostics into a shared improvement plan. This noindex page keeps imported reports, personas and maps in this browser unless you explicitly export or copy them.</p>
+<div class="ops-safety"><span>No pupil records</span><span>No form values</span><span>No raw search words</span><span>No demographic inference</span><span>No fake analytics claims</span></div>
+</div></header>
+<nav class="ops-nav" aria-label="Dashboard sections">
+<a href="#overview">Overview</a><a href="#brand">Brand visibility</a><a href="#accessibility">Usability &amp; accessibility</a><a href="#journeys">Journey evidence</a><a href="#research">Research maps</a><a href="#search-lab">Search lab</a><a href="#health">Live health</a><a href="#agent">Agent handoff</a><a href="#release">Release controls</a>
+</nav>
+<main id="main" class="ops-shell">
+<section class="ops-section" id="overview">
+<div class="section-head"><div><span class="eyebrow">Current-state evidence</span><h2>What needs attention first</h2></div><p>Generated checks are evidence, not a substitute for parent interviews, manual accessibility testing or owner confirmation of school facts and brand assets.</p></div>
+<div class="metric-grid" id="summaryCards"></div>
+<div class="ops-card" style="margin-top:16px"><h3>Priority queue</h3><ul class="priority-list" id="priorityList"></ul></div>
 </section>
 
-<section id="insights">
-<div class="sec-head"><span class="sec-tag">Privacy first</span><h2>Understand Use Without Watching People</h2></div>
-<div class="ops-grid">
-<article class="ops-card"><h3>Real performance</h3><p><b>Vercel Speed Insights</b> measures anonymous Core Web Vitals by route, device and network class. Review slow pages in the Vercel dashboard.</p><p>No form content or raw search words are sent.</p></article>
-<article class="ops-card"><h3>Anonymous page trends</h3><p id="analyticsState" class="status-hold"><b>Not enabled.</b> Web Analytics stays off until the service and website release flag are both reviewed.</p><p>It should be used for page, device and referrer trends—not raw search text.</p></article>
-<article class="ops-card"><h3>Voluntary problem reports</h3><p>Visitors can report missing, unclear, slow or broken pages through verified WhatsApp. Optional diagnostics include only coarse page, browser, screen and action categories.</p><p><a href="/website-help.html">Open the visitor report page</a></p></article>
+<section class="ops-section" id="brand">
+<div class="section-head"><div><span class="eyebrow">Brand visibility audit</span><h2>Make the official school identity clear</h2></div><p>Checks the visible school name, logo, descriptions, social preview image, structured data and owner-supplied gaps. It never invents a profile, photograph or document.</p></div>
+<div class="metric-grid" id="brandCards"></div>
+<div class="two-col" style="margin-top:16px">
+<article class="ops-card"><h3>Current brand asset kit</h3><div class="asset-kit"><div class="asset-logo"><img src="/assets/img/logo.jpg" width="397" height="397" alt="Current restored mark with wording mismatch pending owner replacement"></div><div><p><b>Website name:</b> Treasure Academy, Ageva<br><b>Legal name:</b> Treasure Academy Ageva Limited<br><b>Motto:</b> Our God is able</p><p class="privacy-note">The restored mark and imagery remain pending owner source/master confirmation. The dashboard provides replacement slots; it does not claim unverified media is authentic.</p><div class="asset-actions"><a href="/assets/img/logo.jpg" download>Download restored mark</a><a href="/assets/img/og-cover.png" download>Download social image</a><a href="/assets/img/school-flyer.jpg" download>Download restored flyer</a></div></div></div></article>
+<article class="ops-card limitation"><h3>Verified asset slots</h3><ul><li>Approved vector or high-resolution logo master</li><li>Original campus exterior hero photograph</li><li>Original classroom and supervised activity photographs with consent</li><li>Current admissions document, fee schedule and calendar</li><li>Official social and Google Business profile URLs</li></ul><p>Do not add <code>sameAs</code> links or “authentic campus” claims until the owner supplies and approves each item.</p></article>
 </div>
+<h3 style="margin-top:24px">Owner evidence register</h3>
+<div class="table-scroll" tabindex="0" aria-label="Scrollable data table"><table class="ops-table"><thead><tr><th>Status</th><th>Finding</th><th>Review decision</th></tr></thead><tbody id="brandGapRows"></tbody></table></div>
 </section>
 
-<section id="search-lab">
-<div class="sec-head"><span class="sec-tag">Meaning-aware retrieval</span><h2>Search Relevance Lab</h2><p>Test wording, related word families and misspellings locally.</p></div>
+<section class="ops-section" id="accessibility">
+<div class="section-head"><div><span class="eyebrow">Reusable components first</span><h2>Usability &amp; accessibility audit</h2></div><p>Targets shared navigation, buttons, forms, focus, labels, errors, text alternatives, image dimensions, readable mobile typography and one- or two-action discovery.</p></div>
+<div class="metric-grid" id="a11yCards"></div>
+<div class="three-col" style="margin-top:16px">
+<article class="ops-card"><h3>Keyboard check</h3><ul><li>Start with the skip link.</li><li>Tab through the header in visual order.</li><li>Confirm every focus ring stays visible.</li><li>Open and close FAQ/details controls.</li><li>Trigger a form error and verify focus moves to it.</li></ul></article>
+<article class="ops-card"><h3>Mobile check</h3><ul><li>320px viewport without horizontal scroll.</li><li>Readable text without pinch zoom.</li><li>Five predictable bottom actions.</li><li>Tap targets at least 44px.</li><li>No focused control hidden behind the dock.</li></ul></article>
+<article class="ops-card"><h3>Manual evidence still needed</h3><ul><li>Whether alt text accurately describes approved media.</li><li>Contrast over photos and gradients.</li><li>Screen-reader announcement order.</li><li>200% and 400% zoom usability.</li><li>Real parent/staff task testing.</li></ul></article>
+</div>
+<div class="ops-card" style="margin-top:16px"><label for="pageAuditFilter">Filter page evidence</label><input id="pageAuditFilter" type="search" placeholder="For example: admissions or missing label"></div>
+<div class="table-scroll" tabindex="0" aria-label="Scrollable data table" style="margin-top:12px"><table class="ops-table"><thead><tr><th>Page</th><th>Click depth</th><th>CTAs</th><th>Images</th><th>Controls</th><th>Generated finding</th></tr></thead><tbody id="pageAuditRows"></tbody></table></div>
+</section>
+
+<section class="ops-section" id="journeys">
+<div class="section-head"><div><span class="eyebrow">Voluntary, category-only evidence</span><h2>Buttons, forms and page-to-page journeys</h2></div><p>Import a visitor-provided <code>TAUX2-...</code> code. Counts are imported reports—not unique people. Completion means the website step finished; it never proves WhatsApp delivery, admission or payment.</p></div>
 <div class="ops-card">
-<label for="labQuery">Test a visitor question</label>
-<div class="lab-row"><input id="labQuery" type="search" placeholder="For example: What are the school charges?"><button class="btn btn-mint" id="runLab" type="button">Analyse</button></div>
-<div id="labOutput" class="lab-output" aria-live="polite">Enter a question to see families, stems and ranked pages.</div>
+<label for="reportCode">Safe diagnostic code or WhatsApp report text</label><textarea id="reportCode" rows="4" placeholder="Paste TAUX2 or earlier TAUX1 code"></textarea>
+<div class="button-row"><button id="addReport" type="button">Import safe diagnostics</button><button class="secondary" id="exportReports" type="button">Export journey CSV</button><button class="secondary" id="clearReports" type="button">Clear local reports</button></div>
+<p id="reportStatus" role="status" aria-live="polite"></p>
+</div>
+<div class="metric-grid" id="journeyCards" style="margin-top:16px"></div>
+<div class="two-col" style="margin-top:16px">
+<article class="ops-card"><h3>Form funnel by broad purpose</h3><div class="table-scroll" tabindex="0" aria-label="Scrollable data table"><table class="ops-table"><thead><tr><th>Form</th><th>Started</th><th>Website step complete</th><th>Abandoned</th><th>Step ratio</th></tr></thead><tbody id="formFunnelRows"></tbody></table></div></article>
+<article class="ops-card"><h3>Device and acquisition categories</h3><p><b>Viewport:</b> <span id="deviceSummary"></span></p><p><b>Acquisition:</b> <span id="channelSummary"></span></p><p class="privacy-note">Demographics and professional background are not inferred from devices or behaviour. Add them only as research hypotheses or voluntary interview findings.</p></article>
+</div>
+<div class="two-col" style="margin-top:16px">
+<article class="ops-card"><h3>Navigation and CTA touchpoints</h3><div class="table-scroll" tabindex="0" aria-label="Scrollable data table"><table class="ops-table"><thead><tr><th>Channel · movement</th><th>Count</th></tr></thead><tbody id="touchpointRows"></tbody></table></div></article>
+<article class="ops-card"><h3>Imported snapshots</h3><div id="reportList" class="report-list"></div></article>
 </div>
 </section>
 
-<section id="clarity">
-<div class="sec-head"><span class="sec-tag">Content quality</span><h2>Writing Clarity</h2><p>Generated checks flag long blocks, vague links, missing H1s and unlabelled forms.</p></div>
-<div id="clarityCards" class="ops-grid"></div>
-<div class="ops-card" style="margin-top:16px"><h3>Pages needing attention</h3><div class="quality-scroll"><table class="quality-table"><thead><tr><th>Page</th><th>Words</th><th>Longest block</th><th>Issues</th></tr></thead><tbody id="qualityRows"></tbody></table></div></div>
+<section class="ops-section" id="research">
+<div class="section-head"><div><span class="eyebrow">Shared view of the visitor</span><h2>Persona, empathy and journey mapping</h2></div><p>Templates begin as clearly labelled hypotheses. Replace them with voluntary research evidence; never convert assumptions into demographic facts.</p></div>
+<details class="research-block" open><summary>Persona and research lens</summary><div class="research-body">
+<div class="field-grid"><div class="field"><label for="personaSelect">Audience</label><select id="personaSelect"><option value="prospective_parent">Prospective parent or guardian</option><option value="current_parent">Current parent or guardian</option><option value="staff_applicant">Staff applicant or staff member</option><option value="pupil">Pupil with adult guidance</option></select></div><div class="field"><label for="personaAudience">Actor description</label><textarea id="personaAudience" rows="2"></textarea></div><div class="field"><label for="personaDemographics">Demographic evidence</label><textarea id="personaDemographics" rows="3"></textarea></div><div class="field"><label for="personaProfessional">Professional/background evidence</label><textarea id="personaProfessional" rows="3"></textarea></div><div class="field"><label for="personaDevices">Devices and access context</label><textarea id="personaDevices" rows="3"></textarea></div><div class="field"><label for="personaGoals">Goals and scenarios</label><textarea id="personaGoals" rows="3"></textarea></div><div class="field"><label for="personaChannels">Channels and touchpoints</label><textarea id="personaChannels" rows="3"></textarea></div><div class="field"><label for="personaEvidence">Evidence status</label><textarea id="personaEvidence" rows="3"></textarea></div></div>
+</div></details>
+<details class="research-block"><summary>Empathy map — says, thinks, does and feels</summary><div class="research-body"><div class="field-grid"><div class="field"><label for="empathySays">Says</label><textarea id="empathySays" rows="4"></textarea></div><div class="field"><label for="empathyThinks">Thinks</label><textarea id="empathyThinks" rows="4"></textarea></div><div class="field"><label for="empathyDoes">Does</label><textarea id="empathyDoes" rows="4"></textarea></div><div class="field"><label for="empathyFeels">Feels</label><textarea id="empathyFeels" rows="4"></textarea></div><div class="field full"><label for="empathyEvidence">Evidence / confidence</label><textarea id="empathyEvidence" rows="3"></textarea></div></div></div></details>
+<details class="research-block" open><summary>Current-state and future-state journey maps</summary><div class="research-body"><label for="journeyState">Map to edit</label><select id="journeyState" style="max-width:320px"><option value="current">Current state</option><option value="future">Future state</option></select><div class="table-scroll" tabindex="0" aria-label="Scrollable data table" style="margin-top:12px"><table class="ops-table"><thead><tr><th>Stage</th><th>What the user does</th><th>Touchpoint / channel</th><th>Thought</th><th>Emotion 1–5</th><th>Friction</th><th>Opportunity</th><th>Evidence</th></tr></thead><tbody id="journeyRows"></tbody></table></div></div></details>
+<details class="research-block"><summary>Day-in-the-life map</summary><div class="research-body"><p class="privacy-note">Time-of-day and device notes are hypotheses until confirmed in research; they are not visitor tracking.</p><div class="table-scroll" tabindex="0" aria-label="Scrollable data table"><table class="ops-table"><thead><tr><th>Moment</th><th>Context / scenario</th><th>Device</th><th>Channel</th><th>Need</th><th>Risk</th></tr></thead><tbody id="dayRows"></tbody></table></div></div></details>
+<details class="research-block"><summary>Service blueprint</summary><div class="research-body"><div class="table-scroll" tabindex="0" aria-label="Scrollable data table"><table class="ops-table"><thead><tr><th>Stage</th><th>Customer action</th><th>Frontstage</th><th>Backstage</th><th>Support process</th><th>Failure point</th></tr></thead><tbody id="blueprintRows"></tbody></table></div></div></details>
+<div class="button-row"><button id="saveResearch" type="button">Save research workspace</button><button class="secondary" id="resetResearch" type="button">Restore hypothesis templates</button></div><p id="researchStatus" role="status" aria-live="polite"></p>
 </section>
 
-<section id="reports">
-<div class="sec-head"><span class="sec-tag">Browser-local review</span><h2>Problem Report Diagnostics</h2><p>Paste a <code>TAUX1-...</code> code from a WhatsApp problem report. Only the safe diagnostics are imported; the visitor’s written message is not stored here.</p></div>
-<div class="ops-card">
-<label for="reportCode">Diagnostic code or report text</label>
-<textarea id="reportCode" class="report-input" rows="4" placeholder="Paste TAUX1 code"></textarea>
-<p><button class="btn btn-mint" id="addReport" type="button">Import Safe Diagnostics</button> <button class="btn btn-white" id="exportReports" type="button">Export Summary CSV</button> <button class="btn btn-white" id="clearReports" type="button">Clear Local Reports</button></p>
-<div id="reportStatus" role="status" aria-live="polite"></div><div id="reportList" class="report-list"></div>
-</div>
+<section class="ops-section" id="search-lab">
+<div class="section-head"><div><span class="eyebrow">Findability</span><h2>Search accuracy lab</h2></div><p>Tests spelling, phrase, word-family and meaning matches locally. Raw test questions are not included in journey reports or analytics.</p></div>
+<div class="ops-card"><label for="labQuery">Test a visitor question</label><div class="lab-row"><input id="labQuery" type="search" placeholder="For example: What are the school charges?"><button id="runLab" type="button">Analyse</button></div><div id="labOutput" class="lab-output" aria-live="polite">Enter a question to see reviewed meaning families, base forms and ranked pages.</div></div>
 </section>
 
-<section id="release">
-<div class="sec-head"><span class="sec-tag">Operations</span><h2>Release &amp; Content Controls</h2></div>
-<div class="ops-grid">
-<section class="ops-card"><h3>Public posture</h3><ul><li>No public pupil database or browser authentication.</li><li>No browser-generated payment receipt.</li><li>Operational enquiries use verified office channels.</li><li>Private records and internal files remain deployment-excluded.</li></ul></section>
-<section class="ops-card"><h3>Build and test</h3><p><code>npm run build:content</code><br><code>npm test</code><br><code>node tools/tests/browser-visitor-qa.js</code></p><p>Review clarity metrics and search-family tests before release.</p></section>
-<section class="ops-card"><h3>External actions</h3><ul><li>Enable and live-check Web Analytics before changing its release flag.</li><li>Review Speed Insights by route and device.</li><li>Verify Search Console and sitemap.</li><li>Keep media authority and operational facts current.</li></ul></section>
-</div>
+<section class="ops-section" id="health">
+<div class="section-head"><div><span class="eyebrow">Honest live status</span><h2>Production health</h2></div><p>Checks selected routes and Vercel services. Web Analytics remains optional and must not be claimed as enabled while its script returns 404.</p></div>
+<div class="ops-card"><button id="runHealth" type="button">Run live health check</button><div id="healthList" class="health-list" aria-live="polite"><p>Checks have not run.</p></div></div>
 </section>
-<p><a class="btn btn-mint" href="developer-review.html">Encrypted Review Gateway</a> <a class="btn btn-white" href="developer.html">Developer Status</a> <a class="btn btn-white" href="/">Public Website</a></p>
+
+<section class="ops-section" id="agent">
+<div class="section-head"><div><span class="eyebrow">Plain-language handoff</span><h2>Copy evidence to an improvement agent</h2></div><p>The brief explains facts, hypotheses, friction, safeguards and next actions so another agent can help without being given credentials, raw searches or private records.</p></div>
+<div class="button-row"><button id="copyAgentBrief" type="button">Copy agent improvement brief</button><button class="secondary" id="downloadAgentBrief" type="button">Download Markdown brief</button><button class="secondary" id="downloadEvidence" type="button">Download evidence JSON</button></div><p id="agentStatus" role="status" aria-live="polite"></p>
+<label for="agentPreview">Preview</label><textarea id="agentPreview" class="agent-preview" spellcheck="false"></textarea>
+</section>
+
+<section class="ops-section" id="release">
+<div class="section-head"><div><span class="eyebrow">Release controls</span><h2>What must remain true</h2></div><p>Accessibility, analytics and brand audits support review; they do not authorize fabricated content, insecure portals or unverified payment functionality.</p></div>
+<div class="card-grid">
+<article class="ops-card"><h3>Content integrity</h3><ul><li>Owner supplies real school facts and media.</li><li>Do not describe unverified images as authentic.</li><li>Add social links only after profile ownership is confirmed.</li><li>Keep restoration and provenance records.</li></ul></article>
+<article class="ops-card"><h3>Admissions and payment</h3><ul><li>Apply remains an enquiry and offline school process.</li><li>No online checkout or card collection.</li><li>Use bank transfer only after office confirmation.</li><li>Never generate a receipt or success claim in the browser.</li></ul></article>
+<article class="ops-card"><h3>Accessibility</h3><ul><li>Target WCAG 2.2 AA components.</li><li>Run automated and manual keyboard checks.</li><li>Do not claim ADA/WCAG certification from automation alone.</li><li>Test with disabled users where possible.</li></ul></article>
+<article class="ops-card"><h3>Privacy and safety</h3><ul><li>No pupil database or behaviour profiles.</li><li>No names, form values or raw searches in analytics.</li><li>No persistent journey ID or session replay.</li><li>Voluntary reports require visitor review and Send.</li></ul></article>
+</div>
+<div class="footer-actions"><a href="developer-review.html">Encrypted Review Gateway</a><a href="developer.html">Developer Status</a><a href="/website-help.html">Visitor Website Help</a><a href="/">Public Website</a></div>
+</section>
 </main>
-<script src="/assets/js/search-index.js?v=20261022-ux2"></script>
-<script src="/assets/js/smart-search.js?v=20261022-ux2"></script>
-<script src="/assets/js/content-quality.js?v=20261022-ux2"></script>
-<script>
-(function(){
-"use strict";
-function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function statusClass(ok){return ok?"status-ok":"status-bad";}
-var health=[
- {label:"Homepage",url:"/",expect:200},
- {label:"Search",url:"/search.html",expect:200},
- {label:"Website help",url:"/website-help.html",expect:200},
- {label:"Sitemap",url:"/sitemap.xml",expect:200},
- {label:"Speed Insights",url:"/_vercel/speed-insights/script.js",expect:200},
- {label:"Web Analytics",url:"/_vercel/insights/script.js",expect:200,optional:true}
-];
-document.getElementById("runHealth").onclick=function(){
- var box=document.getElementById("healthList");box.innerHTML="<p>Checking…</p>";
- Promise.all(health.map(function(item){return fetch(item.url,{cache:"no-store"}).then(function(r){return{item:item,status:r.status,ok:r.status===item.expect};}).catch(function(){return{item:item,status:"offline",ok:false};});})).then(function(rows){
-  box.innerHTML=rows.map(function(row){var label=row.ok?"Ready":row.item.optional?"Not enabled":"Needs attention";return '<div class="health-item"><b>'+esc(row.item.label)+'</b><span class="'+(row.ok?"status-ok":row.item.optional?"status-hold":"status-bad")+'">'+label+' · '+esc(row.status)+'</span></div>';}).join("");
-  var analytics=rows.find(function(row){return row.item.label==="Web Analytics";});
-  var state=document.getElementById("analyticsState");state.className=analytics&&analytics.ok?"status-ok":"status-hold";state.innerHTML=analytics&&analytics.ok?"<b>Service available.</b> Review privacy, set the website release flag and retest before collecting page views.":"<b>Not enabled.</b> Web Analytics remains off and visitor pages do not request its missing script.";
- });
-};
-function runLab(){
- var query=document.getElementById("labQuery").value.trim(),box=document.getElementById("labOutput");
- if(!query){box.textContent="Enter a question first.";return;}
- var a=TA_SMART_SEARCH.analyze(query),answer=TA_SMART_SEARCH.directAnswer(query),ranked=(window.TA_SEARCH_INDEX||[]).map(function(e){return{e:e,s:TA_SMART_SEARCH.score(e,query)};}).filter(function(x){return x.s>=16;}).sort(function(a,b){return b.s-a.s;}).slice(0,5);
- box.innerHTML='<p><b>Families:</b> '+esc(a.families.map(function(f){return f.label;}).join(", ")||"No reviewed family yet")+'<br><b>Base forms:</b> '+esc(a.roots.join(", ")||"—")+'<br><b>Direct answer:</b> '+esc(answer?answer.title:"None")+'</p><ol>'+ranked.map(function(x){return '<li><b>'+esc(x.e.t)+'</b> <small>score '+x.s+'</small></li>';}).join("")+'</ol>';
-}
-document.getElementById("runLab").onclick=runLab;document.getElementById("labQuery").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();runLab();}});
-var quality=window.TA_CONTENT_QUALITY||{pageCount:0,totals:{},pages:[]};
-document.getElementById("clarityCards").innerHTML=[
- [quality.pageCount,"Public pages checked"],[quality.totals.longBlocks||0,"Blocks over 65 words"],[quality.totals.vagueLinks||0,"Vague link labels"],[quality.totals.pagesWithIssues||0,"Pages with flagged issues"]
-].map(function(x){return '<article class="ops-card"><div class="metric">'+x[0]+'</div><p>'+esc(x[1])+'</p></article>';}).join("");
-var flagged=(quality.pages||[]).filter(function(p){return p.issues.length;});
-document.getElementById("qualityRows").innerHTML=flagged.length?flagged.map(function(p){return '<tr><td>'+esc(p.page)+'</td><td>'+p.words+'</td><td>'+p.longest+'</td><td>'+esc(p.issues.join(", "))+'</td></tr>';}).join(""):'<tr><td colspan="4" class="status-ok">No automated clarity issues.</td></tr>';
-var REPORT_KEY="taa_dev_safe_reports_v1";
-function reports(){try{var r=JSON.parse(localStorage.getItem(REPORT_KEY)||"[]");return Array.isArray(r)?r:[];}catch(e){return[];}}
-function save(r){localStorage.setItem(REPORT_KEY,JSON.stringify(r.slice(-100)));renderReports();}
-function decode(value){var m=String(value||"").match(/TAUX1-[A-Za-z0-9_-]+/);if(!m)throw new Error("No TAUX1 code found.");var b=m[0].slice(6).replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";var binary=atob(b),bytes=Uint8Array.from(binary,function(c){return c.charCodeAt(0);}),r=JSON.parse(new TextDecoder().decode(bytes));if(!r||r.v!==1||!Array.isArray(r.events))throw new Error("Unsupported diagnostic code.");return r;}
-function renderReports(){var list=reports(),box=document.getElementById("reportList");box.innerHTML=list.length?list.slice().reverse().map(function(r){var searches=r.events.filter(function(e){return e.t==="search"||e.t==="search_refine";});var errors=r.events.filter(function(e){return /error/.test(e.t);});return '<article class="report-item"><b>'+esc(r.page)+' · '+esc(r.viewport)+' · '+esc(r.browser)+'</b><p>'+searches.length+' search signal(s), '+errors.length+' error signal(s), '+r.events.length+' safe action(s).</p><code>'+esc(r.path)+'</code></article>';}).join(""):'<p>No safe diagnostics imported in this browser.</p>';}
-document.getElementById("addReport").onclick=function(){var out=document.getElementById("reportStatus");try{var r=decode(document.getElementById("reportCode").value);var all=reports();all.push(r);save(all);out.className="status-ok";out.textContent="Safe diagnostics imported. Written problem details were not stored.";document.getElementById("reportCode").value="";}catch(e){out.className="status-bad";out.textContent=e.message;}};
-document.getElementById("clearReports").onclick=function(){localStorage.removeItem(REPORT_KEY);renderReports();document.getElementById("reportStatus").textContent="Local reports cleared.";};
-document.getElementById("exportReports").onclick=function(){var rows=[["page","path","viewport","browser","theme","online","actions","searches","errors"]].concat(reports().map(function(r){return[r.page,r.path,r.viewport,r.browser,r.theme,r.online,r.events.length,r.events.filter(function(e){return e.t==="search"||e.t==="search_refine";}).length,r.events.filter(function(e){return /error/.test(e.t);}).length];}));var csv=rows.map(function(row){return row.map(function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"';}).join(",");}).join("\n");var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="treasure-academy-safe-problem-summary.csv";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);};
-renderReports();
-})();
-</script>
+<script src="/assets/js/search-index.js?v=20261022-ux3"></script>
+<script src="/assets/js/smart-search.js?v=20261022-ux3"></script>
+<script src="/assets/js/content-quality.js?v=20261022-ux3"></script>
+<script src="/assets/js/brand-assets.js?v=20261022-ux3"></script>
+<script src="/assets/js/experience-audit.js?v=20261022-ux3"></script>
+<script src="/assets/js/developer-experience.js?v=20261022-ux3"></script>
 </body>
 </html>

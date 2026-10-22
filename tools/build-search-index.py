@@ -17,7 +17,7 @@ spec.loader.exec_module(seo)
 
 EXCLUDE = {
     "404.html", "developer.html", "developer-review.html", "developer-operations.html",
-    "portal/admin.html", "portal/pupil.html", "portal/teacher.html", "class.html", "story.html",
+    "portal/admin.html", "portal/pupil.html", "portal/teacher.html",
 }
 
 KEYWORDS = {
@@ -26,6 +26,8 @@ KEYWORDS = {
     "admissions.html": "apply application enrol enrollment admission join register requirements documents places form",
     "admission-form.html": "request official form application safe process",
     "academics.html": "classes curriculum learning subjects teaching assessment creche nursery primary",
+    "class.html": "choose class grade year creche nursery primary class finder",
+    "story.html": "school story history mission founder identity about",
     "fees.html": "fees tuition cost price how much payment bank transfer schedule charges",
     "contact.html": "phone whatsapp email address location where directions visit office help",
     "calendar.html": "calendar dates term resumption holiday break closing exam when",

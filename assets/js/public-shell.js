@@ -114,6 +114,17 @@
     });
   }
 
+  function initSkipLinks() {
+    document.querySelectorAll('a.skip-link[href^="#"]').forEach(function (link) {
+      link.addEventListener("click", function () {
+        var target = document.getElementById(link.getAttribute("href").slice(1));
+        if (!target) return;
+        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+        setTimeout(function () { target.focus(); }, 0);
+      });
+    });
+  }
+
   function initPageOutline() {
     var main = document.querySelector("main#main");
     if (!main || /\/$/.test(location.pathname) || /\/(?:index|search|explore|404|website-help)\.html$/.test(location.pathname)) return;
@@ -135,6 +146,56 @@
     }).join("") + '</nav></details>';
     main.insertBefore(wrap, main.firstChild);
     try { if (window.matchMedia("(min-width: 960px)").matches) wrap.firstElementChild.open = true; } catch (error) {}
+  }
+
+  function initAccessibleForms() {
+    var fieldCount = 0;
+    document.querySelectorAll("form").forEach(function (form) {
+      var firstInvalid = null;
+      function errorText(control) {
+        if (control.validity.valueMissing) return "Complete this required field.";
+        if (control.validity.typeMismatch && control.type === "email") return "Enter an email address in the format name@example.com.";
+        if (control.validity.tooLong) return "Shorten this answer to " + control.maxLength + " characters or fewer.";
+        if (control.validity.patternMismatch) return control.title || "Use the requested format.";
+        return "Check this field and try again.";
+      }
+      function clearError(control) {
+        control.removeAttribute("aria-invalid");
+        var id = control.id ? control.id + "-error" : "";
+        var error = id && document.getElementById(id);
+        if (error) error.remove();
+        if (id) {
+          var described = String(control.getAttribute("aria-describedby") || "").split(/\s+/).filter(function (value) { return value && value !== id; });
+          if (described.length) control.setAttribute("aria-describedby", described.join(" "));
+          else control.removeAttribute("aria-describedby");
+        }
+      }
+      form.addEventListener("invalid", function (event) {
+        var control = event.target;
+        if (!control.matches("input,select,textarea")) return;
+        event.preventDefault();
+        if (!control.id) { fieldCount += 1; control.id = "field-auto-" + fieldCount; }
+        clearError(control);
+        var id = control.id + "-error";
+        var error = document.createElement("p");
+        error.id = id; error.className = "field-error"; error.setAttribute("role", "alert");
+        error.textContent = errorText(control);
+        control.setAttribute("aria-invalid", "true");
+        var described = String(control.getAttribute("aria-describedby") || "").trim();
+        control.setAttribute("aria-describedby", (described ? described + " " : "") + id);
+        control.insertAdjacentElement("afterend", error);
+        if (!firstInvalid) {
+          firstInvalid = control;
+          setTimeout(function () { firstInvalid.focus(); firstInvalid.scrollIntoView({block:"center", behavior:"smooth"}); firstInvalid = null; }, 0);
+        }
+      }, true);
+      form.addEventListener("input", function (event) {
+        if (event.target.matches("input,select,textarea") && event.target.validity.valid) clearError(event.target);
+      });
+      form.addEventListener("change", function (event) {
+        if (event.target.matches("input,select,textarea") && event.target.validity.valid) clearError(event.target);
+      });
+    });
   }
 
   function registerServiceWorker() {
@@ -160,6 +221,8 @@
     initTheme();
     initReveal();
     enhanceFaqs();
+    initSkipLinks();
+    initAccessibleForms();
     initPageOutline();
     markCurrentDockItem();
     registerServiceWorker();

@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import html
+import json
 import re
 from pathlib import Path
 from urllib.parse import quote
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "20261022-ux2"
+VERSION = "20261022-ux3"
 SKIP_SHELL = {"developer.html", "developer-review.html", "developer-operations.html"}
 STORE_PAGES = {"index.html", "contact.html"}
 SAFE_ACTION_PAGES = {"admissions.html", "contact.html"}
+BRAND_ASSETS = json.loads((ROOT / "assets" / "data" / "brand-assets.json").read_text(encoding="utf-8"))
 
 
 def page_group(rel: str) -> str:
@@ -58,7 +60,7 @@ def nav_links(rel: str, lite: bool = False) -> str:
 
 def lite_nav(rel: str) -> str:
     return f'''<nav class="lite-nav" aria-label="Primary navigation"><div class="container">
-<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img src="/assets/img/logo.jpg" width="397" height="397" alt=""><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a>
+<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><span class="site-monogram" aria-hidden="true">TA</span><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a>
 <div class="lite-links">{nav_links(rel, True)}</div>
 <div class="lite-actions"><a class="lite-search" href="/search.html">Search</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admissions.html#apply">Apply</a></div>
 </div></nav>'''
@@ -68,7 +70,7 @@ def primary_action(rel: str, title: str) -> tuple[str, str]:
     group = page_group(rel)
     if rel == "safeguarding.html":
         return "Raise a concern", "https://wa.me/2349063932487?text=" + quote("Hello Treasure Academy, I need to raise a safeguarding concern privately.")
-    if rel == "contact.html" or rel == "openday.html": return "Plan a school visit", "/contact.html#visit"
+    if rel == "contact.html" or rel == "openday.html": return "Schedule a Visit", "/contact.html#visit"
     if rel == "fees.html":
         return "Request current fees", "https://wa.me/2349063932487?text=" + quote("Hello Treasure Academy, please send the current written fee schedule.")
     if rel.startswith("classes/"):
@@ -78,7 +80,7 @@ def primary_action(rel: str, title: str) -> tuple[str, str]:
     if group == "academics": return "Explore all classes", "/academics.html"
     if group == "fees": return "View family essentials", "/explore.html#families"
     if group == "news": return "See current updates", "/news.html"
-    if group == "about": return "Plan a school visit", "/contact.html#visit"
+    if group == "about": return "Schedule a Visit", "/contact.html#visit"
     return "Contact the school", "/contact.html"
 
 
@@ -94,7 +96,7 @@ def route_bar(rel: str, title: str) -> str:
 
 def footer() -> str:
     return '''<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid">
-<div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt=""><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
+<div class="uf-col uf-about"><a class="uf-brand" href="/"><span class="site-monogram" aria-hidden="true">TA</span><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
 <div class="uf-col"><h2>Find it fast</h2><nav class="uf-links" aria-label="Popular pages"><a href="/admissions.html">Admissions</a><a href="/academics.html">Classes</a><a href="/fees.html">Fees</a><a href="/calendar.html">Term dates</a><a href="/uniform.html">Uniform</a><a href="/transport.html">Transport</a></nav></div>
 <div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/about.html">About the school</a><a href="/news.html">News &amp; updates</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/website-help.html">Website help</a></nav></div>
 <div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
@@ -130,6 +132,23 @@ def replace_css(text: str) -> str:
     text = re.sub(pattern, "", text, flags=re.I)
     link = f'\n<link rel="stylesheet" href="/assets/css/site.css?v={VERSION}">\n'
     return text.replace("</head>", link + "</head>", 1)
+
+
+def insert_verified_hero(text: str) -> str:
+    """Publish a campus hero only after the fail-closed owner registry approves it."""
+    text = re.sub(r'\s*<!-- brand:hero:start -->.*?<!-- brand:hero:end -->', "", text, flags=re.I | re.S)
+    asset = BRAND_ASSETS.get("images", {}).get("campusHero", {})
+    if asset.get("status") != "verified" or "page-hero" not in asset.get("placements", []):
+        return text
+    srcset = html.escape(str(asset.get("srcset", "")), quote=True)
+    source = f'<source type="image/webp" srcset="{srcset}" sizes="100vw">' if srcset else ""
+    block = (
+        '<!-- brand:hero:start --><div class="page-hero-media" aria-hidden="true"><picture>'
+        + source
+        + f'<img src="{html.escape(str(asset["src"]), quote=True)}" width="{int(asset["width"])}" height="{int(asset["height"])}" alt="" fetchpriority="high" decoding="async">'
+        + '</picture></div><!-- brand:hero:end -->'
+    )
+    return re.sub(r'(<div\b[^>]*class=["\'][^"\']*\bpage-hero\b[^"\']*["\'][^>]*>)', r'\1' + block, text, count=1, flags=re.I)
 
 
 def optimize_images(text: str) -> str:
@@ -179,8 +198,14 @@ for path in paths:
     text = path.read_text(encoding="utf-8", errors="ignore")
     text = replace_css(text)
     if rel in SKIP_SHELL:
+        text = text.replace("20261022-ux1", VERSION).replace("20261022-ux2", VERSION)
         path.write_text(text, encoding="utf-8")
         continue
+
+    # Remove the restored mismatched logo from public browser chrome until the
+    # owner supplies an approved Treasure Academy master.
+    text = re.sub(r'\s*<link\b[^>]*rel=["\'](?:shortcut )?icon["\'][^>]*logo\.jpg[^>]*>', "", text, flags=re.I)
+    text = re.sub(r'<span class=["\']brand-logo-shell["\']>\s*<img\b[^>]*logo\.jpg[^>]*>\s*</span>', '<span class="brand-logo-shell"><span class="site-monogram" aria-hidden="true">TA</span></span>', text, flags=re.I)
 
     # Remove artificial loading screens and document-level no-cache meta tags.
     text = re.sub(r'<noscript><style>#siteLoader.*?</style></noscript>', "", text, flags=re.I | re.S)
@@ -239,8 +264,9 @@ for path in paths:
     text = re.sub(r'<!-- ux:dock:start -->.*?<!-- ux:dock:end -->', "", text, flags=re.S)
     text = text.replace("</body>", mobile_dock(rel) + "\n</body>", 1)
 
+    text = insert_verified_hero(text)
     text = optimize_images(text)
-    text = text.replace("20261022-restoration1", VERSION).replace("20261022-ux1", VERSION)
+    text = text.replace("20261022-restoration1", VERSION).replace("20261022-ux1", VERSION).replace("20261022-ux2", VERSION)
     text = "\n".join(line.rstrip() for line in text.split("\n"))
     path.write_text(text, encoding="utf-8")
     enhanced_count += 1

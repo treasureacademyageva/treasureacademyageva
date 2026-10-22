@@ -1,0 +1,57 @@
+{
+  "schema": "treasure-brand-assets-v1",
+  "updated": "2026-10-22",
+  "instructions": "Owner-supplied assets only. Set status to verified only after authority, consent, placement and alt text are confirmed. The build fails closed when a verified image is incomplete.",
+  "identity": {
+    "publicName": "Treasure Academy, Ageva",
+    "legalName": "Treasure Academy Ageva Limited",
+    "motto": "Our God is able",
+    "logo": {
+      "status": "restored-pending-owner",
+      "src": "/assets/img/logo.jpg",
+      "authority": "",
+      "reviewDate": "",
+      "note": "Current artwork reads Treasure Kiddies while the website uses Treasure Academy. Supply the approved master before replacement."
+    }
+  },
+  "images": {
+    "campusHero": {
+      "status": "awaiting-owner",
+      "src": "",
+      "srcset": "",
+      "width": 0,
+      "height": 0,
+      "alt": "",
+      "authority": "",
+      "consentConfirmed": false,
+      "reviewDate": "",
+      "placements": []
+    },
+    "classroom": {
+      "status": "awaiting-owner",
+      "src": "",
+      "srcset": "",
+      "width": 0,
+      "height": 0,
+      "alt": "",
+      "authority": "",
+      "consentConfirmed": false,
+      "reviewDate": "",
+      "placements": []
+    },
+    "activity": {
+      "status": "awaiting-owner",
+      "src": "",
+      "srcset": "",
+      "width": 0,
+      "height": 0,
+      "alt": "",
+      "authority": "",
+      "consentConfirmed": false,
+      "reviewDate": "",
+      "placements": []
+    }
+  },
+  "socialProfiles": [],
+  "publicDocuments": []
+}
