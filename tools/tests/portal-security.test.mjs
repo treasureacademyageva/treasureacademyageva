@@ -248,6 +248,26 @@ function restoreAccountEnvironment() {
   }
   globalThis.fetch = originalFetch;
 }
+const accountEntryHandlers = await Promise.all([
+  '../../api/admin-accounts.mjs',
+  '../../api/admin-account-reset.mjs',
+  '../../api/admin-account-status.mjs',
+  '../../api/admin-guardian-links.mjs',
+  '../../api/account-change-password.mjs'
+].map(async (path) => (await import(path)).default));
+await asyncTest('all account Function entry points fail closed before loading account dependencies', async () => {
+  delete process.env.PORTAL_ENABLED;
+  delete process.env.PORTAL_ACCOUNTS_ENABLED;
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; throw new Error('must not run'); };
+  for (const handler of accountEntryHandlers) {
+    const response = await handler.fetch(new Request('https://school.example/api/account-test', { method: 'POST' }));
+    assert.equal(response.status, 404);
+    assert.deepEqual(await response.json(), { error: 'Not found' });
+  }
+  assert.equal(calls, 0);
+  restoreAccountEnvironment();
+});
 await asyncTest('account provisioning endpoint fails closed while its activation gate is off', async () => {
   delete process.env.PORTAL_ENABLED;
   delete process.env.PORTAL_ACCOUNTS_ENABLED;

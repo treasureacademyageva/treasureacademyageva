@@ -28,7 +28,7 @@ ok('mobile quick navigation is present in one consistent order',shellPages.every
 ok('secondary pages expose visible location and early actions',shellPages.filter(x=>!['index.html','search.html','explore.html','404.html'].includes(x)).every(x=>/class="route-bar"/.test(read(x))&&/class="route-actions"/.test(read(x))));
 ok('universal footer provides popular, support, problem-report and verified-contact routes',shellPages.every(x=>/class="universal-footer"/.test(read(x))&&/Find it fast/.test(read(x))&&/Verified contact/.test(read(x))&&/website-help\.html/.test(read(x))));
 ok('responsive illustration variants are referenced by width',/stage-nursery-640\.webp 640w/.test(read('index.html'))&&/uniform-banner-640\.webp 640w/.test(read('uniform.html')));
-ok('unverified photos are not promoted as current homepage imagery',!/hero-school|hero-kids|classroom\.png|sports\.png/.test(read('index.html'))&&!/sports\.png/.test(read('news.html'))&&/Owner provenance and consent review/.test(read('news.html')));
+ok('familiar illustrations are restored without presenting them as verified current photos',/hero-school\.jpg/.test(read('index.html'))&&/hero-kids\.png/.test(read('index.html'))&&/classroom\.png/.test(read('index.html'))&&/Restored earlier-website illustrations/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('news.html')));
 ok('shop uses small WebP sources without invalid nested picture elements',/shop-uniform-560\.webp/.test(read('shop.html'))&&!/<picture>(?:(?!<\/picture>)[\s\S])*<picture>/.test(read('shop.html')));
 const css=fs.readFileSync(path.join(ROOT,'assets/css/site.css'));
 ok('single stylesheet stays below 50 KB gzip',zlib.gzipSync(css,{level:9}).length<50*1024);
@@ -72,8 +72,8 @@ ok('experience audit covers every public shell page',experience.totals&&experien
 ok('every useful public page is reachable within two actions',experience.totals&&experience.totals.withinTwoClicks===shellPages.length-1&&experience.pages.filter(p=>p.page!=='404.html').every(p=>p.experience.clickDepth<=2));
 ok('structural accessibility audit finds no missing alt, labels or image dimensions',experience.totals&&experience.totals.missingAlt===0&&experience.totals.missingLabels===0&&experience.totals.unsizedImages===0);
 ok('owner brand registry stays fail-closed for unverified images and profiles',brandAssets.readiness&&brandAssets.readiness.verifiedImages===0&&brandAssets.readiness.verifiedProfiles===0&&read('assets/data/brand-assets.json').includes('awaiting-owner'));
-ok('mismatched restored logo is withheld from public pages pending an approved master',shellPages.every(x=>!read(x).includes('assets/img/logo.jpg'))&&/restored-pending-owner/.test(read('assets/data/brand-assets.json')));
-ok('structured data omits unverified logo and social-profile claims',!/"logo"\s*:\s*"[^"]*logo\.jpg/.test(read('index.html'))&&!/"sameAs"\s*:/.test(read('index.html')));
+ok('owner-directed familiar crest is restored throughout public navigation',brandAssets.readiness&&brandAssets.readiness.verifiedLogo===true&&shellPages.every(x=>read(x).includes('assets/img/logo.jpg'))&&/Owner-directed restoration/.test(read('assets/data/brand-assets.json')));
+ok('structured data uses the owner-restored crest and omits unverified social profiles',/"logo"\s*:\s*"[^"]*logo\.jpg/.test(read('index.html'))&&!/"sameAs"\s*:/.test(read('index.html')));
 ok('shared form layer supplies visible errors and invalid-state focus support',/initAccessibleForms/.test(read('assets/js/public-shell.js'))&&/aria-invalid/.test(read('assets/js/public-shell.js'))&&/field-error/.test(read('assets/css/ux.css')));
 ok('homepage and shared routes use consistent Apply and Schedule a Visit actions',/Apply for Admission/.test(read('index.html'))&&/Schedule a Visit/.test(read('index.html'))&&/Schedule a Visit/.test(read('about.html')));
 const helpPage=read('website-help.html');

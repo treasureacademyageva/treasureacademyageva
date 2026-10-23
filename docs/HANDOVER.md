@@ -7,6 +7,11 @@
 > appear in both; `MAINTENANCE.md` has the fuller wording and wins if they ever
 > drift apart.
 
+
+## 23 October 2026 — owner-directed familiar design restoration
+
+The owner explicitly requested restoration of the familiar crest, imagery and visual richness before teacher/administrator work continues. Public navigation, footer and portal entry now use `assets/img/logo.jpg`; the homepage/About/News visual sections and portal illustration are restored without undoing the secure portal foundation. Large earlier-site visuals are described as illustrations rather than verified current campus photography. Images visibly naming other schools remain excluded. See `docs/DESIGN-RESTORATION-2026-10-23.md`. The account Function entry points were also changed to fail closed before loading Supabase dependencies when portal accounts are disabled.
+
 ## What this is
 Static school website + staff/headmistress/pupil portals for **Treasure Academy, Ageva, Okene, Kogi State, Nigeria**.
 Hosted on Vercel (preset "Other", no build command, output `./`, no env vars). Repo: github.com/treasureacademyageva/ng — work goes to the `preview` branch first; merge to `main` only when the owner says "go live". Never push straight to main.

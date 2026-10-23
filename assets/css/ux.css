@@ -274,3 +274,7 @@ html[data-theme="dark"] .nav-apply,html[data-theme="dark"] .desktop-apply{backgr
 html[data-theme="dark"] .btn-secondary{border-color:#8EE3AD!important;color:#8EE3AD!important}
 html[data-theme="dark"] .home-search-row input,html[data-theme="dark"] .smart-search-row input{color:#172536!important}
 html[data-theme="dark"] .home-search-row button,html[data-theme="dark"] .smart-search-row button,html[data-theme="dark"] .route-actions a:first-child{background:#0E5A2E!important;border-color:#0E5A2E!important;color:#fff!important}
+
+/* Owner-directed familiar visual restoration, 23 October 2026. */
+.restored-art-note{max-width:70ch;margin:18px auto 0;color:var(--ux-muted);font-size:.82rem;text-align:center}
+.lite-brand>.logo-badge{width:44px;height:44px;flex:0 0 44px;border-radius:50%;object-fit:cover;border:2px solid var(--ux-gold);background:#fff}

@@ -10,7 +10,7 @@ from urllib.parse import quote
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "20261022-ux3"
+VERSION = "20261023-design1"
 SKIP_SHELL = {"developer.html", "developer-review.html", "developer-operations.html"}
 STORE_PAGES = {"index.html", "contact.html"}
 SAFE_ACTION_PAGES = {"admissions.html", "contact.html"}
@@ -60,7 +60,7 @@ def nav_links(rel: str, lite: bool = False) -> str:
 
 def lite_nav(rel: str) -> str:
     return f'''<nav class="lite-nav" aria-label="Primary navigation"><div class="container">
-<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><span class="site-monogram" aria-hidden="true">TA</span><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a>
+<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a>
 <div class="lite-links">{nav_links(rel, True)}</div>
 <div class="lite-actions"><a class="lite-search" href="/search.html">Search</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admissions.html#apply">Apply</a></div>
 </div></nav>'''
@@ -96,7 +96,7 @@ def route_bar(rel: str, title: str) -> str:
 
 def footer() -> str:
     return '''<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid">
-<div class="uf-col uf-about"><a class="uf-brand" href="/"><span class="site-monogram" aria-hidden="true">TA</span><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
+<div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
 <div class="uf-col"><h2>Find it fast</h2><nav class="uf-links" aria-label="Popular pages"><a href="/admissions.html">Admissions</a><a href="/academics.html">Classes</a><a href="/fees.html">Fees</a><a href="/calendar.html">Term dates</a><a href="/uniform.html">Uniform</a><a href="/transport.html">Transport</a></nav></div>
 <div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/about.html">About the school</a><a href="/news.html">News &amp; updates</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/website-help.html">Website help</a></nav></div>
 <div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
@@ -202,10 +202,15 @@ for path in paths:
         path.write_text(text, encoding="utf-8")
         continue
 
-    # Remove the restored mismatched logo from public browser chrome until the
-    # owner supplies an approved Treasure Academy master.
-    text = re.sub(r'\s*<link\b[^>]*rel=["\'](?:shortcut )?icon["\'][^>]*logo\.jpg[^>]*>', "", text, flags=re.I)
-    text = re.sub(r'<span class=["\']brand-logo-shell["\']>\s*<img\b[^>]*logo\.jpg[^>]*>\s*</span>', '<span class="brand-logo-shell"><span class="site-monogram" aria-hidden="true">TA</span></span>', text, flags=re.I)
+    # The owner explicitly directed restoration of the familiar school crest
+    # on 23 October 2026. Keep decorative instances silent because the adjacent
+    # text already announces the school name.
+    text = re.sub(
+        r'<span class=["\']brand-logo-shell["\']>\s*(?:<span\b[^>]*site-monogram[^>]*>.*?</span>|<img\b[^>]*logo\.jpg[^>]*>)\s*</span>',
+        '<span class="brand-logo-shell"><img class="logo-badge" src="/assets/img/logo.jpg" alt="" width="397" height="397" decoding="async"></span>',
+        text,
+        flags=re.I | re.S,
+    )
 
     # Remove artificial loading screens and document-level no-cache meta tags.
     text = re.sub(r'<noscript><style>#siteLoader.*?</style></noscript>', "", text, flags=re.I | re.S)
@@ -261,12 +266,15 @@ for path in paths:
     text, footer_count = re.subn(r'<footer\b[^>]*>.*?</footer>', footer(), text, count=1, flags=re.I | re.S)
     if not footer_count:
         text = text.replace(shell_tag, footer() + "\n" + shell_tag, 1)
-    text = re.sub(r'<!-- ux:dock:start -->.*?<!-- ux:dock:end -->', "", text, flags=re.S)
-    text = text.replace("</body>", mobile_dock(rel) + "\n</body>", 1)
+    text = re.sub(r'\s*<!-- ux:dock:start -->.*?<!-- ux:dock:end -->\s*', "\n", text, flags=re.S)
+    text = re.sub(r'\s*</body>', "\n" + mobile_dock(rel) + "\n</body>", text, count=1)
 
     text = insert_verified_hero(text)
     text = optimize_images(text)
     text = text.replace("20261022-restoration1", VERSION).replace("20261022-ux1", VERSION).replace("20261022-ux2", VERSION)
+    # Reruns remove and reinsert the generated dock. Collapse only the empty
+    # separator immediately before that marker so builds remain byte-stable.
+    text = re.sub(r'\n(?:[ \t]*\n){2,}(?=<!-- ux:dock:start -->)', '\n', text)
     text = "\n".join(line.rstrip() for line in text.split("\n"))
     path.write_text(text, encoding="utf-8")
     enhanced_count += 1

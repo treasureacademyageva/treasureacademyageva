@@ -106,7 +106,7 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
   await page.close();
  }
  await dark.close();
- const support=await browser.newPage({viewport:{width:320,height:700}});const supportResponse=await support.goto(new URL('portal/login.html',BASE).href,{waitUntil:'domcontentloaded'});const supportState=await support.evaluate(()=>({h1:document.querySelectorAll('h1').length,overflow:document.documentElement.scrollWidth-innerWidth,logo:document.body.innerText.includes('Treasure Academy, Ageva'),wrongMark:document.documentElement.innerHTML.includes('logo.jpg')}));ok('retired parent-help page stays truthful, responsive and free of the mismatched mark',supportResponse.status()<400&&supportState.h1===1&&supportState.overflow<=2&&supportState.logo&&!supportState.wrongMark);await support.close();
+ const support=await browser.newPage({viewport:{width:320,height:700}});const supportResponse=await support.goto(new URL('portal/login.html',BASE).href,{waitUntil:'domcontentloaded'});const supportState=await support.evaluate(()=>({h1:document.querySelectorAll('h1').length,overflow:document.documentElement.scrollWidth-innerWidth,logo:document.body.innerText.includes('Treasure Academy, Ageva'),restoredMark:document.documentElement.innerHTML.includes('logo.jpg')}));ok('secure portal entry stays truthful and responsive with the restored school crest',supportResponse.status()<400&&supportState.h1===1&&supportState.overflow<=2&&supportState.logo&&supportState.restoredMark);await support.close();
  await browser.close();
  console.log(`BROWSER VISITOR QA: ${pass} passed, ${fail} failed across ${pages.length} pages and three viewports.`);
  if(fail)process.exit(1);

@@ -219,6 +219,10 @@ function renderMaintenance() {
           h('a', { class: 'button', href: '/index.html' }, h('span', { text: 'Return to website' })),
           h('a', { class: 'button button--secondary', href: `https://wa.me/${WHATSAPP_NUMBER}` }, h('span', { text: 'Contact the school' }))
         )
+      ),
+      h('aside', { class: 'portal-art-panel', 'aria-label': 'Treasure Academy portal illustration' },
+        h('img', { src: '/assets/img/login-art.webp', width: '768', height: '1376', alt: 'Illustration of a welcoming school and secure account panel' }),
+        h('p', { class: 'portal-art-panel__caption', text: 'The familiar portal look is being restored on a secure foundation.' })
       )
     )
   );

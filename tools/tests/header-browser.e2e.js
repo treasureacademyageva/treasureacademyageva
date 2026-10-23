@@ -37,7 +37,7 @@ async function check(width){
  }
  for(const w of [1440,1120,960,959,360])await check(w);
  // Dark mode keeps visible controls and a non-white navbar treatment.
- const dark=await browser.newPage({viewport:{width:360,height:800}});await dark.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});await dark.evaluate(()=>{localStorage.setItem('treasure_theme','dark');location.reload()});await dark.waitForLoadState('networkidle');assert(/dark/.test(await dark.locator('html').getAttribute('data-theme')));assert.equal(await dark.locator('.mobile-dock').isVisible(),true);await dark.close();passed++;
+ const dark=await browser.newPage({viewport:{width:360,height:800}});await dark.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});await dark.evaluate(()=>localStorage.setItem('treasure_theme','dark'));await dark.reload({waitUntil:'networkidle'});assert(/dark/.test(await dark.locator('html').getAttribute('data-theme')));assert.equal(await dark.locator('.mobile-dock').isVisible(),true);await dark.close();passed++;
  const titlePage=await browser.newPage({viewport:{width:390,height:844}});await titlePage.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});assert(/Treasure Academy/.test(await titlePage.title()));assert.equal(await titlePage.locator('.portal-link').getAttribute('href'),'/portal/login.html');await titlePage.close();passed++;
  console.log(`HEADER BROWSER: ${passed} viewports/scenarios passed`);await browser.close();
 })().catch(e=>{console.error(e.stack);process.exit(1)});

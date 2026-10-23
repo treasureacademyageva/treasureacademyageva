@@ -119,6 +119,7 @@ ORG_LD = {
   "description": "A Creche to Primary 6 private school in Ageva, Okene, Kogi State, Nigeria.",
   "url": SITE + "/",
   "image": SITE + "/assets/img/og-cover.png",
+  "logo": SITE + "/assets/img/logo.jpg",
   "telephone": "+234 814 194 3478",
   "email": "treasuregroupofschool@gmail.com",
   "address": {
