@@ -9,6 +9,7 @@ Use the current owner/deployment runbook:
 - account migration: `supabase/migrations/202610230002_portal_accounts.sql`
 - disposable staging RLS/account tests: `supabase/tests/rls_portal_policy.test.sql`
 - account implementation plan: `docs/PORTAL-ACCOUNT-PLAN-2026-10-23.md`
+- reviewed live-schema/account mapping: `docs/LIVE-SCHEMA-ACCOUNT-MAPPING-2026-10-23.md`
 
 ## Non-negotiable controls
 

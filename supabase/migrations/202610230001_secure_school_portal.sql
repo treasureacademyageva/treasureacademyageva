@@ -191,7 +191,10 @@ $$;
 revoke all on function public.teacher_can_manage_grade(uuid, text) from public, anon;
 grant execute on function public.teacher_can_manage_grade(uuid, text) to authenticated;
 
-create or replace function public.touch_updated_at()
+-- Keep portal plumbing separate from the former portal's live
+-- public.touch_updated_at() function, which still serves public.school_data.
+-- This migration must not replace or change that preserved legacy dependency.
+create or replace function public.portal_touch_updated_at()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -280,7 +283,7 @@ $$;
 
 -- Trigger functions are not API routes. Trigger execution does not require
 -- client EXECUTE privileges, so remove the default PUBLIC grant explicitly.
-revoke all on function public.touch_updated_at() from public, anon, authenticated;
+revoke all on function public.portal_touch_updated_at() from public, anon, authenticated;
 revoke all on function public.guard_profile_role_change() from public, anon, authenticated;
 revoke all on function public.audit_admission_status_change() from public, anon, authenticated;
 revoke all on function public.audit_payment_change() from public, anon, authenticated;
@@ -380,7 +383,7 @@ grant execute on function public.process_monnify_payment_event(text, text, text,
 -- Recreate deterministic triggers without duplicates.
 drop trigger if exists profiles_touch_updated_at on public.profiles;
 create trigger profiles_touch_updated_at before update on public.profiles
-for each row execute function public.touch_updated_at();
+for each row execute function public.portal_touch_updated_at();
 
 drop trigger if exists profiles_guard_role on public.profiles;
 create trigger profiles_guard_role before update on public.profiles
@@ -388,7 +391,7 @@ for each row execute function public.guard_profile_role_change();
 
 drop trigger if exists students_touch_updated_at on public.students;
 create trigger students_touch_updated_at before update on public.students
-for each row execute function public.touch_updated_at();
+for each row execute function public.portal_touch_updated_at();
 
 drop trigger if exists students_audit_admission on public.students;
 create trigger students_audit_admission after update of admission_status on public.students
@@ -396,15 +399,15 @@ for each row execute function public.audit_admission_status_change();
 
 drop trigger if exists assignments_touch_updated_at on public.teacher_class_assignments;
 create trigger assignments_touch_updated_at before update on public.teacher_class_assignments
-for each row execute function public.touch_updated_at();
+for each row execute function public.portal_touch_updated_at();
 
 drop trigger if exists grades_touch_updated_at on public.grades;
 create trigger grades_touch_updated_at before update on public.grades
-for each row execute function public.touch_updated_at();
+for each row execute function public.portal_touch_updated_at();
 
 drop trigger if exists payments_touch_updated_at on public.payments;
 create trigger payments_touch_updated_at before update on public.payments
-for each row execute function public.touch_updated_at();
+for each row execute function public.portal_touch_updated_at();
 
 drop trigger if exists payments_audit_change on public.payments;
 create trigger payments_audit_change after update of status on public.payments

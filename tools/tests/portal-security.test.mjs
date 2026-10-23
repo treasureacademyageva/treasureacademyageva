@@ -401,6 +401,9 @@ test('role escalation has a database trigger guard and new users default to pare
 test('baseline preserves the former Supabase portal until a separate verified cut-over', () => {
   assert.match(migration, /does NOT alter or retire public\.school_data/i);
   assert.doesNotMatch(migration, /revoke all on table public\.school_data/i);
+  assert.doesNotMatch(migration, /create or replace function public\.touch_updated_at\s*\(/i);
+  assert.match(migration, /create or replace function public\.portal_touch_updated_at\s*\(/i);
+  assert.doesNotMatch(accountMigration, /execute function public\.touch_updated_at\s*\(/i);
   assert.doesNotMatch(accountMigration, /(?:drop|truncate|alter|delete from|update)\s+(?:table\s+)?public\.school_data/i);
   assert.doesNotMatch(rootSchema, /drop policy if exists %I on public\.school_data/i);
   assert.match(rootSchema, /202610230002_portal_accounts\.sql/i);

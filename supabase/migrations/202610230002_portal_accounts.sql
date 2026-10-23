@@ -705,11 +705,11 @@ for each row execute function public.sync_primary_guardian_from_student_parent()
 
 drop trigger if exists student_guardians_touch_updated_at on public.student_guardians;
 create trigger student_guardians_touch_updated_at before update on public.student_guardians
-for each row execute function public.touch_updated_at();
+for each row execute function public.portal_touch_updated_at();
 
 drop trigger if exists legacy_account_mappings_touch_updated_at on public.legacy_account_mappings;
 create trigger legacy_account_mappings_touch_updated_at before update on public.legacy_account_mappings
-for each row execute function public.touch_updated_at();
+for each row execute function public.portal_touch_updated_at();
 
 -- RLS for new account tables.
 alter table public.student_guardians enable row level security;

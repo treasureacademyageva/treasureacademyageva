@@ -29,7 +29,9 @@ The owner confirmed that the former portal used Supabase. Do not assume it was e
 4. Determine whether the project contains the Batch 19 `school_data` table, the later normalized portal tables, or both.
 5. Do **not** run `99_retire_legacy_school_data_after_verified_cutover.sql` yet.
 
-The secure baseline intentionally leaves all former portal objects unchanged. Retirement is outside the automatic migrations and occurs only after record mapping, staging tests and a separate owner approval.
+The comprehensive live inventory and owner-controlled current-row CSV rescue were completed on 23 October 2026. The corrected snapshot contains 25 public tables, 6 views, 1 sequence, 0 Auth users/identities, 0 parent/pupil rows and 0 Storage objects. The owner privately retained 70 current rows across two CSV downloads. These files are not repository artifacts and are not to be uploaded to chat or GitHub. See `docs/LIVE-SCHEMA-ACCOUNT-MAPPING-2026-10-23.md`.
+
+The secure baseline intentionally leaves all former portal objects unchanged. The local migration now also uses `portal_touch_updated_at()` so it does not replace the former live `touch_updated_at()` function used by `school_data`. Retirement is outside the automatic migrations and occurs only after record mapping, staging tests and a separate owner approval.
 
 ## 3. Prerequisites
 

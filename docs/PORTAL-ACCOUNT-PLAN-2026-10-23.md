@@ -24,7 +24,9 @@ Implemented in the repository, but **not applied to Supabase, deployed or enable
 - admin account directory, provisioning, verified reset, status and caregiver-link controls;
 - fictional static/server/browser tests.
 
-Activation still requires the existing-project metadata inventory, owner-controlled backup, staging migration and database RLS/account tests. `PORTAL_ACCOUNTS_ENABLED` must remain false or unset until those gates pass.
+The comprehensive live inventory and owner-controlled current-row CSV rescue are now complete. The corrected live snapshot has 25 public tables, 6 views, 1 sequence, no Auth users/identities, no parent or pupil rows, and no Storage objects. The two owner-held CSV files preserve 70 current rows and are not stored in the repository or chat. See `docs/LIVE-SCHEMA-ACCOUNT-MAPPING-2026-10-23.md` for the reviewed mapping and its limits.
+
+Activation still requires a disposable staging migration and live database RLS/account tests. The CSV rescue is sufficient for current-row migration planning but is not a full PostgreSQL disaster-recovery dump. `PORTAL_ACCOUNTS_ENABLED` must remain false or unset until the remaining gates pass.
 
 ## 1. Account principles
 

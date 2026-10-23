@@ -31,7 +31,9 @@ The retirement SQL is deliberately outside `supabase/migrations/`, so an automat
 
 ## After the inventory
 
-1. Export/backup the existing project using the owner-approved Supabase workflow.
+The comprehensive inventory and owner-controlled current-row CSV rescue were completed on 23 October 2026. The two private owner-held files contain the one `school_data` row and the other 69 current rows. They are a migration-preservation export, not a complete PostgreSQL disaster-recovery dump. The reviewed mapping is in `docs/LIVE-SCHEMA-ACCOUNT-MAPPING-2026-10-23.md`.
+
+1. Keep the owner export private and retain a second owner-controlled copy when a trusted computer or encrypted drive is available.
 2. Create a staging project or staging branch with fictional/copied-and-redacted test data.
 3. Apply `202610230001_secure_school_portal.sql`, then `202610230002_portal_accounts.sql`, in that order in staging only.
 4. Map legitimate records to the secure schema. Never restore demo credentials, sample pupils, plaintext PINs or fabricated receipts.
