@@ -129,6 +129,14 @@ function setFormMessage(node, message, error = false) {
   if (error) node.focus?.();
 }
 
+function normalizeNigerianPhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (/^234[789]\d{9}$/.test(digits)) return `+${digits}`;
+  if (/^0[789]\d{9}$/.test(digits)) return `+234${digits.slice(1)}`;
+  if (/^[789]\d{9}$/.test(digits)) return `+234${digits}`;
+  return null;
+}
+
 function formatMoney(value) {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 2 }).format(Number(value || 0));
 }
@@ -217,21 +225,98 @@ function renderMaintenance() {
   setStatus('Portal reconnection is not active yet.');
 }
 
+async function postAccountApi(url, body) {
+  const { data, error } = await state.supabase.auth.getSession();
+  if (error || !data.session?.access_token) throw new Error('Sign in again to continue.');
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Bearer ${data.session.access_token}`
+    },
+    cache: 'no-store',
+    body: JSON.stringify(body)
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'The account service could not complete that request.');
+  return result;
+}
+
+function renderPasswordChange() {
+  const message = formMessage();
+  const nextPassword = h('input', { name: 'password', type: 'password', autocomplete: 'new-password', required: true, minlength: '12', maxlength: '128' });
+  const confirmation = h('input', { name: 'confirmation', type: 'password', autocomplete: 'new-password', required: true, minlength: '12', maxlength: '128' });
+  const submit = primaryButton('Set my new password', { type: 'submit', icon: 'lock' });
+  const form = h('form', { class: 'auth-form', novalidate: '', onSubmit: async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    if (nextPassword.value !== confirmation.value) {
+      setFormMessage(message, 'The two passwords do not match.', true);
+      confirmation.focus();
+      return;
+    }
+    submit.disabled = true;
+    submit.setAttribute('aria-busy', 'true');
+    setFormMessage(message, 'Securing your new password…');
+    try {
+      await postAccountApi('/api/account/change-password', { password: nextPassword.value });
+      nextPassword.value = '';
+      confirmation.value = '';
+      setFormMessage(message, 'Password changed. Loading your authorised portal…');
+      const { data } = await state.supabase.auth.getSession();
+      await establishSession(data.session);
+    } catch (error) {
+      setFormMessage(message, error.message || friendlyError(), true);
+      nextPassword.focus();
+    } finally {
+      submit.disabled = false;
+      submit.removeAttribute('aria-busy');
+    }
+  } },
+    controlField('New password', nextPassword, 'Use at least 12 characters with uppercase, lowercase, a number and a symbol.'),
+    controlField('Confirm new password', confirmation),
+    message,
+    submit
+  );
+
+  replace(app,
+    h('div', { class: 'auth-layout auth-layout--single' },
+      h('section', { class: 'auth-card', 'aria-labelledby': 'password-change-title' },
+        h('p', { class: 'eyebrow', text: 'First sign-in security' }),
+        h('h1', { id: 'password-change-title', text: 'Choose a new password' }),
+        h('p', { text: `Welcome, ${state.profile.full_name}. Your temporary password cannot be used as your permanent portal password.` }),
+        alertBox('info', 'School records remain locked', 'Your authorised records become available only after this password change succeeds. Never reuse a former PIN or share the new password.'),
+        form,
+        h('button', { type: 'button', class: 'sign-out', onClick: async () => { await state.supabase.auth.signOut({ scope: 'local' }); } }, icon('lock'), h('span', { text: 'Sign out instead' }))
+      )
+    )
+  );
+  setStatus('A new password is required before portal records can open.');
+  nextPassword.focus();
+}
+
 function renderLogin() {
   const message = formMessage();
-  const email = h('input', { name: 'email', type: 'email', autocomplete: 'username', inputmode: 'email', required: true });
-  const password = h('input', { name: 'password', type: 'password', autocomplete: 'current-password', required: true, minlength: '8' });
+  const phone = h('input', { name: 'phone', type: 'tel', autocomplete: 'username', inputmode: 'tel', required: true, placeholder: '0906 393 2487' });
+  const password = h('input', { name: 'password', type: 'password', autocomplete: 'current-password', required: true, minlength: '12', maxlength: '128' });
   const submit = primaryButton('Sign in securely', { type: 'submit', icon: 'lock' });
   const form = h('form', { class: 'auth-form', novalidate: '', onSubmit: async (event) => {
     event.preventDefault();
     if (!form.reportValidity()) return;
+    const values = new FormData(form);
+    const normalizedPhone = normalizeNigerianPhone(values.get('phone'));
+    if (!normalizedPhone) {
+      setFormMessage(message, 'Enter a valid Nigerian mobile number, for example 0906 393 2487.', true);
+      phone.focus();
+      return;
+    }
     submit.disabled = true;
     submit.setAttribute('aria-busy', 'true');
     setFormMessage(message, 'Signing in…');
-    const values = new FormData(form);
     try {
       const { error } = await state.supabase.auth.signInWithPassword({
-        email: String(values.get('email') || '').trim(),
+        phone: normalizedPhone,
         password: String(values.get('password') || '')
       });
       if (error) throw error;
@@ -244,9 +329,9 @@ function renderLogin() {
       submit.removeAttribute('aria-busy');
     }
   } },
-    controlField('Email address', email),
+    controlField('Nigerian phone number', phone, 'Use the number verified by the school, for example 0906 393 2487.'),
     controlField('Password', password),
-    h('p', { class: 'field__hint', text: 'Use only the account issued by Treasure Academy. There is no pupil login.' }),
+    h('p', { class: 'field__hint', text: 'Use only the account issued by Treasure Academy. There is no public sign-up and no pupil login.' }),
     message,
     submit
   );
@@ -261,7 +346,7 @@ function renderLogin() {
         form,
         h('div', { class: 'auth-help' },
           h('h2', { text: 'Need account help?' }),
-          h('p', { text: 'For safeguarding, portal access is issued by the school. Do not share your password or a one-time recovery link.' }),
+          h('p', { text: 'For safeguarding, portal access is issued by the school. The office verifies password resets; never send your old or temporary password in chat.' }),
           h('a', { href: `https://wa.me/${WHATSAPP_NUMBER}`, text: 'Contact the verified school WhatsApp' })
         )
       ),
@@ -304,16 +389,18 @@ async function loadPortalData() {
   } else base.push(Promise.resolve([]));
 
   if (role === 'admin') {
-    base.push(fetchRows('profiles', 'id,role,full_name,active,created_at', 'full_name'));
+    base.push(fetchRows('profiles', 'id,role,full_name,phone_e164,account_status,must_change_password,active,legacy_account_no,created_at', 'full_name'));
     base.push(fetchRows('admission_audit_log', 'id,student_id,actor_id,previous_status,new_status,created_at', 'created_at'));
     base.push(fetchRows('payment_audit_log', 'id,payment_id,actor_id,action,previous_status,new_status,created_at', 'created_at'));
     base.push(fetchRows('webhook_events', 'id,event_key,outcome,reason,received_at,processed_at', 'received_at'));
+    base.push(fetchRows('student_guardians', 'student_id,parent_id,relationship,active,verified_at,created_at', 'created_at'));
+    base.push(fetchRows('account_audit_log', 'id,actor_id,target_profile_id,action,reason_code,detail,created_at', 'created_at'));
   } else {
-    base.push(Promise.resolve([]), Promise.resolve([]), Promise.resolve([]), Promise.resolve([]));
+    base.push(Promise.resolve([]), Promise.resolve([]), Promise.resolve([]), Promise.resolve([]), Promise.resolve([]), Promise.resolve([]));
   }
 
-  const [students, grades, payments, assignments, profiles, admissionAudit, paymentAudit, webhooks] = await Promise.all(base);
-  state.data = { students, grades, payments, assignments, profiles, admissionAudit, paymentAudit, webhooks };
+  const [students, grades, payments, assignments, profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit] = await Promise.all(base);
+  state.data = { students, grades, payments, assignments, profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit };
 }
 
 async function establishSession(session) {
@@ -332,18 +419,26 @@ async function establishSession(session) {
   try {
     const { data: profile, error } = await state.supabase
       .from('profiles')
-      .select('id,role,full_name,active')
+      .select('id,role,full_name,active,account_status,must_change_password,phone_e164')
       .eq('id', session.user.id)
       .single();
     if (error || !profile?.active) throw error || new Error('Inactive profile');
     if (!['parent', 'teacher', 'admin'].includes(profile.role)) throw new Error('Unsupported role');
     state.profile = profile;
+    if (profile.account_status === 'pending_activation' && profile.must_change_password === true) {
+      state.data = {};
+      renderPasswordChange();
+      return;
+    }
+    if (profile.account_status !== 'active' || profile.must_change_password === true) {
+      throw new Error('Account is not active');
+    }
     await loadPortalData();
     state.tab = 'overview';
     renderAuthenticated();
     setStatus(`Signed in as ${profile.full_name}.`);
   } catch {
-    await state.supabase.auth.signOut();
+    await state.supabase.auth.signOut({ scope: 'local' });
     replace(app, alertBox('error', 'Portal access unavailable', 'Your account could not be matched to an active authorised profile. Contact the school office.'));
     setStatus('Portal access unavailable.', true);
   } finally {
@@ -359,7 +454,7 @@ function tabsForRole(role) {
     ['overview', 'Home', 'shield'], ['classes', 'My Class', 'classes'], ['results', 'Input Results', 'results']
   ];
   return [
-    ['overview', 'Overview', 'shield'], ['students', 'Pupils', 'pupils'], ['people', 'Teachers & Classes', 'classes'],
+    ['overview', 'Overview', 'shield'], ['students', 'Pupils', 'pupils'], ['people', 'Accounts & Classes', 'classes'],
     ['results', 'Results', 'results'], ['payments', 'School Fees', 'payments'], ['audit', 'Audit', 'audit']
   ];
 }
@@ -582,12 +677,217 @@ function assignmentForm() {
   return h('details', { class: 'form-panel' }, h('summary', { text: 'Assign a teacher' }), form);
 }
 
+function maskPhone(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  return digits.length >= 4 ? `•••• ${digits.slice(-4)}` : 'Not reconciled';
+}
+
+function oneTimePasswordPanel() {
+  const password = h('code', { class: 'one-time-password' });
+  const instruction = h('p', { class: 'field__hint' });
+  const panel = h('div', { class: 'one-time-credential', hidden: true },
+    h('strong', { text: 'One-time temporary password' }),
+    password,
+    instruction,
+    h('button', { type: 'button', class: 'button button--secondary', onClick: () => {
+      password.textContent = '';
+      instruction.textContent = '';
+      panel.setAttribute('hidden', '');
+    } }, h('span', { text: 'I have recorded it privately' }))
+  );
+  return {
+    panel,
+    show(value, note) {
+      password.textContent = value;
+      instruction.textContent = note;
+      panel.removeAttribute('hidden');
+      password.focus?.();
+    }
+  };
+}
+
+function accountManagementForms() {
+  const nonAdminAccounts = state.data.profiles.filter((profile) => profile.role !== 'admin');
+  const parentAccounts = state.data.profiles.filter((profile) => profile.role === 'parent');
+
+  const createMessage = formMessage();
+  const createCredential = oneTimePasswordPanel();
+  const createForm = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault();
+    if (!createForm.reportValidity()) return;
+    const submit = createForm.querySelector('[type=submit]');
+    submit.disabled = true;
+    const values = new FormData(createForm);
+    try {
+      const initialStudent = values.get('student_id');
+      const result = await postAccountApi('/api/admin/accounts', {
+        fullName: String(values.get('full_name') || '').trim(),
+        phone: String(values.get('phone') || ''),
+        role: values.get('role'),
+        legacySource: String(values.get('legacy_source') || '').trim() || null,
+        legacyAccountNo: String(values.get('legacy_account_no') || '').trim() || null,
+        studentIds: initialStudent ? [initialStudent] : []
+      });
+      createForm.reset();
+      setFormMessage(createMessage, 'Account created in pending activation. Record the temporary password now; the user must replace it at first sign-in.');
+      createCredential.show(result.temporaryPassword, result.instruction);
+    } catch (error) {
+      setFormMessage(createMessage, error.message || friendlyError(), true);
+    } finally { submit.disabled = false; }
+  } },
+    textInput('full_name', 'Verified full name', { maxlength: '120', autocomplete: 'off' }),
+    textInput('phone', 'Verified Nigerian phone', { type: 'tel', inputmode: 'tel', placeholder: '0906 393 2487', maxlength: '24', hint: 'The office must verify the person and number before creation.' }),
+    selectInput('role', 'Account role', [{ value: 'parent', label: 'Parent' }, { value: 'teacher', label: 'Teacher' }], { placeholder: 'Choose parent or teacher' }),
+    selectInput('student_id', 'Initial linked child (parent only, optional)', state.data.students.map((student) => ({ value: student.id, label: `${student.full_name} — ${student.class_code}` })), { placeholder: 'No child selected', required: false, hint: 'Use only after the caregiver relationship is verified. Additional children can be linked below.' }),
+    h('div', { class: 'form-grid' },
+      textInput('legacy_source', 'Legacy source (optional)', { maxlength: '80', required: false, hint: 'For example: school_data or parent_accounts. Never enter a former PIN.' }),
+      textInput('legacy_account_no', 'Former account number (optional)', { maxlength: '120', required: false })
+    ),
+    alertBox('warning', 'No public registration', 'Only create an account after office verification. This workflow cannot create another administrator.'),
+    createMessage,
+    createCredential.panel,
+    primaryButton('Create verified account', { type: 'submit', icon: 'user' })
+  );
+
+  const resetMessage = formMessage();
+  const resetCredential = oneTimePasswordPanel();
+  const resetForm = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault();
+    if (!resetForm.reportValidity()) return;
+    const submit = resetForm.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(resetForm);
+    const accountId = values.get('account_id');
+    try {
+      const result = await postAccountApi(`/api/admin/accounts/${encodeURIComponent(accountId)}/reset-password`, { reason: values.get('reason') });
+      setFormMessage(resetMessage, 'Former sessions were revoked. Record the new temporary password now.');
+      resetCredential.show(result.temporaryPassword, result.instruction);
+    } catch (error) { setFormMessage(resetMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('account_id', 'Parent or teacher account', nonAdminAccounts.map((profile) => ({ value: profile.id, label: `${profile.full_name} — ${titleCase(profile.role)} — ${maskPhone(profile.phone_e164)}` })), { placeholder: nonAdminAccounts.length ? 'Choose a verified account' : 'No eligible accounts' }),
+    selectInput('reason', 'Office identity-verification method', [
+      { value: 'in_person', label: 'Verified in person' },
+      { value: 'confirmed_voice_call', label: 'Confirmed voice call' },
+      { value: 'owner_approved_record_check', label: 'Owner-approved record check' }
+    ], { placeholder: 'Choose how identity was verified' }),
+    alertBox('warning', 'Verification required', 'Do not reset from a chat message alone. Administrator-account recovery remains owner-controlled.'),
+    resetMessage,
+    resetCredential.panel,
+    primaryButton('Issue one-time reset password', { type: 'submit', icon: 'lock', disabled: !nonAdminAccounts.length })
+  );
+
+  const statusMessage = formMessage();
+  const statusForm = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!statusForm.reportValidity()) return;
+    const submit = statusForm.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(statusForm);
+    const accountId = values.get('account_id');
+    try {
+      await postAccountApi(`/api/admin/accounts/${encodeURIComponent(accountId)}/status`, { status: values.get('status'), reason: values.get('reason') });
+      setFormMessage(statusMessage, 'Account status updated and audit-recorded.');
+      await refreshAfterMutation();
+    } catch (error) { setFormMessage(statusMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('account_id', 'Parent or teacher account', nonAdminAccounts.map((profile) => ({ value: profile.id, label: `${profile.full_name} — ${titleCase(profile.account_status)}` })), { placeholder: nonAdminAccounts.length ? 'Choose an account' : 'No eligible accounts' }),
+    selectInput('status', 'New account status', [
+      { value: 'active', label: 'Active' },
+      { value: 'suspended', label: 'Suspended' },
+      { value: 'archived', label: 'Archived' }
+    ], { placeholder: 'Choose a status' }),
+    selectInput('reason', 'Reason category', [
+      { value: 'identity_review_complete', label: 'Identity review complete' },
+      { value: 'security_concern', label: 'Security concern' },
+      { value: 'employment_ended', label: 'Employment ended' },
+      { value: 'relationship_changed', label: 'Caregiver relationship changed' },
+      { value: 'owner_instruction', label: 'Owner instruction' }
+    ], { placeholder: 'Choose a reason' }),
+    statusMessage,
+    primaryButton('Update account status', { type: 'submit', icon: 'shield', disabled: !nonAdminAccounts.length })
+  );
+
+  const linkMessage = formMessage();
+  const linkForm = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!linkForm.reportValidity()) return;
+    const submit = linkForm.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(linkForm);
+    try {
+      await postAccountApi('/api/admin/guardian-links', {
+        parentId: values.get('parent_id'),
+        studentId: values.get('student_id'),
+        relationship: values.get('relationship'),
+        active: values.get('action') === 'link'
+      });
+      setFormMessage(linkMessage, values.get('action') === 'link' ? 'Verified caregiver link saved.' : 'Caregiver access removed.');
+      await refreshAfterMutation();
+    } catch (error) { setFormMessage(linkMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('parent_id', 'Parent account', parentAccounts.map((profile) => ({ value: profile.id, label: `${profile.full_name} — ${maskPhone(profile.phone_e164)}` })), { placeholder: parentAccounts.length ? 'Choose a verified parent' : 'No parent accounts' }),
+    selectInput('student_id', 'Pupil', state.data.students.map((student) => ({ value: student.id, label: `${student.full_name} — ${student.class_code}` })), { placeholder: state.data.students.length ? 'Choose a pupil' : 'No pupils' }),
+    selectInput('relationship', 'Relationship', [
+      { value: 'parent', label: 'Parent' },
+      { value: 'guardian', label: 'Guardian' },
+      { value: 'caregiver', label: 'Caregiver' }
+    ], { placeholder: 'Choose a relationship' }),
+    selectInput('action', 'Access action', [
+      { value: 'link', label: 'Verify and link' },
+      { value: 'unlink', label: 'Remove access' }
+    ], { placeholder: 'Choose link or remove' }),
+    alertBox('info', 'Verified relationships only', 'Never link families by a public phone search. One parent may have several children and one child may have multiple verified caregivers.'),
+    linkMessage,
+    primaryButton('Save caregiver access', { type: 'submit', icon: 'pupils', disabled: !parentAccounts.length || !state.data.students.length })
+  );
+
+  return h('div', { class: 'details-grid account-actions' },
+    h('details', { class: 'form-panel' }, h('summary', { text: 'Create a parent or teacher account' }), createForm),
+    h('details', { class: 'form-panel' }, h('summary', { text: 'Reset a password after office verification' }), resetForm),
+    h('details', { class: 'form-panel' }, h('summary', { text: 'Suspend, archive or reactivate an account' }), statusForm),
+    h('details', { class: 'form-panel' }, h('summary', { text: 'Link or unlink a verified caregiver' }), linkForm)
+  );
+}
+
+function accountDirectory() {
+  const search = h('input', { type: 'search', inputmode: 'search', autocomplete: 'off', placeholder: 'Name, last 4 digits or former account number' });
+  const results = h('div');
+  const render = () => {
+    const query = search.value.trim().toLowerCase();
+    const digits = query.replace(/\D/g, '');
+    const profiles = state.data.profiles.filter((profile) => {
+      if (!query) return true;
+      return profile.full_name.toLowerCase().includes(query)
+        || (digits && String(profile.phone_e164 || '').endsWith(digits))
+        || String(profile.legacy_account_no || '').toLowerCase().includes(query);
+    });
+    replace(results, table(['Name', 'Phone', 'Role', 'Account status', 'Password setup'], profiles.map((profile) => [
+      profile.full_name,
+      maskPhone(profile.phone_e164),
+      badge(profile.role),
+      badge(profile.account_status),
+      profile.must_change_password ? 'Change required' : 'Complete'
+    ]), 'Filtered portal accounts') || emptyState('No matching account', 'Check the spelling, last four phone digits or verified former account number.'));
+  };
+  search.addEventListener('input', render);
+  render();
+  return h('div', {}, controlField('Search portal accounts', search, 'Only authorised administrators can use this private directory. Full phone numbers are not displayed.'), results);
+}
+
 function peopleView() {
-  return section('People & classes', 'Account creation and password recovery stay in the protected Supabase admin workflow. This screen manages class scope only.',
+  const guardianRows = state.data.guardians.map((link) => [
+    nameForProfile(link.parent_id),
+    nameForStudent(link.student_id),
+    titleCase(link.relationship),
+    link.active ? badge('active') : badge('inactive'),
+    link.verified_at ? formatDate(link.verified_at) : 'Awaiting verification'
+  ]);
+  return section('Accounts & classes', 'Create and recover accounts through the trusted server workflow. Roles, status, caregiver links and class assignments remain separate decisions.',
+    accountManagementForms(),
+    h('h2', { class: 'subheading', text: 'Portal account directory' }),
+    accountDirectory(),
+    h('h2', { class: 'subheading', text: 'Verified caregiver links' }),
+    table(['Parent or caregiver', 'Pupil', 'Relationship', 'Access', 'Verified'], guardianRows, 'Verified caregiver links') || emptyState('No caregiver links', 'Verify the relationship before granting a parent access to a child.'),
+    h('h2', { class: 'subheading', text: 'Teacher class scope' }),
     assignmentForm(),
-    h('h2', { class: 'subheading', text: 'Portal profiles' }),
-    table(['Name', 'Role', 'Status'], state.data.profiles.map((profile) => [profile.full_name, badge(profile.role), profile.active ? badge('active') : badge('inactive')]), 'Portal profiles') || emptyState('No profiles', 'Create users through the protected owner runbook.'),
-    h('h2', { class: 'subheading', text: 'Teacher assignments' }),
     table(['Teacher', 'Class', 'Subject', 'Status'], state.data.assignments.map((assignment) => [nameForProfile(assignment.teacher_id), assignment.class_code, assignment.subject === '*' ? 'All subjects' : assignment.subject, assignment.active ? badge('active') : badge('inactive')]), 'Teacher assignments') || emptyState('No assignments', 'Add an assignment before teachers enter results.')
   );
 }
@@ -643,10 +943,13 @@ function adminPaymentForms() {
 }
 
 function auditView() {
+  const accountRows = [...state.data.accountAudit].reverse().map((item) => [formatDate(item.created_at), titleCase(item.action), nameForProfile(item.target_profile_id), nameForProfile(item.actor_id), titleCase(item.reason_code || 'not recorded')]);
   const admissionRows = [...state.data.admissionAudit].reverse().map((item) => [formatDate(item.created_at), nameForStudent(item.student_id), titleCase(item.previous_status || 'new'), titleCase(item.new_status), nameForProfile(item.actor_id)]);
   const paymentRows = [...state.data.paymentAudit].reverse().map((item) => [formatDate(item.created_at), item.action, titleCase(item.previous_status || 'new'), titleCase(item.new_status), nameForProfile(item.actor_id)]);
   const webhookRows = [...state.data.webhooks].reverse().map((item) => [formatDate(item.received_at), badge(item.outcome), item.reason ? titleCase(item.reason) : '—']);
-  return section('Audit', 'Append-only records support review without exposing webhook payloads or bank account details.',
+  return section('Audit', 'Append-only records support review without exposing passwords, private verification evidence, webhook payloads or bank account details.',
+    h('h2', { class: 'subheading', text: 'Account actions' }),
+    table(['Date', 'Action', 'Account', 'Actor', 'Reason category'], accountRows, 'Account audit log') || emptyState('No account actions', 'Provisioning, password resets, status changes and caregiver links will be recorded here.'),
     h('h2', { class: 'subheading', text: 'Admission decisions' }),
     table(['Date', 'Pupil', 'From', 'To', 'Actor'], admissionRows, 'Admission audit log') || emptyState('No admission changes', 'Status changes will be recorded here.'),
     h('h2', { class: 'subheading', text: 'Payment status changes' }),
@@ -674,7 +977,7 @@ function renderAuthenticated() {
     h('aside', { class: 'portal-sidebar' },
       h('div', { class: 'profile-summary' }, h('div', { class: 'avatar', 'aria-hidden': 'true', text: state.profile.full_name.charAt(0).toUpperCase() }), h('div', {}, h('strong', { text: state.profile.full_name }), h('span', { text: `${titleCase(state.profile.role)} account` }))),
       portalNavigation(),
-      h('button', { type: 'button', class: 'sign-out', onClick: async () => { await state.supabase.auth.signOut(); } }, icon('lock'), h('span', { text: 'Sign out' }))
+      h('button', { type: 'button', class: 'sign-out', onClick: async () => { await state.supabase.auth.signOut({ scope: 'local' }); } }, icon('lock'), h('span', { text: 'Sign out' }))
     ),
     h('main', { class: 'portal-workspace', 'aria-labelledby': 'workspace-title' },
       h('h1', { id: 'workspace-title', class: 'sr-only', tabindex: '-1', text: `${titleCase(state.tab)} workspace` }),

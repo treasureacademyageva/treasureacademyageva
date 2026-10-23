@@ -49,6 +49,28 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/admin/accounts",
+      "destination": "/api/admin-accounts"
+    },
+    {
+      "source": "/api/admin/accounts/:id/reset-password",
+      "destination": "/api/admin-account-reset?id=:id"
+    },
+    {
+      "source": "/api/admin/accounts/:id/status",
+      "destination": "/api/admin-account-status?id=:id"
+    },
+    {
+      "source": "/api/admin/guardian-links",
+      "destination": "/api/admin-guardian-links"
+    },
+    {
+      "source": "/api/account/change-password",
+      "destination": "/api/account-change-password"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

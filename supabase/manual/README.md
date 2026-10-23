@@ -33,8 +33,10 @@ The retirement SQL is deliberately outside `supabase/migrations/`, so an automat
 
 1. Export/backup the existing project using the owner-approved Supabase workflow.
 2. Create a staging project or staging branch with fictional/copied-and-redacted test data.
-3. Map legitimate records to the secure schema. Never restore demo credentials, sample pupils, plaintext PINs or fabricated receipts.
-4. Restore the familiar portal workflows against RLS-protected tables.
-5. Test parent, teacher and admin accounts.
-6. Obtain owner approval for cut-over.
-7. Only then run the manual retirement SQL and switch production configuration.
+3. Apply `202610230001_secure_school_portal.sql`, then `202610230002_portal_accounts.sql`, in that order in staging only.
+4. Map legitimate records to the secure schema. Never restore demo credentials, sample pupils, plaintext PINs or fabricated receipts.
+5. Reconcile canonical Nigerian phones and verify caregiver links; unmatched identities remain pending/inactive.
+6. Restore the familiar portal workflows against RLS-protected tables.
+7. Test parent, teacher and admin accounts, including first-password change, reset/session revocation and multi-caregiver access.
+8. Obtain owner approval for cut-over.
+9. Only then run the manual retirement SQL and switch production configuration.

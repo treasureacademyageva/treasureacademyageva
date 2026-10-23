@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { computeMonnifySignature, parseSuccessfulPayment, sha256, supabaseServerHeaders, verifyMonnifySignature } from '../../server/monnify.mjs';
+import { generateTemporaryPassword, handleCreateAccount, normalizeNigerianPhone, passwordProblem, sameOrigin } from '../../server/accounts.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
@@ -83,6 +84,32 @@ test('new Supabase secret keys use apikey only; legacy service JWT keeps Bearer'
   assert.equal('Authorization' in modern, false);
   const legacy = supabaseServerHeaders('fictional.legacy.jwt');
   assert.equal(legacy.Authorization, 'Bearer fictional.legacy.jwt');
+});
+test('Nigerian phone normalization accepts familiar forms and rejects invalid identifiers', () => {
+  for (const value of ['0906 393 2487', '09063932487', '2349063932487', '+2349063932487', '9063932487']) {
+    assert.equal(normalizeNigerianPhone(value), '+2349063932487');
+  }
+  for (const value of ['', '1234', '+2339063932487', '06063932487', '234906393248']) {
+    assert.equal(normalizeNigerianPhone(value), null);
+  }
+});
+test('temporary passwords meet complexity without using a shared constant', () => {
+  const first = generateTemporaryPassword();
+  const second = generateTemporaryPassword();
+  assert.equal(passwordProblem(first), null);
+  assert.equal(passwordProblem(second), null);
+  assert.notEqual(first, second);
+  assert.equal(first.length, 18);
+});
+test('new password policy rejects short and predictable passwords', () => {
+  assert.match(passwordProblem('Short1!'), /12/);
+  assert.match(passwordProblem('abcdefghijklmnop'), /uppercase/i);
+  assert.equal(passwordProblem('Correct-Horse7!Battery'), null);
+});
+test('account POST origin check requires an exact same origin', () => {
+  assert.equal(sameOrigin(new Request('https://school.example/api/test', { headers: { Origin: 'https://school.example' } })), true);
+  assert.equal(sameOrigin(new Request('https://school.example/api/test', { headers: { Origin: 'https://evil.example' } })), false);
+  assert.equal(sameOrigin(new Request('https://school.example/api/test')), false);
 });
 
 const webhookHandler = (await import('../../api/monnify-webhook.mjs')).default;
@@ -210,13 +237,110 @@ await asyncTest('enabled portal config returns only URL and publishable key', as
 });
 restorePortalEnvironment();
 
-const [migration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, configApi, portalSource, portalHtml, portalCss, vercel, pkg] = await Promise.all([
+const accountEnvNames = [
+  'PORTAL_ENABLED', 'PORTAL_ACCOUNTS_ENABLED', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY',
+  'SUPABASE_ANON_KEY', 'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY'
+];
+const savedAccountEnv = Object.fromEntries(accountEnvNames.map((name) => [name, process.env[name]]));
+function restoreAccountEnvironment() {
+  for (const [name, value] of Object.entries(savedAccountEnv)) {
+    if (value === undefined) delete process.env[name]; else process.env[name] = value;
+  }
+  globalThis.fetch = originalFetch;
+}
+await asyncTest('account provisioning endpoint fails closed while its activation gate is off', async () => {
+  delete process.env.PORTAL_ENABLED;
+  delete process.env.PORTAL_ACCOUNTS_ENABLED;
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; throw new Error('must not run'); };
+  const response = await handleCreateAccount(new Request('https://school.example/api/admin/accounts', {
+    method: 'POST',
+    headers: { Origin: 'https://school.example', 'Content-Type': 'application/json', Authorization: 'Bearer fictional' },
+    body: JSON.stringify({ fullName: 'Fictional Parent', phone: '09063932487', role: 'parent' })
+  }));
+  assert.equal(response.status, 404);
+  assert.equal(calls, 0);
+  restoreAccountEnvironment();
+});
+await asyncTest('authorised account provisioning creates phone Auth user then runs the audited profile RPC', async () => {
+  process.env.PORTAL_ENABLED = 'true';
+  process.env.PORTAL_ACCOUNTS_ENABLED = 'true';
+  process.env.SUPABASE_URL = 'https://fictional-project.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fictional';
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional';
+  const actorId = '10000000-0000-4000-8000-000000000001';
+  const accountId = '10000000-0000-4000-8000-000000000099';
+  const sessionId = '90000000-0000-4000-8000-000000000001';
+  const encoded = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const userJwt = `${encoded({ alg: 'none' })}.${encoded({ sub: actorId, session_id: sessionId })}.fictional`;
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    const href = String(url);
+    calls.push({ href, method: options.method || 'GET', body: String(options.body || '') });
+    if (href.endsWith('/auth/v1/user')) return Response.json({ id: actorId, role: 'authenticated' });
+    if (href.includes('/rest/v1/profiles')) return Response.json({ id: actorId, role: 'admin', active: true, account_status: 'active', must_change_password: false });
+    if (href.endsWith('/rest/v1/rpc/server_validate_portal_session')) return Response.json(true);
+    if (href.endsWith('/auth/v1/admin/users')) return Response.json({ id: accountId, phone: '+2349063932487' });
+    if (href.endsWith('/rest/v1/rpc/provision_portal_account')) return Response.json({ account_id: accountId, status: 'pending_activation' });
+    return Response.json({ message: 'unexpected fictional route' }, { status: 500 });
+  };
+  const response = await handleCreateAccount(new Request('https://school.example/api/admin/accounts', {
+    method: 'POST',
+    headers: { Origin: 'https://school.example', 'Content-Type': 'application/json', Authorization: `Bearer ${userJwt}` },
+    body: JSON.stringify({ fullName: 'Fictional Parent', phone: '0906 393 2487', role: 'parent', studentIds: [] })
+  }));
+  const result = await response.json();
+  assert.equal(response.status, 201);
+  assert.equal(result.accountId, accountId);
+  assert.equal(passwordProblem(result.temporaryPassword), null);
+  const createCall = calls.find((call) => call.href.endsWith('/auth/v1/admin/users'));
+  assert.match(createCall.body, /"phone":"\+2349063932487"/);
+  assert.match(createCall.body, /"phone_confirm":true/);
+  const rpcCall = calls.find((call) => call.href.endsWith('/rest/v1/rpc/provision_portal_account'));
+  assert.ok(rpcCall);
+  assert.doesNotMatch(rpcCall.body, new RegExp(result.temporaryPassword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.doesNotMatch(JSON.stringify(result), /sb_secret|sb_publishable/);
+  restoreAccountEnvironment();
+});
+await asyncTest('revoked admin session cannot call a server account endpoint with an unexpired JWT', async () => {
+  process.env.PORTAL_ENABLED = 'true';
+  process.env.PORTAL_ACCOUNTS_ENABLED = 'true';
+  process.env.SUPABASE_URL = 'https://fictional-project.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fictional';
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional';
+  const actorId = '10000000-0000-4000-8000-000000000001';
+  const sessionId = '90000000-0000-4000-8000-000000000001';
+  const encoded = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const userJwt = `${encoded({ alg: 'none' })}.${encoded({ sub: actorId, session_id: sessionId })}.fictional`;
+  let createCalls = 0;
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    if (href.endsWith('/auth/v1/user')) return Response.json({ id: actorId, role: 'authenticated' });
+    if (href.includes('/rest/v1/profiles')) return Response.json({ id: actorId, role: 'admin', active: true, account_status: 'active', must_change_password: false });
+    if (href.endsWith('/rest/v1/rpc/server_validate_portal_session')) return Response.json(false);
+    if (href.endsWith('/auth/v1/admin/users')) createCalls += 1;
+    return Response.json({}, { status: 500 });
+  };
+  const response = await handleCreateAccount(new Request('https://school.example/api/admin/accounts', {
+    method: 'POST',
+    headers: { Origin: 'https://school.example', 'Content-Type': 'application/json', Authorization: `Bearer ${userJwt}` },
+    body: JSON.stringify({ fullName: 'Fictional Parent', phone: '09063932487', role: 'parent' })
+  }));
+  assert.equal(response.status, 401);
+  assert.equal(createCalls, 0);
+  restoreAccountEnvironment();
+});
+restoreAccountEnvironment();
+
+const [migration, accountMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, configApi, portalSource, portalHtml, portalCss, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
+  read('supabase/migrations/202610230002_portal_accounts.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
   read('api/monnify-webhook.mjs'),
   read('server/monnify.mjs'),
+  read('server/accounts.mjs'),
   read('api/portal-config.mjs'),
   read('assets/js/portal-source.js'),
   read('portal/login.html'),
@@ -230,13 +354,39 @@ test('all eight portal/audit tables explicitly enable RLS', () => {
     assert.match(migration, new RegExp(`alter table public\\.${table} enable row level security`, 'i'));
   }
 });
+test('account, caregiver and legacy-mapping tables explicitly enable RLS', () => {
+  for (const table of ['student_guardians', 'account_audit_log', 'legacy_account_mappings']) {
+    assert.match(accountMigration, new RegExp(`alter table public\\.${table} enable row level security`, 'i'));
+  }
+  assert.match(accountMigration, /revoke all on table public\.student_guardians[\s\S]+from anon, authenticated/i);
+});
+test('account state and forced password change are independent from payment and admission', () => {
+  assert.match(accountMigration, /create type public\.portal_account_status as enum/i);
+  assert.match(accountMigration, /add column if not exists must_change_password boolean not null default true/i);
+  assert.match(accountMigration, /portal_account_can_access[\s\S]+account_status = 'active'/i);
+  assert.match(accountMigration, /portal_account_can_access[\s\S]+must_change_password = false/i);
+  assert.match(accountMigration, /portal_session_is_current[\s\S]+from auth\.sessions/i);
+  const changeFunction = accountMigration.match(/create or replace function public\.complete_portal_password_change[\s\S]+?\n\$\$;/i)?.[0] || '';
+  assert.doesNotMatch(changeFunction, /payments|admission_status/i);
+});
+test('account provisioning/reset RPCs are service-role-only and audit without passwords', () => {
+  assert.match(accountMigration, /grant execute on function public\.provision_portal_account[\s\S]+to service_role/i);
+  assert.match(accountMigration, /grant execute on function public\.begin_portal_password_reset[\s\S]+to service_role/i);
+  assert.match(accountMigration, /delete from auth\.sessions where user_id = p_account_id/i);
+  assert.match(accountMigration, /password_reset_started/i);
+  assert.doesNotMatch(accountMigration, /insert into public\.account_audit_log[\s\S]{0,400}(?:password_hash|temporary_password|plaintext_pin)/i);
+});
 test('anonymous table grants are revoked and no allow-all policy remains', () => {
   assert.match(migration, /revoke all on table[\s\S]+from anon;/i);
   assert.doesNotMatch(migration, /using\s*\(\s*true\s*\)|with check\s*\(\s*true\s*\)/i);
 });
-test('parent policies require the authenticated linked parent', () => {
-  assert.match(migration, /s\.parent_id\s*=\s*\(select auth\.uid\(\)\)/i);
-  assert.match(migration, /published_at is not null/i);
+test('parent policies require an active office-verified caregiver relationship', () => {
+  assert.match(accountMigration, /create table if not exists public\.student_guardians/i);
+  assert.match(accountMigration, /g\.parent_id = \(select auth\.uid\(\)\)/i);
+  assert.match(accountMigration, /g\.active = true/i);
+  assert.match(accountMigration, /g\.verified_by is not null/i);
+  assert.match(accountMigration, /published_at is not null[\s\S]+parent_can_access_student\(student_id\)/i);
+  assert.doesNotMatch(accountMigration, /parent_id\s*=\s*\(select auth\.uid\(\)\)[\s\S]{0,120}published_at/i);
 });
 test('teacher grade writes require a matching active class/subject assignment', () => {
   assert.match(migration, /teacher_can_manage_grade\(student_id, subject\)/i);
@@ -251,7 +401,9 @@ test('role escalation has a database trigger guard and new users default to pare
 test('baseline preserves the former Supabase portal until a separate verified cut-over', () => {
   assert.match(migration, /does NOT alter or retire public\.school_data/i);
   assert.doesNotMatch(migration, /revoke all on table public\.school_data/i);
+  assert.doesNotMatch(accountMigration, /(?:drop|truncate|alter|delete from|update)\s+(?:table\s+)?public\.school_data/i);
   assert.doesNotMatch(rootSchema, /drop policy if exists %I on public\.school_data/i);
+  assert.match(rootSchema, /202610230002_portal_accounts\.sql/i);
   assert.match(legacyInventory, /begin transaction read only/i);
   assert.match(legacyInventory, /rollback;/i);
   assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);
@@ -297,12 +449,34 @@ test('portal config exposes browser-safe configuration only', () => {
   assert.match(configApi, /SUPABASE_PUBLISHABLE_KEY/);
   assert.doesNotMatch(configApi, /process\.env\.SUPABASE_SECRET_KEY|process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
 });
-test('portal uses session storage, no public signup and no pupil role', () => {
+test('portal uses phone/password, session storage, local sign-out and no public signup or pupil role', () => {
   assert.match(portalSource, /storage: window\.sessionStorage/);
-  assert.match(portalSource, /signInWithPassword/);
+  assert.match(portalSource, /signInWithPassword\(\{\s*phone: normalizedPhone/i);
+  assert.match(portalSource, /signOut\(\{ scope: 'local' \}\)/);
   assert.doesNotMatch(portalSource, /signUp\s*\(/);
   assert.deepEqual([...portalSource.matchAll(/profile\.role\s*===\s*'([^']+)'/g)].map((m) => m[1]).filter((v) => v === 'pupil'), []);
-  assert.match(portalSource, /There is no pupil login/);
+  assert.match(portalSource, /There is no public sign-up and no pupil login/);
+});
+test('temporary-password accounts are gated before portal data loads', () => {
+  const pendingGate = portalSource.indexOf("profile.account_status === 'pending_activation'");
+  const dataLoad = portalSource.indexOf('await loadPortalData();', pendingGate);
+  assert.ok(pendingGate > 0 && dataLoad > pendingGate);
+  assert.match(portalSource, /renderPasswordChange\(\)/);
+  assert.match(portalSource, /\/api\/account\/change-password/);
+  assert.match(portalSource, /minlength: '12'/);
+});
+test('server account operations are explicitly gated, admin-authorised and never support admin creation', () => {
+  assert.match(accountServer, /PORTAL_ENABLED !== 'true'/);
+  assert.match(accountServer, /PORTAL_ACCOUNTS_ENABLED !== 'true'/);
+  assert.match(accountServer, /profile\.role === 'admin'/);
+  assert.match(accountServer, /server_validate_portal_session/);
+  assert.match(accountServer, /body\.role === 'parent' \|\| body\.role === 'teacher'/);
+  assert.doesNotMatch(accountServer, /body\.role === 'admin'/);
+  assert.match(accountServer, /auth\.admin\.createUser/);
+  assert.match(accountServer, /phone_confirm: true/);
+  assert.match(accountServer, /auth\.admin\.updateUserById/);
+  assert.match(accountServer, /ban_duration: status === 'active' \? 'none' : '876000h'/);
+  assert.doesNotMatch(accountServer, /console\.(?:log|info|debug)\s*\(/);
 });
 test('portal keeps bank transfer active and exposes no Monnify checkout', () => {
   assert.match(portalHtml, /Bank transfer only/i);
@@ -316,13 +490,17 @@ test('portal has explicit labels, focus styling, reduced motion and mobile reflo
   assert.match(portalCss, /@media \(max-width: 620px\)/);
   assert.match(portalHtml, /class="skip-link"/);
 });
-test('Vercel policy keeps portal/API private and permits only Supabase connections', () => {
+test('Vercel policy keeps portal/API private, permits Supabase connections and routes account functions', () => {
   const settings = JSON.parse(vercel);
   const portalRule = settings.headers.find((rule) => rule.source === '/portal/(.*)');
   const apiRule = settings.headers.find((rule) => rule.source === '/api/(.*)');
   assert.ok(portalRule.headers.some((header) => header.key === 'Cache-Control' && header.value.includes('no-store')));
   assert.ok(portalRule.headers.some((header) => header.key === 'Content-Security-Policy' && header.value.includes('https://*.supabase.co')));
   assert.ok(apiRule.headers.some((header) => header.key === 'Cache-Control' && header.value.includes('no-store')));
+  const rewriteSources = new Set(settings.rewrites.map((rule) => rule.source));
+  for (const source of ['/api/admin/accounts', '/api/admin/accounts/:id/reset-password', '/api/admin/accounts/:id/status', '/api/admin/guardian-links', '/api/account/change-password']) {
+    assert.ok(rewriteSources.has(source), `missing Vercel account rewrite ${source}`);
+  }
 });
 test('portal build and security test are wired into package scripts', () => {
   const packageJson = JSON.parse(pkg);
