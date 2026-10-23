@@ -1,36 +1,22 @@
-# Supabase setup — Treasure Academy website
+# Supabase setup — secure Treasure Academy portal
 
-## What you run (one time, ~3 minutes)
+> **Replaced 23 October 2026.** The former instructions for a public `school_data` JSON table and browser writes are retired and unsafe for school records. Do not follow an older copy and do not send any Supabase key in chat.
 
-1. Open your Supabase project dashboard.
-2. Left sidebar → **SQL Editor** → **New query**.
-3. Open the file **`supabase-schema.sql`** (in this workspace), copy ALL of it,
-   paste into the SQL Editor, press **Run** (or `Ctrl+Enter`).
-4. You should see `Success` + one row: `_probe | {"hello": "treasure-academy"}`.
-5. Left sidebar → **Table Editor** → confirm a table named **`school_data`** exists.
+Use the current owner/deployment runbook:
 
-## What you send me (so I can probe it)
+- `docs/SUPABASE-PORTAL-AND-MONNIFY-RUNBOOK-2026-10-23.md`
+- versioned migration: `supabase/migrations/202610230001_secure_school_portal.sql`
+- disposable staging RLS tests: `supabase/tests/rls_portal_policy.test.sql`
 
-From Supabase Dashboard → **Project Settings** (gear icon) → **API**:
+## Non-negotiable controls
 
-- **Project URL** — looks like `https://abcdefgh.supabase.co`
-- **anon public key** — the long key under "Project API keys" labelled `anon` `public`
+1. Apply and test in a staging project with fictional records first.
+2. `anon` receives no table grants for portal records.
+3. Authenticated access is filtered by RLS for linked parents, assigned teachers and deliberate admin overrides.
+4. Browser code receives only a Supabase URL and publishable/anon browser key.
+5. Secret/service keys remain server-side and are never pasted into chat, source code, screenshots or public files.
+6. If legacy `public.school_data` exists, the migration preserves it as evidence but removes every policy and public/authenticated grant.
+7. Keep `PORTAL_ENABLED=false` until the RLS test matrix and owner readiness review pass.
+8. Keep `MONNIFY_WEBHOOK_ENABLED=false` and `MONNIFY_OWNER_VERIFIED=false`; bank transfer remains the active payment method.
 
-⚠️ Send ONLY the **anon** key in chat — never the `service_role` (secret) key.
-
-## What I will check when you send them
-
-1. **Ping** — the project URL answers.
-2. **Table exists** — `school_data` is readable through the API.
-3. **Probe row** — the `_probe` row your SQL run created is there.
-4. **Write works** — I write + delete a test row (proves the site can save data).
-5. **Rules on** — Row Level Security is enabled (I verify the policies respond correctly).
-
-I will reply with PASS/FAIL on each of the 5, and if anything fails I will tell
-you the exact fix.
-
-## Later (not now)
-
-After probing passes, the next backend step is a small `supabase.js` in the site
-that syncs the browser database with this table — that is a separate build round
-when you approve it.
+No assistant or public browser needs direct dashboard access to prove the design. An authorised operator can run the documented tests and share only redacted aggregate pass/fail results.

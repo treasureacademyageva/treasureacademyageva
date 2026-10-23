@@ -7,39 +7,37 @@ async function check(width){
  await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});
  await page.waitForTimeout(250);
  const top=await page.locator('.topbar').boundingBox(),nav=await page.locator('.navbar').boundingBox();
- assert(Math.abs(top.height-44)<1,`topbar ${width}: ${top.height}`);assert(nav.height>=69,`navbar ${width}`);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`overflow ${width}`);
  if(width>=960){
-  assert.equal(await page.locator('#menuToggle').evaluate(e=>getComputedStyle(e).display==='none'),true,`desktop toggle ${width}`);
+  assert(top&&Math.abs(top.height-44)<1,`topbar ${width}: ${top&&top.height}`);assert(nav.height>=69,`navbar ${width}`);
+  assert.equal(await page.locator('#menuToggle').count(),0,`obsolete desktop hamburger ${width}`);
+  assert.equal(await page.locator('.mobile-dock').isVisible(),false,`desktop dock ${width}`);
   assert.equal(await page.locator('#mainNav .nav-link').count(),7);
   assert.equal(await page.evaluate(()=>document.querySelector('.navbar').scrollWidth<=innerWidth),true,`nav overflow ${width}`);
   await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';scrollTo(0,900)});await page.waitForTimeout(250);
-  assert.equal(await page.locator('body').evaluate(e=>e.classList.contains('topbar-collapsed')),true,`not collapsed ${width}`);
-  const hiddenNav=await page.locator('.navbar').boundingBox();assert(Math.abs(hiddenNav.y)<2,`nav not at top ${width}: ${hiddenNav.y}`);
+  const stickyDesktopNav=await page.locator('.navbar').boundingBox();assert(Math.abs(stickyDesktopNav.y-44)<2,`desktop nav not below topbar ${width}: ${stickyDesktopNav.y}`);
   assert.equal(await page.locator('.sticky-portal').isVisible(),true);assert.equal(await page.locator('.desktop-apply').isVisible(),true);
-  await page.evaluate(()=>scrollTo(0,400));await page.waitForTimeout(250);
-  assert.equal(await page.locator('body').evaluate(e=>e.classList.contains('topbar-collapsed')),false,`not restored ${width}`);
  }else{
-  assert.equal(await page.locator('.tb-motto').evaluate(e=>getComputedStyle(e).display==='none'),true);
-  const b=await page.locator('#menuToggle').boundingBox();assert(Math.abs(b.width-44)<1&&Math.abs(b.height-44)<1,`toggle ${width}`);
-  await page.locator('#menuToggle').click();await page.waitForTimeout(240);
-  assert.equal(await page.locator('body').evaluate(e=>e.classList.contains('nav-open')),true);
-  assert.equal(await page.evaluate(()=>getComputedStyle(document.body).overflow), 'hidden');
-  assert.equal(await page.locator('#navVeil').isVisible(),true);
-  const d=await page.locator('#navDrawer').boundingBox();assert(Math.abs(d.x+d.width-width)<2&&d.width<=360,`drawer ${width}`);
-  assert.equal(await page.evaluate(()=>document.querySelector('#navDrawer').contains(document.activeElement)),true);
-  await page.keyboard.press('Shift+Tab');assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.drawer-phone')),true,`focus wrap ${width}`);
-  await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('#mainNav .nav-link')),true,`focus wrap back ${width}`);
-  await page.keyboard.press('Escape');assert.equal(await page.locator('#menuToggle').getAttribute('aria-expanded'),'false');assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('#menuToggle')),true);
-  await page.locator('#menuToggle').click();await page.locator('#navVeil').click({position:{x:5,y:300}});assert.equal(await page.locator('#menuToggle').getAttribute('aria-expanded'),'false');
+  assert.equal(await page.locator('.topbar').isVisible(),false,`mobile topbar ${width}`);
+  assert.equal(await page.locator('#navDrawer').isVisible(),false,`hidden site nav ${width}`);
+  assert.equal(await page.locator('#menuToggle').count(),0,`obsolete mobile hamburger ${width}`);
+  assert.equal(await page.locator('.mobile-dock').isVisible(),true,`mobile dock ${width}`);
+  assert.equal(await page.locator('.mobile-dock a').count(),5,`mobile dock item count ${width}`);
+  const sizes=await page.locator('.mobile-dock a').evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().height));
+  assert(sizes.every(height=>height>=52),`mobile targets ${width}: ${sizes.join(',')}`);
+  await page.locator('.mobile-dock a').first().focus();
+  assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.mobile-dock a')),true,`dock keyboard focus ${width}`);
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(()=>document.activeElement===document.querySelectorAll('.mobile-dock a')[1]),true,`dock keyboard order ${width}`);
   await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';scrollTo(0,900)});await page.waitForTimeout(250);
-  const stickyNav=await page.locator('.navbar').boundingBox();assert(Math.abs(stickyNav.y)<2,`mobile nav not sticky ${width}: ${stickyNav.y}`);assert.equal(await page.locator('#menuToggle').isVisible(),true);
+  const stickyNav=await page.locator('.navbar').boundingBox();assert(Math.abs(stickyNav.y)<2,`mobile nav not sticky ${width}: ${stickyNav.y}`);
+  assert.equal(await page.locator('.desktop-apply').isVisible(),true,`mobile apply ${width}`);
  }
  assert.deepEqual(errors,[],`browser errors ${width}: ${errors.join(' | ')}`);await page.close();passed++;
  }
  for(const w of [1440,1120,960,959,360])await check(w);
  // Dark mode keeps visible controls and a non-white navbar treatment.
- const dark=await browser.newPage({viewport:{width:360,height:800}});await dark.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});await dark.locator('.theme-btn').click();assert(/dark/.test(await dark.locator('html').getAttribute('data-theme')));assert.equal(await dark.locator('#menuToggle').isVisible(),true);await dark.close();passed++;
- const titlePage=await browser.newPage({viewport:{width:390,height:844}});await titlePage.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});const original=await titlePage.title();await titlePage.evaluate(()=>{Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new Event('visibilitychange'))});assert.equal(await titlePage.title(),'Come Back Soon | Treasure Academy');await titlePage.evaluate(()=>{Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new Event('visibilitychange'))});assert.equal(await titlePage.title(),original);await titlePage.close();passed++;
+ const dark=await browser.newPage({viewport:{width:360,height:800}});await dark.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});await dark.evaluate(()=>{localStorage.setItem('treasure_theme','dark');location.reload()});await dark.waitForLoadState('networkidle');assert(/dark/.test(await dark.locator('html').getAttribute('data-theme')));assert.equal(await dark.locator('.mobile-dock').isVisible(),true);await dark.close();passed++;
+ const titlePage=await browser.newPage({viewport:{width:390,height:844}});await titlePage.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});assert(/Treasure Academy/.test(await titlePage.title()));assert.equal(await titlePage.locator('.portal-link').getAttribute('href'),'/portal/login.html');await titlePage.close();passed++;
  console.log(`HEADER BROWSER: ${passed} viewports/scenarios passed`);await browser.close();
 })().catch(e=>{console.error(e.stack);process.exit(1)});
