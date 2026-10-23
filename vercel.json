@@ -13,6 +13,17 @@
       "permanent": true
     },
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "treasureacademyageva\\.vercel\\.app"
+        }
+      ],
+      "destination": "https://www.treasureacademyageva.com/:path*",
+      "permanent": true
+    },
+    {
       "source": "/portal/admin.html",
       "destination": "/portal/login.html",
       "permanent": true

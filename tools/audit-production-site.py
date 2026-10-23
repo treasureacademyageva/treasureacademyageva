@@ -197,8 +197,12 @@ def main():
     for name in ('Content-Security-Policy','Strict-Transport-Security','X-Content-Type-Options','Referrer-Policy','Permissions-Policy'):
         if name not in headers:fail(f'vercel headers missing {name}')
     redirects=vercel.get('redirects',[])
-    canonical_redirect=next((r for r in redirects if r.get('source')=='/:path*'),None)
-    if not canonical_redirect or not canonical_redirect.get('permanent') or canonical_redirect.get('destination')!='https://www.treasureacademyageva.com/:path*':fail('permanent canonical-host redirect is missing')
+    def redirect_for_host(value):
+        return next((r for r in redirects if r.get('source')=='/:path*' and any(h.get('type')=='host' and h.get('value')==value for h in r.get('has',[]))),None)
+    canonical_redirect=redirect_for_host('treasureacademyageva\\.com')
+    if not canonical_redirect or not canonical_redirect.get('permanent') or canonical_redirect.get('destination')!='https://www.treasureacademyageva.com/:path*':fail('permanent apex-to-www redirect is missing')
+    legacy_redirect=redirect_for_host('treasureacademyageva\\.vercel\\.app')
+    if not legacy_redirect or not legacy_redirect.get('permanent') or legacy_redirect.get('destination')!='https://www.treasureacademyageva.com/:path*':fail('permanent legacy vercel.app-to-canonical redirect is missing')
     for private_path in ('/developer.html','/developer-review.html','/developer-operations.html','/assets/data/review-gateway.enc.json','/portal/(.*)','/admission-form.html','/receipt.html'):
         rule=next((r for r in header_rules if r.get('source')==private_path),None)
         values={h.get('key','').lower():h.get('value','') for h in (rule or {}).get('headers',[])}
@@ -218,6 +222,15 @@ def main():
     if locs!=expected:
         for x in sorted(expected-locs):fail(f'sitemap missing {x}')
         for x in sorted(locs-expected):fail(f'sitemap includes unexpected {x}')
+    for loc in locs:
+        parsed=urlsplit(loc)
+        if parsed.scheme!='https' or parsed.netloc!='www.treasureacademyageva.com':fail(f'sitemap uses non-canonical host or scheme: {loc}')
+        rel=unquote(parsed.path).lstrip('/') or 'index.html'
+        if not (ROOT/rel).is_file():fail(f'sitemap URL has no deployable file: {loc}')
+    required_sitemap_paths={f'classes/{name}.html' for name in ('creche','pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-5','primary-6')}
+    required_sitemap_paths.add('news/2026-2027-admissions-open.html')
+    actual_paths={urlsplit(loc).path.lstrip('/') for loc in locs}
+    for rel in sorted(required_sitemap_paths-actual_paths):fail(f'sitemap nested path missing: {rel}')
     # Validate the staging-only CMS model and fail-closed starter boundaries.
     model=json.loads((ROOT/'cms/wordpress-migration/content-model.json').read_text())
     expected_types={'page','taa_class','taa_update','taa_event','taa_guidance','taa_staff','taa_policy','attachment'}

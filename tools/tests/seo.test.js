@@ -303,6 +303,8 @@ const noindexed = pages.filter(f => !indexable.includes(f));
   ok('security headers on html', html.headers.some(h => h.key === 'X-Content-Type-Options'));
   const apex = v.redirects.find(r => r.has && r.has.some(h => h.type === 'host' && h.value === 'treasureacademyageva\\.com'));
   ok('apex permanently redirects to www', !!apex && apex.permanent === true && apex.destination === 'https://www.treasureacademyageva.com/:path*');
+  const legacy = v.redirects.find(r => r.has && r.has.some(h => h.type === 'host' && h.value === 'treasureacademyageva\\.vercel\\.app'));
+  ok('legacy vercel.app permanently redirects to canonical www', !!legacy && legacy.permanent === true && legacy.destination === 'https://www.treasureacademyageva.com/:path*');
 }
 
 console.log(`\n==== SEO: ${pass} passed, ${fail} failed ====`);
