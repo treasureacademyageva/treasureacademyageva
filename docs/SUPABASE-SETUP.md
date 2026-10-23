@@ -1,36 +1,28 @@
-# Supabase setup — Treasure Academy website
+# Supabase setup — secure Treasure Academy portal
 
-## What you run (one time, ~3 minutes)
+> **Updated 23 October 2026.** The former portal was real and used Supabase. Its legitimate records and familiar workflows must be inventoried and preserved. The broad browser access in the earliest `school_data` instructions is not safe for current school records, so it will be replaced underneath the portal—not erased. Do not send any Supabase key in chat.
 
-1. Open your Supabase project dashboard.
-2. Left sidebar → **SQL Editor** → **New query**.
-3. Open the file **`supabase-schema.sql`** (in this workspace), copy ALL of it,
-   paste into the SQL Editor, press **Run** (or `Ctrl+Enter`).
-4. You should see `Success` + one row: `_probe | {"hello": "treasure-academy"}`.
-5. Left sidebar → **Table Editor** → confirm a table named **`school_data`** exists.
+Use the current owner/deployment runbook:
 
-## What you send me (so I can probe it)
+- `docs/SUPABASE-PORTAL-AND-MONNIFY-RUNBOOK-2026-10-23.md`
+- baseline migration: `supabase/migrations/202610230001_secure_school_portal.sql`
+- account migration: `supabase/migrations/202610230002_portal_accounts.sql`
+- disposable staging RLS/account tests: `supabase/tests/rls_portal_policy.test.sql`
+- account implementation plan: `docs/PORTAL-ACCOUNT-PLAN-2026-10-23.md`
+- reviewed live-schema/account mapping: `docs/LIVE-SCHEMA-ACCOUNT-MAPPING-2026-10-23.md`
 
-From Supabase Dashboard → **Project Settings** (gear icon) → **API**:
+## Non-negotiable controls
 
-- **Project URL** — looks like `https://abcdefgh.supabase.co`
-- **anon public key** — the long key under "Project API keys" labelled `anon` `public`
+1. Run `supabase/manual/00_read_only_legacy_portal_inventory.sql` in the existing owner-controlled project before any migration.
+2. Create an owner-controlled backup/export, then apply and test only in staging first.
+3. The secure baseline must leave `school_data` and older normalized portal tables unchanged until verified cut-over.
+4. `anon` receives no grants to the new secure portal records.
+5. Authenticated access is filtered by RLS for linked parents, assigned teachers and deliberate admin overrides.
+6. Browser code receives only a Supabase URL and publishable/anon browser key.
+7. Secret/service keys remain server-side and are never pasted into chat, source code, screenshots or public files.
+8. Keep `PORTAL_ENABLED=false` and `PORTAL_ACCOUNTS_ENABLED=false` until record mapping, forced-password/account tests, the RLS matrix and owner readiness review pass.
+9. Phone/password accounts are created only by an authorised school admin through server-only Auth Admin operations; former PINs/passwords are never migrated.
+10. Keep `MONNIFY_WEBHOOK_ENABLED=false` and `MONNIFY_OWNER_VERIFIED=false`; bank transfer remains the active payment method.
+11. Run the manual legacy-retirement SQL only after a separate owner-approved cut-over.
 
-⚠️ Send ONLY the **anon** key in chat — never the `service_role` (secret) key.
-
-## What I will check when you send them
-
-1. **Ping** — the project URL answers.
-2. **Table exists** — `school_data` is readable through the API.
-3. **Probe row** — the `_probe` row your SQL run created is there.
-4. **Write works** — I write + delete a test row (proves the site can save data).
-5. **Rules on** — Row Level Security is enabled (I verify the policies respond correctly).
-
-I will reply with PASS/FAIL on each of the 5, and if anything fails I will tell
-you the exact fix.
-
-## Later (not now)
-
-After probing passes, the next backend step is a small `supabase.js` in the site
-that syncs the browser database with this table — that is a separate build round
-when you approve it.
+No assistant or public browser needs direct dashboard access to prove the design. An authorised operator can run the documented tests and share only redacted aggregate pass/fail results.

@@ -58,7 +58,7 @@ ok('meaning family relates school dress to uniform',top('school dress and shoes'
 ok('phrase family relates pick up service to transport',top('pick up service in my area')==='transport.html');
 ok('phrase family relates former students to alumni',top('former student history')==='alumni.html');
 ok('problem wording finds website help',top('a broken webpage is not working')==='website-help.html');
-ok('smart search explains the retired portal instead of inventing access',/browser-only portal is retired/i.test(search.directAnswer('how do I see report cards').text));
+ok('smart search explains secure school-issued portal access without inventing a public account',/school-issued account[\s\S]*linked children/i.test(search.directAnswer('how do I see report cards').text));
 ok('search page explains meaning matching and on-device privacy',/related meanings, word families/.test(read('search.html'))&&/Private on-device search/.test(read('search.html')));
 vm.runInContext(read('assets/js/content-quality.js'),ctx);
 const quality=ctx.window.TA_CONTENT_QUALITY||{};

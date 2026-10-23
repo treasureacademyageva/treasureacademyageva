@@ -69,7 +69,7 @@ const SEARCH_INDEX=[
  {t:"Anthem & Creed",u:"anthem.html",k:"anthem creed pledge song lyrics audio hymn school song"},
  {t:"Support Us",u:"support.html",k:"support donate pledge give project library fans thank you wall well-wisher"},
  {t:"Search",u:"search.html",k:"search find pages everything results lookup"},
- {t:"Parent & Staff Support",u:"portal/login.html",k:"portal retired results attendance parent staff support"},
+ {t:"Secure Parent & Staff Portal",u:"portal/login.html",k:"portal login results payments parent teacher admin secure support"},
  {t:"Family Feedback",u:"testimonials.html",k:"private feedback consent headmistress"},
  {t:"Class Pages",u:"academics.html",k:"class page creche nursery primary learning"}
 ];

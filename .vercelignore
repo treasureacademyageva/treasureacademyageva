@@ -40,3 +40,7 @@ assets/img/class-feature.jpg
 *.log
 *.md
 *.sql
+
+# Versioned migrations and unbundled source stay out of the public deployment.
+supabase/
+assets/js/portal-source.js

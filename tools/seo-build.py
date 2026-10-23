@@ -162,7 +162,9 @@ def insert_seo_block(html, block):
 
 def build():
     import json
-    pages = sorted(glob.glob("*.html") + glob.glob("classes/*.html") + glob.glob("news/*.html"))
+    # Keep real nested paths in canonical and sitemap URLs. Normalising here
+    # prevents classes/news entries from collapsing to root-level basenames.
+    pages = sorted(p.replace(os.sep, "/") for p in (glob.glob("*.html") + glob.glob("classes/*.html") + glob.glob("news/*.html")))
     changed = 0
     for p in pages:
         html = open(p, encoding="utf-8").read()

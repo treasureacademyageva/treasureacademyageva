@@ -3,7 +3,7 @@
 .env
 .env.local
 Thumbs.db
-ai/__pycache__/
+__pycache__/
 ai/chat.db
 node_modules/
 npm-debug.log*
