@@ -203,10 +203,10 @@ function renderMaintenance() {
   replace(app,
     h('div', { class: 'auth-layout' },
       h('section', { class: 'auth-card', 'aria-labelledby': 'maintenance-title' },
-        h('p', { class: 'eyebrow', text: 'Secure portal' }),
-        h('h1', { id: 'maintenance-title', text: 'Portal setup is in progress' }),
-        h('p', { text: 'The public website remains available. No portal data can be accessed until the school activates its verified secure connection.' }),
-        alertBox('info', 'Fail-closed by design', 'Login and database access stay unavailable when the secure environment is not configured.'),
+        h('p', { class: 'eyebrow', text: 'Treasure Academy portal' }),
+        h('h1', { id: 'maintenance-title', text: 'Your school portal is being securely reconnected' }),
+        h('p', { text: 'The former portal and its history are being preserved. Sign-in remains paused while the existing Supabase records are inventoried and placed behind secure parent, teacher and administrator access.' }),
+        alertBox('info', 'Preserve first, then reconnect', 'Nothing should be overwritten or retired until the owner-controlled backup, record mapping and access tests are complete.'),
         h('div', { class: 'button-row' },
           h('a', { class: 'button', href: '/index.html' }, h('span', { text: 'Return to website' })),
           h('a', { class: 'button button--secondary', href: `https://wa.me/${WHATSAPP_NUMBER}` }, h('span', { text: 'Contact the school' }))
@@ -214,7 +214,7 @@ function renderMaintenance() {
       )
     )
   );
-  setStatus('Portal is not yet active.');
+  setStatus('Portal reconnection is not active yet.');
 }
 
 function renderLogin() {
@@ -257,6 +257,7 @@ function renderLogin() {
         h('p', { class: 'eyebrow', text: 'Parent & staff portal' }),
         h('h1', { id: 'login-title', text: 'Welcome back' }),
         h('p', { text: 'Parents can view linked children. Teachers see only assigned classes. Administrators manage authorised records.' }),
+        alertBox('info', 'Returning family or staff member?', 'Your former portal history is being preserved. Do not create a second account or send an old PIN in chat; the school will reconnect verified access.'),
         form,
         h('div', { class: 'auth-help' },
           h('h2', { text: 'Need account help?' }),
@@ -265,8 +266,8 @@ function renderLogin() {
         )
       ),
       h('aside', { class: 'trust-panel', 'aria-label': 'Portal safeguards' },
-        h('p', { class: 'eyebrow', text: 'Built around least privilege' }),
-        h('h2', { text: 'The right information, for the right person.' }),
+        h('p', { class: 'eyebrow', text: 'Familiar portal, secure foundation' }),
+        h('h2', { text: 'Your school tools, with safer records.' }),
         h('ul', { class: 'trust-list' },
           h('li', {}, icon('user'), h('span', { text: 'Parents access only children linked to their account.' })),
           h('li', {}, icon('classes'), h('span', { text: 'Teachers manage results only for assigned classes and subjects.' })),
@@ -352,14 +353,14 @@ async function establishSession(session) {
 
 function tabsForRole(role) {
   if (role === 'parent') return [
-    ['overview', 'Overview', 'shield'], ['children', 'My children', 'pupils'], ['results', 'Results', 'results'], ['payments', 'Payments', 'payments']
+    ['overview', 'Home', 'shield'], ['children', 'My Children', 'pupils'], ['results', 'My Results', 'results'], ['payments', 'School Fees', 'payments']
   ];
   if (role === 'teacher') return [
-    ['overview', 'Overview', 'shield'], ['classes', 'Assigned classes', 'classes'], ['results', 'Results', 'results']
+    ['overview', 'Home', 'shield'], ['classes', 'My Class', 'classes'], ['results', 'Input Results', 'results']
   ];
   return [
-    ['overview', 'Overview', 'shield'], ['students', 'Pupils', 'pupils'], ['people', 'People & classes', 'classes'],
-    ['results', 'Results', 'results'], ['payments', 'Payments', 'payments'], ['audit', 'Audit', 'audit']
+    ['overview', 'Overview', 'shield'], ['students', 'Pupils', 'pupils'], ['people', 'Teachers & Classes', 'classes'],
+    ['results', 'Results', 'results'], ['payments', 'School Fees', 'payments'], ['audit', 'Audit', 'audit']
   ];
 }
 

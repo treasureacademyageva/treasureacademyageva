@@ -9,7 +9,7 @@
     "test:legacy-batch53": "node tools/tests/verify-batch53.js",
     "test:header-browser": "node tools/tests/header-browser.e2e.js",
     "test:a11y": "node tools/tests/accessibility-components-qa.js",
-    "build:portal": "esbuild assets/js/portal-source.js --bundle --minify --target=es2020 --format=iife --outfile=assets/js/portal-app.js --legal-comments=none",
+    "build:portal": "esbuild assets/js/portal-source.js --bundle --minify --target=es2020 --format=iife --supported:template-literal=false --outfile=assets/js/portal-app.js --legal-comments=none",
     "test:portal": "node tools/tests/portal-security.test.mjs",
     "test:portal-browser": "node tools/tests/portal-browser.e2e.js"
   },

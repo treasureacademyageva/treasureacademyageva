@@ -1,9 +1,12 @@
 -- Treasure Academy secure school portal baseline
 -- Date: 2026-10-23
 --
--- Safe to apply through the Supabase SQL editor or migration runner.
--- This migration keeps legacy evidence but removes all access to the retired
--- public.school_data JSON store. It does not insert real people or school data.
+-- Safe to apply through the Supabase SQL editor or migration runner only after
+-- the read-only legacy inventory and backup steps in supabase/manual/README.md.
+-- This migration does NOT alter or retire public.school_data or the older
+-- normalized portal tables. Cut-over is deliberately separate and manual so
+-- an existing Supabase portal cannot be closed before its records are preserved.
+-- It does not insert real people or school data.
 
 begin;
 
@@ -551,24 +554,9 @@ grant select, insert, update, delete on table public.payments to authenticated;
 grant select on table public.webhook_events, public.payment_audit_log, public.admission_audit_log to authenticated;
 revoke all on sequence public.payment_audit_log_id_seq, public.admission_audit_log_id_seq from anon, authenticated;
 
--- Preserve the retired table and any historical evidence, but remove every
--- public policy/grant so it cannot expose real data if this migration is run.
-do $$
-declare
-  p record;
-begin
-  if to_regclass('public.school_data') is not null then
-    execute 'revoke all on table public.school_data from public, anon, authenticated';
-    for p in
-      select policyname from pg_policies where schemaname = 'public' and tablename = 'school_data'
-    loop
-      execute format('drop policy if exists %I on public.school_data', p.policyname);
-    end loop;
-    execute 'alter table public.school_data enable row level security';
-    execute 'alter table public.school_data force row level security';
-    execute 'comment on table public.school_data is ''RETIRED 2026-10-23: preserved as evidence; no API access or policies. Do not store new data.''';
-  end if;
-end $$;
+-- IMPORTANT: legacy public.school_data and the older normalized portal tables
+-- are intentionally untouched here. Inventory and preserve them first. Only an
+-- owner-approved, verified cut-over may run the separate manual retirement SQL.
 
 comment on table public.profiles is 'Authenticated portal identities. Role changes are admin-only.';
 comment on table public.students is 'Pupil records accessed by linked parents, assigned teachers and admins through RLS.';

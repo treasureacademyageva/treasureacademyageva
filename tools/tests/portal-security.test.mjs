@@ -210,9 +210,11 @@ await asyncTest('enabled portal config returns only URL and publishable key', as
 });
 restorePortalEnvironment();
 
-const [migration, rootSchema, webhook, monnify, configApi, portalSource, portalHtml, portalCss, vercel, pkg] = await Promise.all([
+const [migration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, configApi, portalSource, portalHtml, portalCss, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
   read('supabase-schema.sql'),
+  read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
+  read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
   read('api/monnify-webhook.mjs'),
   read('server/monnify.mjs'),
   read('api/portal-config.mjs'),
@@ -246,11 +248,16 @@ test('role escalation has a database trigger guard and new users default to pare
   assert.match(migration, /Never trust user metadata to assign teacher\/admin/i);
   assert.match(migration, /'parent'::public\.app_role/i);
 });
-test('legacy school_data evidence is retained but every policy and grant is removed', () => {
-  assert.match(migration, /to_regclass\('public\.school_data'\)/i);
-  assert.match(migration, /drop policy if exists %I on public\.school_data/i);
-  assert.match(migration, /revoke all on table public\.school_data from public, anon, authenticated/i);
-  assert.doesNotMatch(rootSchema, /create policy[^;]+school_data[^;]+(?:using|with check)\s*\(\s*true\s*\)/i);
+test('baseline preserves the former Supabase portal until a separate verified cut-over', () => {
+  assert.match(migration, /does NOT alter or retire public\.school_data/i);
+  assert.doesNotMatch(migration, /revoke all on table public\.school_data/i);
+  assert.doesNotMatch(rootSchema, /drop policy if exists %I on public\.school_data/i);
+  assert.match(legacyInventory, /begin transaction read only/i);
+  assert.match(legacyInventory, /rollback;/i);
+  assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);
+  assert.match(legacyRetirement, /MANUAL CUT-OVER ONLY/i);
+  assert.match(legacyRetirement, /revoke all on table public\.school_data from public, anon, authenticated/i);
+  assert.match(legacyRetirement, /does not drop or truncate/i);
 });
 test('Monnify RPC is service-role-only and idempotent', () => {
   assert.match(migration, /on conflict \(event_key\) do nothing/i);

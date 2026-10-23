@@ -170,10 +170,11 @@ Supporting pages (classes, safeguarding, privacy, transport, uniform) remain gro
 
 ### P0 — required before real data
 
-1. Apply the versioned Supabase migration and policy tests; never reuse the legacy public-write `school_data` policies.
-2. Create the first admin through the protected owner runbook, then verify all parent/teacher/admin RLS scenarios.
-3. Keep `PORTAL_ENABLED`, `MONNIFY_WEBHOOK_ENABLED` and `MONNIFY_OWNER_VERIFIED` false until their separate readiness checks pass.
-4. Test backup/restore and emergency access revocation.
+1. Run the read-only legacy Supabase inventory and create an owner-controlled backup/export before changing any former portal table or policy.
+2. Apply the versioned secure migration and policy tests in staging; do not reuse broad public-write `school_data` policies and do not retire the old table before verified cut-over.
+3. Create the first admin through the protected owner runbook, then verify all parent/teacher/admin RLS scenarios.
+4. Keep `PORTAL_ENABLED`, `MONNIFY_WEBHOOK_ENABLED` and `MONNIFY_OWNER_VERIFIED` false until their separate readiness checks pass.
+5. Test backup/restore and emergency access revocation.
 
 ### P1 — required before portal launch
 

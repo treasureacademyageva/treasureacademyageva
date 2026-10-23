@@ -6,6 +6,13 @@
 
 ## Delivered
 
+### Authentic portal-history preservation
+
+- Git history confirms the former Treasure Academy portal was a substantial real interface, not an invented feature.
+- `PORTAL-HISTORY-RESTORATION-MAP-2026-10-23.md` records the former parent, teacher and headmistress workflows and how they will be restored securely.
+- Added a read-only existing-project inventory and moved all legacy retirement into a separate manual, owner-approved cut-over step.
+- The familiar experience is preserved; only browser-only credentials, public data access, demo/sample records and false receipt behavior are excluded.
+
 ### Phase 1 — research, journeys and IA
 
 - `PHASE-1-UX-AUDIT-2026-10-23.md`
@@ -39,7 +46,7 @@ These artifacts cover parent, teacher, administrator, pupil and visitor needs; c
 - Added tables for profiles, students, assignments, grades, payments, webhook events and payment/admission audits.
 - Added explicit grants and RLS for parent links, teacher class/subject scope and admin overrides.
 - New auth users always begin as parents; role/account-status changes are trigger-guarded.
-- The legacy `school_data` table is preserved as evidence if present, but every policy and anon/authenticated grant is removed and RLS is forced.
+- The former `school_data` and normalized portal tables are left completely unchanged by the secure baseline until the owner runs the read-only inventory, creates a backup and approves cut-over. Retirement is a separate manual script that preserves the table and rows.
 - Added a disposable staging RLS integration script using fictional data.
 
 ### Monnify scaffold
@@ -96,7 +103,8 @@ These artifacts cover parent, teacher, administrator, pupil and visitor needs; c
 
 ## Recommended next round
 
-1. Execute the SQL migration and RLS integration tests in disposable staging.
-2. Add assignment deactivation and grade-change audit after owner workflow review.
-3. Test VoiceOver/TalkBack and 200% zoom on real devices with fictional records.
-4. Complete secure deployment and verify the canonical/legacy-host 308 redirects without changing domain email/DNS records.
+1. Run the read-only inventory against the existing owner-controlled Supabase project and create a backup/export.
+2. Map legitimate former portal records and restore the familiar Attendance, Notices, Timetable and Homework workflows in staging.
+3. Execute the secure migration and RLS integration tests in disposable staging.
+4. Test VoiceOver/TalkBack and 200% zoom on real devices with fictional records.
+5. Complete secure deployment and verify the canonical/legacy-host 308 redirects without changing domain email/DNS records.

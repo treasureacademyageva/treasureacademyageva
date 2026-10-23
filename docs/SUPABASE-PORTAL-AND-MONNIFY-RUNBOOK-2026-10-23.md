@@ -17,9 +17,22 @@
 
 The portal supports admin, teacher and parent roles. There is no pupil account. Bank transfer is active. No Monnify checkout route or button exists.
 
-## 2. Prerequisites
+## 2. Preserve the former Supabase portal first
+
+The owner confirmed that the former portal used Supabase. Do not assume it was empty, and do not treat its history as inauthentic.
+
+1. Sign in directly to the existing owner-controlled Supabase dashboard.
+2. Run only `supabase/manual/00_read_only_legacy_portal_inventory.sql`.
+3. Create an owner-controlled backup/export before any schema or policy change.
+4. Determine whether the project contains the Batch 19 `school_data` table, the later normalized portal tables, or both.
+5. Do **not** run `99_retire_legacy_school_data_after_verified_cutover.sql` yet.
+
+The secure baseline intentionally leaves all former portal objects unchanged. Retirement is outside the automatic migrations and occurs only after record mapping, staging tests and a separate owner approval.
+
+## 3. Prerequisites
 
 - Owner-approved Supabase organisation/project and data-processing decision
+- completed legacy inventory and owner-controlled backup/export
 - Owner-approved production domain already mapped to Vercel
 - Named person responsible for account creation, deactivation, record correction and incident handling
 - Password/MFA policy for Supabase dashboard administrators
@@ -28,7 +41,7 @@ The portal supports admin, teacher and parent roles. There is no pupil account. 
 
 Do not proceed with real pupil data merely because the SQL runs.
 
-## 3. Apply the migration
+## 4. Apply the migration
 
 1. Create or select the **staging** Supabase project.
 2. Open SQL Editor as an authorised project administrator.
@@ -42,17 +55,13 @@ Do not proceed with real pupil data merely because the SQL runs.
    - `webhook_events`
    - `payment_audit_log`
    - `admission_audit_log`
-5. Confirm RLS is enabled on every listed table.
-6. If legacy `school_data` existed, confirm it still exists for evidence but has:
-   - no policies;
-   - no `anon` or `authenticated` grants;
-   - RLS enabled and forced;
-   - the retirement comment.
+5. Confirm RLS is enabled on every listed new table.
+6. Confirm every legacy object reported by the inventory is still present and unchanged. The baseline must not revoke, drop, truncate or rewrite `school_data`, `pupils`, `results`, `attendance`, `fee_payments` or other former portal objects.
 7. Confirm `process_monnify_payment_event` can be executed only by `service_role`.
 
-Do not apply old `db/*.sql` or an earlier copy of `supabase-schema.sql` over this migration.
+Do not apply old `db/*.sql` or an earlier copy of `supabase-schema.sql` over this migration. Do not run the manual retirement SQL until verified cut-over.
 
-## 4. Create the first admin safely
+## 5. Create the first admin safely
 
 New auth users deliberately default to `parent`, even if user metadata asks for another role. This prevents self-escalation.
 
@@ -69,7 +78,7 @@ where id = 'OWNER-VERIFIED-USER-UUID';
 4. Sign in on staging, change/recover the password through the approved flow and verify the role badge is Admin.
 5. Enable MFA for dashboard administrators where supported. Portal-user MFA expansion should be planned separately rather than claimed without testing.
 
-## 5. Create parent and teacher users
+## 6. Create parent and teacher users
 
 ### Parent
 
@@ -94,7 +103,7 @@ where id = 'VERIFIED-TEACHER-UUID';
 4. Use subject `*` only for a class teacher who genuinely needs every subject in that class.
 5. Deactivate a profile promptly when access is no longer authorised. Assignment deactivation UI is a recommended next enhancement; until then, update it through a reviewed admin SQL operation.
 
-## 6. RLS acceptance test matrix
+## 7. RLS acceptance test matrix
 
 Run with fictional records in staging. Use distinct browser profiles so sessions cannot mix.
 
@@ -124,7 +133,7 @@ Run with fictional records in staging. Use distinct browser profiles so sessions
 
 Keep screenshots/logs free of names, email addresses, child records, references and amounts.
 
-## 7. Portal environment configuration
+## 8. Portal environment configuration
 
 Set server-side Vercel environment variables through the protected project settings, separately for Preview and Production:
 
@@ -148,7 +157,7 @@ The config function never reads or returns a secret/service key.
 5. Review support responsibility and real-data readiness with the owner.
 6. Only then repeat with the production Supabase project and explicit owner approval.
 
-## 8. Monnify remains disabled
+## 9. Monnify remains disabled
 
 Initial production values:
 
@@ -190,7 +199,7 @@ Disabled webhook requests return 404. The code requires **both** enable and owne
 
 Because no checkout exists, enabling only the webhook still does not create a public Monnify payment option.
 
-## 9. Webhook processing sequence
+## 10. Webhook processing sequence
 
 1. POST only; JSON only; maximum 1 MiB.
 2. Both environment gates must be true.
@@ -205,7 +214,7 @@ Because no checkout exists, enabling only the webhook still does not create a pu
 11. In one database transaction: reserve unique event key, lock matching payment, check method/amount, update payment and append payment audit.
 12. Return only generic outcomes; never log payload, customer, source account, reference or secrets.
 
-## 10. Build and local test
+## 11. Build and local test
 
 ```bash
 npm ci
@@ -221,7 +230,7 @@ The committed portal bundle lets the static site deploy without running a framew
 
 Local static preview does not provide Vercel Functions. Without `/api/portal-config`, the portal intentionally shows an unavailable state. Use a Vercel Preview (or a compatible local function emulator with fictional data) for end-to-end auth tests.
 
-## 11. Deployment and rollback
+## 12. Deployment and rollback
 
 1. Confirm git diff contains no `.env`, key, token, real person, payment or pupil fixture.
 2. Run all tests and save only aggregate pass/fail counts.
@@ -240,7 +249,7 @@ Rollback:
 5. Preserve audit evidence; do not delete tables or logs to hide an incident.
 6. Rotate any potentially exposed key and document the date/owner/action without storing the key.
 
-## 12. Incident priorities
+## 13. Incident priorities
 
 - **Wrong-family data visible:** disable portal, revoke sessions, preserve evidence, assess affected rows/policies and follow the school’s privacy response process.
 - **Credential/key exposure:** disable affected path, rotate key, inspect access logs and never reuse the exposed value.
