@@ -1,17 +1,17 @@
 {
   "schema": "treasure-brand-assets-v1",
-  "updated": "2026-10-22",
+  "updated": "2026-10-23",
   "instructions": "Owner-supplied assets only. Set status to verified only after authority, consent, placement and alt text are confirmed. The build fails closed when a verified image is incomplete.",
   "identity": {
     "publicName": "Treasure Academy, Ageva",
     "legalName": "Treasure Academy Ageva Limited",
     "motto": "Our God is able",
     "logo": {
-      "status": "restored-pending-owner",
+      "status": "verified",
       "src": "/assets/img/logo.jpg",
-      "authority": "",
-      "reviewDate": "",
-      "note": "Current artwork reads Treasure Kiddies while the website uses Treasure Academy. Supply the approved master before replacement."
+      "authority": "Owner-directed restoration in the project conversation on 23 October 2026.",
+      "reviewDate": "2026-10-23",
+      "note": "The owner explicitly requested restoration of the familiar crest and original visual design. The artwork retains the historic Treasure Kiddies wording while the website name remains Treasure Academy, Ageva."
     }
   },
   "images": {
@@ -25,7 +25,8 @@
       "authority": "",
       "consentConfirmed": false,
       "reviewDate": "",
-      "placements": []
+      "placements": [],
+      "note": "Earlier website visual retained for design use only; it must not be described as verified current campus photography without a separate owner evidence review."
     },
     "classroom": {
       "status": "awaiting-owner",
@@ -37,7 +38,8 @@
       "authority": "",
       "consentConfirmed": false,
       "reviewDate": "",
-      "placements": []
+      "placements": [],
+      "note": "Earlier website visual retained for design use only; it must not be described as verified current campus photography without a separate owner evidence review."
     },
     "activity": {
       "status": "awaiting-owner",
@@ -49,7 +51,8 @@
       "authority": "",
       "consentConfirmed": false,
       "reviewDate": "",
-      "placements": []
+      "placements": [],
+      "note": "Earlier website visual retained for design use only; it must not be described as verified current campus photography without a separate owner evidence review."
     }
   },
   "socialProfiles": [],

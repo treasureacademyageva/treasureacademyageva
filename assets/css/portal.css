@@ -1,4 +1,4 @@
-/* Treasure Academy secure portal — day/dark tokens, no external assets */
+/* Treasure Academy secure portal — day/dark tokens, self-hosted visual assets */
 :root {
   color-scheme: light;
   --ink: #142033;
@@ -60,7 +60,7 @@ a:hover { text-decoration-thickness: 2px; }
 
 .site-header { min-height: 80px; padding: 14px max(20px, calc((100vw - var(--max)) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 24px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .wordmark { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
-.wordmark__monogram { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 13px; color: #fff; background: #0b2e4f; border: 2px solid var(--gold); font-weight: 900; letter-spacing: -.04em; }
+.wordmark__logo { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%; border: 2px solid var(--gold); background: #fff; object-fit: cover; }
 .wordmark span:last-child { display: grid; line-height: 1.2; }
 .wordmark strong { font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.08rem, 2vw, 1.35rem); }
 .wordmark small { margin-top: 4px; color: var(--muted); font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; }
@@ -86,6 +86,9 @@ main { min-height: 65vh; }
 .auth-card, .trust-panel { padding: clamp(28px, 5vw, 64px); }
 .auth-card h1, .trust-panel h2 { max-width: 15ch; margin: 5px 0 12px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 5vw, 3.35rem); line-height: 1.02; letter-spacing: -.035em; }
 .auth-card > p, .trust-panel > p { max-width: 58ch; color: var(--muted); }
+.portal-art-panel { position: relative; min-height: 430px; overflow: hidden; background: linear-gradient(155deg, #f7fbf8, #fff8d9); }
+.portal-art-panel img { width: 100%; height: 100%; min-height: 430px; display: block; object-fit: cover; }
+.portal-art-panel__caption { position: absolute; inset: auto 18px 18px; margin: 0; padding: 10px 13px; border-radius: 10px; background: rgba(11,46,79,.9); color: #fff; font-size: .82rem; }
 .eyebrow { margin: 0; color: var(--navy-2) !important; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .trust-panel { color: #f3f7fb; background: #0b2e4f; }
 .trust-panel .eyebrow { color: #f0c75e !important; }
@@ -205,6 +208,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparen
 @media (max-width: 900px) {
   .utility-nav a { display: none; }
   .auth-layout { grid-template-columns: 1fr; }
+  .portal-art-panel, .portal-art-panel img { min-height: 300px; max-height: 360px; }
   .trust-panel { padding-top: 34px; padding-bottom: 38px; }
   .portal-shell { grid-template-columns: 1fr; }
   .portal-sidebar { position: static; }
@@ -218,7 +222,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparen
 
 @media (max-width: 620px) {
   .site-header { min-height: 70px; padding: 10px 14px; }
-  .wordmark__monogram { width: 40px; height: 40px; }
+  .wordmark__logo { width: 40px; height: 40px; flex-basis: 40px; }
   .wordmark small { display: none; }
   .utility-nav { flex: 0 0 auto; }
   .utility-nav button { width: 44px; overflow: hidden; white-space: nowrap; color: transparent; position: relative; }
@@ -237,6 +241,6 @@ tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparen
 }
 
 @media (forced-colors: active) {
-  .wordmark__monogram, .portal-nav__item--active, .button { forced-color-adjust: none; }
+  .wordmark__logo, .portal-nav__item--active, .button { forced-color-adjust: none; }
   .badge, .alert, .record-card, .stat-card { border: 1px solid CanvasText; }
 }
