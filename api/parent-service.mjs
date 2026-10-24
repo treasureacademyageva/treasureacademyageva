@@ -15,7 +15,7 @@ async function handle(request) {
     return notFound();
   }
 
-  const action = new URL(request.url).searchParams.get('action') || '';
+  const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
   const links = await import('../server/parent-links.mjs');
   const handlers = {
     match: links.handlePupilMatch,

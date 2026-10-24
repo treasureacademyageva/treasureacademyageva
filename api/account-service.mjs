@@ -17,7 +17,7 @@ async function handle(request) {
     return notFound();
   }
 
-  const action = new URL(request.url).searchParams.get('action') || '';
+  const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
   const accounts = await import('../server/accounts.mjs');
   const handlers = {
     create: accounts.handleCreateAccount,

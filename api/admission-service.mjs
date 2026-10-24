@@ -9,8 +9,8 @@ function notFound() {
   });
 }
 
-export default async function handler(request) {
-  const action = new URL(request.url).searchParams.get('action') || '';
+async function handle(request) {
+  const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
   const tracking = await import('../server/admission-tracking.mjs');
   const handlers = {
     request: tracking.handleAdmissionTrackingRequest,
@@ -20,3 +20,5 @@ export default async function handler(request) {
   const selected = handlers[action];
   return typeof selected === 'function' ? selected(request) : notFound();
 }
+
+export default { fetch: handle };

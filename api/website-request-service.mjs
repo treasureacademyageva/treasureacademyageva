@@ -12,7 +12,7 @@ function unavailable() {
 async function handle(request) {
   if (process.env.WEBSITE_REQUESTS_ENABLED !== 'true') return unavailable();
 
-  const action = new URL(request.url).searchParams.get('action') || '';
+  const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
   const requests = await import('../server/requests.mjs');
   if (action === 'create') return requests.handleCreateRequest(request);
   if (action === 'status') return requests.handleRequestStatus(request);

@@ -9,8 +9,8 @@ function notFound() {
   });
 }
 
-export default async function handler(request) {
-  const action = new URL(request.url).searchParams.get('action') || '';
+async function handle(request) {
+  const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
   if (action === 'console') {
     const { handleDeveloperConsole } = await import('../server/developer-console.mjs');
     return handleDeveloperConsole(request);
@@ -21,3 +21,5 @@ export default async function handler(request) {
   }
   return notFound();
 }
+
+export default { fetch: handle };
