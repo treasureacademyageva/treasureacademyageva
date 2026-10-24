@@ -61,43 +61,43 @@
     },
     {
       "source": "/api/admin/accounts",
-      "destination": "/api/admin-accounts"
+      "destination": "/api/account-service?action=create"
     },
     {
       "source": "/api/admin/accounts/:id/reset-password",
-      "destination": "/api/admin-account-reset?id=:id"
+      "destination": "/api/account-service?action=reset&id=:id"
     },
     {
       "source": "/api/admin/accounts/:id/status",
-      "destination": "/api/admin-account-status?id=:id"
+      "destination": "/api/account-service?action=status&id=:id"
     },
     {
       "source": "/api/admin/guardian-links",
-      "destination": "/api/admin-guardian-links"
+      "destination": "/api/account-service?action=guardian"
     },
     {
       "source": "/api/account/change-password",
-      "destination": "/api/account-change-password"
+      "destination": "/api/account-service?action=change-password"
     },
     {
       "source": "/api/parent/pupil-match",
-      "destination": "/api/parent-pupil-match"
+      "destination": "/api/parent-service?action=match"
     },
     {
       "source": "/api/parent/pupil-link",
-      "destination": "/api/parent-pupil-link"
+      "destination": "/api/parent-service?action=link"
     },
     {
       "source": "/api/parent/second-invitation",
-      "destination": "/api/parent-second-invitation"
+      "destination": "/api/parent-service?action=invite"
     },
     {
       "source": "/api/parent/second-redemption",
-      "destination": "/api/parent-second-redemption"
+      "destination": "/api/parent-service?action=redeem"
     },
     {
       "source": "/api/admin/pupil-link-code",
-      "destination": "/api/admin-pupil-link-code"
+      "destination": "/api/parent-service?action=issue-code"
     },
     {
       "source": "/api/public/graduates",
@@ -105,31 +105,31 @@
     },
     {
       "source": "/api/admission/track/request",
-      "destination": "/api/admission-track-request"
+      "destination": "/api/admission-service?action=request"
     },
     {
       "source": "/api/admission/track/verify",
-      "destination": "/api/admission-track-verify"
+      "destination": "/api/admission-service?action=verify"
     },
     {
       "source": "/api/portal/admission-continuation",
-      "destination": "/api/portal-admission-continuation"
+      "destination": "/api/admission-service?action=continuation"
     },
     {
       "source": "/api/developer/console",
-      "destination": "/api/developer-console"
+      "destination": "/api/developer-service?action=console"
     },
     {
       "source": "/api/developer/otp",
-      "destination": "/api/developer-otp"
+      "destination": "/api/developer-service?action=otp"
     },
     {
       "source": "/api/requests",
-      "destination": "/api/website-request"
+      "destination": "/api/website-request-service?action=create"
     },
     {
       "source": "/api/requests/status",
-      "destination": "/api/website-request-status"
+      "destination": "/api/website-request-service?action=status"
     }
   ],
   "headers": [

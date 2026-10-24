@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { computeMonnifySignature, parseSuccessfulPayment, sha256, supabaseServerHeaders, verifyMonnifySignature } from '../../server/monnify.mjs';
 import { generateTemporaryPassword, handleCreateAccount, normalizeNigerianPhone, passwordProblem, sameOrigin } from '../../server/accounts.mjs';
 import { generateRequestReference, generateTrackingCode, handleCreateRequest, handleRequestStatus, trackingHash } from '../../server/requests.mjs';
@@ -9,6 +9,7 @@ import { handleDeveloperConsole } from '../../server/developer-console.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
+const apiFunctionFiles = (await readdir(new URL('api/', root))).filter((name) => name.endsWith('.mjs'));
 let passed = 0;
 function test(name, fn) {
   try {
@@ -412,20 +413,14 @@ function restoreAccountEnvironment() {
   }
   globalThis.fetch = originalFetch;
 }
-const accountEntryHandlers = await Promise.all([
-  '../../api/admin-accounts.mjs',
-  '../../api/admin-account-reset.mjs',
-  '../../api/admin-account-status.mjs',
-  '../../api/admin-guardian-links.mjs',
-  '../../api/account-change-password.mjs'
-].map(async (path) => (await import(path)).default));
-await asyncTest('all account Function entry points fail closed before loading account dependencies', async () => {
+const accountEntryHandler = (await import('../../api/account-service.mjs')).default;
+await asyncTest('the consolidated account Function fails closed for every action before loading account dependencies', async () => {
   delete process.env.PORTAL_ENABLED;
   delete process.env.PORTAL_ACCOUNTS_ENABLED;
   let calls = 0;
   globalThis.fetch = async () => { calls += 1; throw new Error('must not run'); };
-  for (const handler of accountEntryHandlers) {
-    const response = await handler.fetch(new Request('https://school.example/api/account-test', { method: 'POST' }));
+  for (const action of ['create', 'reset', 'status', 'guardian', 'change-password']) {
+    const response = await accountEntryHandler.fetch(new Request(`https://school.example/api/account-service?action=${action}`, { method: 'POST' }));
     assert.equal(response.status, 404);
     assert.deepEqual(await response.json(), { error: 'Not found' });
   }
@@ -812,8 +807,8 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('server/parent-links.mjs'),
   read('server/admission-tracking.mjs'),
   read('server/developer-console.mjs'),
-  read('api/website-request.mjs'),
-  read('api/website-request-status.mjs'),
+  read('api/website-request-service.mjs'),
+  read('api/website-request-service.mjs'),
   read('api/public-information.mjs'),
   read('request-centre.html'),
   read('assets/js/request-centre.js'),
@@ -1226,7 +1221,7 @@ test('service worker never caches protected portal or developer assets', () => {
   assert.match(portalHtml, /portal-app\.js\?v=20261024-secure1/);
   assert.match(developerHtml, /developer-console\.js\?v=20261024-2/);
 });
-test('Vercel policy keeps portal/API private, permits Supabase connections and routes account functions', () => {
+test('Vercel policy keeps portal/API private and consolidates gated routes within the Hobby Function limit', () => {
   const settings = JSON.parse(vercel);
   const portalRule = settings.headers.find((rule) => rule.source === '/portal/(.*)');
   const apiRule = settings.headers.find((rule) => rule.source === '/api/(.*)');
@@ -1240,10 +1235,30 @@ test('Vercel policy keeps portal/API private, permits Supabase connections and r
     assert.match(csp, /script-src 'self';/);
     assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
   }
-  const rewriteSources = new Set(settings.rewrites.map((rule) => rule.source));
-  for (const source of ['/api/admin/accounts', '/api/admin/accounts/:id/reset-password', '/api/admin/accounts/:id/status', '/api/admin/guardian-links', '/api/account/change-password', '/api/parent/pupil-match', '/api/parent/pupil-link', '/api/parent/second-invitation', '/api/parent/second-redemption', '/api/admin/pupil-link-code', '/api/admission/track/request', '/api/admission/track/verify', '/api/portal/admission-continuation', '/api/developer/console', '/api/developer/otp', '/api/requests', '/api/requests/status']) {
-    assert.ok(rewriteSources.has(source), `missing Vercel account rewrite ${source}`);
+  const rewriteDestinations = new Map(settings.rewrites.map((rule) => [rule.source, rule.destination]));
+  const expectedRoutes = {
+    '/api/admin/accounts': '/api/account-service?action=create',
+    '/api/admin/accounts/:id/reset-password': '/api/account-service?action=reset&id=:id',
+    '/api/admin/accounts/:id/status': '/api/account-service?action=status&id=:id',
+    '/api/admin/guardian-links': '/api/account-service?action=guardian',
+    '/api/account/change-password': '/api/account-service?action=change-password',
+    '/api/parent/pupil-match': '/api/parent-service?action=match',
+    '/api/parent/pupil-link': '/api/parent-service?action=link',
+    '/api/parent/second-invitation': '/api/parent-service?action=invite',
+    '/api/parent/second-redemption': '/api/parent-service?action=redeem',
+    '/api/admin/pupil-link-code': '/api/parent-service?action=issue-code',
+    '/api/admission/track/request': '/api/admission-service?action=request',
+    '/api/admission/track/verify': '/api/admission-service?action=verify',
+    '/api/portal/admission-continuation': '/api/admission-service?action=continuation',
+    '/api/developer/console': '/api/developer-service?action=console',
+    '/api/developer/otp': '/api/developer-service?action=otp',
+    '/api/requests': '/api/website-request-service?action=create',
+    '/api/requests/status': '/api/website-request-service?action=status'
+  };
+  for (const [source, destination] of Object.entries(expectedRoutes)) {
+    assert.equal(rewriteDestinations.get(source), destination, `incorrect Vercel rewrite ${source}`);
   }
+  assert.ok(apiFunctionFiles.length <= 12, `Vercel Hobby permits at most 12 Functions, found ${apiFunctionFiles.length}`);
 });
 test('portal build and security test are wired into package scripts', () => {
   const packageJson = JSON.parse(pkg);

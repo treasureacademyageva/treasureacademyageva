@@ -9,3 +9,4 @@ node_modules/
 npm-debug.log*
 supabase/release/*.zip
 tools/tests/fixtures-stress-questions.json
+.vercel
