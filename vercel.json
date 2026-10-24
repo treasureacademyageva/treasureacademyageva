@@ -76,6 +76,18 @@
       "destination": "/api/account-service?action=guardian"
     },
     {
+      "source": "/api/account/claim/request",
+      "destination": "/api/account-service?action=claim-request"
+    },
+    {
+      "source": "/api/account/claim/verify",
+      "destination": "/api/account-service?action=claim-verify"
+    },
+    {
+      "source": "/api/account/claim/complete",
+      "destination": "/api/account-service?action=claim-complete"
+    },
+    {
       "source": "/api/account/change-password",
       "destination": "/api/account-service?action=change-password"
     },

@@ -8,6 +8,12 @@
 > drift apart.
 
 
+## 24 October 2026 — owner-authorised dynamic maintenance release (local, inactive)
+
+Proprietress Shaibu Sidikat Ruth directly authorised the complete programme. The protected maintenance branch now includes the full-write Proprietress title/scope, phone-verified first-password claims, teacher assignment history and independent movement/replacement approval, independently approved exceptional progression, separate Common Entrance candidacy, truthful standard/accelerated Graduate Hall labels, public portal/tracking/registration entry points, the approved Jibril/Paragon credits and a gated HMAC-signed school-side relay client. No password or private pupil/staff roster was added. Details and release order: `supabase/release/20261024_DYNAMIC_MAINTENANCE_RELEASE_PLAN.md`.
+
+Local acceptance passed 8/8 ordered migrations, 4/4 rollback-safe SQL policy suites, the read-only postflight, 84/84 portal/security checks and the complete static/browser/accessibility suite. Exactly 10 Serverless Function entry files remain. This new migration, code release, account-claim seed, identity bootstrap and gates are **not yet production-applied or activated**. Production remains the clean deployed revision `7e1d30046e08fe84c4291cf81c7346db784c0573` with seven migrations and all protected gates false. The clean Paragon source ZIP is still required before relay activation.
+
 ## 24 October 2026 — production schema installed; code release pending
 
 The owner authorised the existing Supabase project directly. All seven migrations are now recorded in production and the read-only postflight passed. Every one of the 25 former table counts remained unchanged (70 total rows), Auth remains empty, all release-marker tables and critical indexes are present, RLS/function grants passed, and Auth/database/REST/Storage remained healthy. No private data was imported, no account or developer capability was created, and every application/runtime gate remains off. Evidence: `supabase/release/20261024_PRODUCTION_SQL_EXECUTION_EVIDENCE.md`.

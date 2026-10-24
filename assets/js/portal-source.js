@@ -11,7 +11,7 @@ const state = {
   user: null,
   profile: null,
   data: {},
-  features: { registration: false, office: false },
+  features: { registration: false, accountClaim: false, office: false },
   tab: 'overview',
   hubTab: 'term-bills',
   admissionContinuations: [],
@@ -423,6 +423,114 @@ function renderRegistration() {
   route.focus();
 }
 
+function renderAccountClaim() {
+  let requestToken = '';
+  let setupToken = '';
+  const message = formMessage();
+  const card = h('section', { class: 'auth-card auth-card--standalone', 'aria-labelledby': 'claim-title' },
+    h('p', { class: 'eyebrow', text: 'Owner-approved staff onboarding' }),
+    h('h1', { id: 'claim-title', text: 'Claim your school account' }),
+    h('p', { text: 'Use the same registered phone that the school owner approved. The one-time code goes only to that number; no pupil, class, result or payment record is sent to the delivery processor.' }),
+    alertBox('warning', 'Pre-authorised profiles only', 'This process cannot create an unapproved role. A phone number that is not on the owner-approved claim list receives no access.'),
+    h('div', { id: 'claim-stage' }), message,
+    h('button', { type: 'button', class: 'button button--secondary', onClick: renderLogin }, h('span', { text: 'Back to sign in' }))
+  );
+  const stage = card.querySelector('#claim-stage');
+
+  function showRequest() {
+    const form = h('form', { class: 'auth-form', onSubmit: async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const values = new FormData(form);
+      const phone = normalizeNigerianPhone(values.get('phone'));
+      const channel = String(values.get('channel') || 'whatsapp');
+      if (!phone) { setFormMessage(message, 'Enter a valid Nigerian mobile number.', true); return; }
+      if (channel === 'whatsapp' && values.get('whatsappConfirmed') !== 'yes') { setFormMessage(message, 'Confirm that this registered number uses WhatsApp.', true); return; }
+      const submit = form.querySelector('[type=submit]'); submit.disabled = true;
+      setFormMessage(message, 'Requesting a private one-time code…');
+      try {
+        const response = await fetch('/api/account/claim/request', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, cache: 'no-store',
+          body: JSON.stringify({ phone, channel, whatsappConfirmed: channel === 'whatsapp' })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || friendlyError());
+        requestToken = result.requestToken;
+        setFormMessage(message, result.message || 'If this phone is approved, the code is on its way.');
+        showVerify();
+      } catch (error) { setFormMessage(message, error.message || friendlyError(), true); }
+      finally { submit.disabled = false; }
+    } },
+      textInput('phone', 'Registered Nigerian phone', { type: 'tel', inputmode: 'tel', autocomplete: 'tel', maxlength: '24', placeholder: '0803 000 0000' }),
+      selectInput('channel', 'Delivery channel', [{ value: 'whatsapp', label: 'WhatsApp' }, { value: 'sms', label: 'SMS (when the school has configured it)' }]),
+      h('div', { class: 'field' }, h('label', { class: 'check-row' }, h('input', { name: 'whatsappConfirmed', type: 'checkbox', value: 'yes' }), h('span', { text: 'This registered number can receive WhatsApp messages.' })), h('p', { class: 'field__hint', text: 'Required when WhatsApp is selected.' })),
+      primaryButton('Send one-time code', { type: 'submit', icon: 'shield' })
+    );
+    replace(stage, form);
+  }
+
+  function showVerify() {
+    const form = h('form', { class: 'auth-form', onSubmit: async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const submit = form.querySelector('[type=submit]'); submit.disabled = true;
+      setFormMessage(message, 'Verifying the one-time code…');
+      try {
+        const response = await fetch('/api/account/claim/verify', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, cache: 'no-store',
+          body: JSON.stringify({ requestToken, code: new FormData(form).get('code') })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || friendlyError());
+        setupToken = result.setupToken;
+        setFormMessage(message, 'Phone verified. Create your first private password now.');
+        showPassword();
+      } catch (error) { setFormMessage(message, error.message || friendlyError(), true); }
+      finally { submit.disabled = false; }
+    } },
+      textInput('code', 'Six-digit code', { inputmode: 'numeric', autocomplete: 'one-time-code', minlength: '6', maxlength: '6', placeholder: '000000' }),
+      primaryButton('Verify code', { type: 'submit', icon: 'shield' }),
+      h('button', { type: 'button', class: 'button button--secondary', onClick: showRequest }, h('span', { text: 'Request a new code' }))
+    );
+    replace(stage, form);
+  }
+
+  function showPassword() {
+    const form = h('form', { class: 'auth-form', onSubmit: async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const values = new FormData(form);
+      if (values.get('password') !== values.get('confirmPassword')) { setFormMessage(message, 'The two passwords do not match.', true); return; }
+      const submit = form.querySelector('[type=submit]'); submit.disabled = true;
+      setFormMessage(message, 'Activating the owner-approved profile…');
+      try {
+        const response = await fetch('/api/account/claim/complete', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, cache: 'no-store',
+          body: JSON.stringify({ setupToken, password: values.get('password'), confirmPassword: values.get('confirmPassword') })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || friendlyError());
+        replace(stage,
+          alertBox('info', result.positionTitle ? `${result.positionTitle} account activated` : 'School account activated', result.instruction),
+          primaryButton('Continue to secure sign in', { icon: 'lock', onClick: renderLogin })
+        );
+        setFormMessage(message, 'Account activated. The password remains private to you.');
+      } catch (error) { setFormMessage(message, error.message || friendlyError(), true); }
+      finally { submit.disabled = false; }
+    } },
+      textInput('password', 'Create your first password', { type: 'password', autocomplete: 'new-password', minlength: '12', maxlength: '128', hint: 'Use 12–128 characters with uppercase, lowercase, a number and a symbol.' }),
+      textInput('confirmPassword', 'Confirm the password', { type: 'password', autocomplete: 'new-password', minlength: '12', maxlength: '128' }),
+      alertBox('warning', 'Never share this password', 'Treasure Academy, Paragon Hub and the developer do not need to know it.'),
+      primaryButton('Activate school account', { type: 'submit', icon: 'lock' })
+    );
+    replace(stage, form);
+  }
+
+  showRequest();
+  replace(app, h('div', { class: 'auth-layout auth-layout--single' }, card));
+  setStatus('Owner-approved school account claim is ready.');
+}
+
 function renderLogin() {
   const message = formMessage();
   const phone = h('input', { name: 'phone', type: 'tel', autocomplete: 'username', inputmode: 'tel', required: true, placeholder: '0906 393 2487' });
@@ -461,7 +569,8 @@ function renderLogin() {
     h('p', { class: 'field__hint', text: 'Parents use their own self-registered account. Staff accounts are issued by the school. There is no pupil login.' }),
     message,
     submit,
-    state.features.registration ? h('button', { type: 'button', class: 'button button--secondary', onClick: renderRegistration }, h('span', { text: 'Create a parent account' })) : null
+    state.features.registration ? h('button', { type: 'button', class: 'button button--secondary', onClick: renderRegistration }, h('span', { text: 'Create a parent account' })) : null,
+    state.features.accountClaim ? h('button', { type: 'button', class: 'button button--secondary', onClick: renderAccountClaim }, h('span', { text: 'Claim your school account' })) : null
   );
 
   replace(app,
@@ -527,7 +636,7 @@ async function loadPortalData() {
     role === 'parent' ? rpcCall('parent_portal_students') : fetchRows('students', studentColumns, 'full_name'),
     fetchRows('grades', 'id,student_id,subject,session_name,term,ca1,ca2,continuous_assessment,exam_score,teacher_comment,recorded_by,workflow_status,submitted_at,reviewed_by,reviewed_at,review_note,published_by,published_at,locked_at', 'subject'),
     fetchRows('payments', 'id,student_id,session_name,term,description,amount,currency,method,status,paid_at,created_at', 'created_at'),
-    staff ? fetchRows('teacher_class_assignments', 'id,teacher_id,class_code,subject,active', 'class_code') : Promise.resolve([]),
+    staff ? fetchRows('teacher_class_assignments', 'id,teacher_id,class_code,subject,active,assignment_kind,session_name,started_on,ended_on,ended_reason,replaces_assignment_id,approved_by,approved_at,handover_note', 'class_code') : Promise.resolve([]),
     staff ? fetchRows('attendance_sessions', 'id,class_code,attendance_date,status,marked_by,submitted_at,locked_by,locked_at,created_at', 'attendance_date') : Promise.resolve([]),
     staff ? fetchRows('attendance_entries', 'session_id,student_id,mark,note,recorded_by,updated_at', 'student_id') : Promise.resolve([]),
     staff ? fetchRows('homework_assignments', 'id,class_code,subject,title,instructions,assigned_on,due_on,status,created_by,published_at,updated_at', 'due_on') : Promise.resolve([]),
@@ -539,7 +648,7 @@ async function loadPortalData() {
   ];
 
   const adminOnly = role === 'admin' ? [
-    fetchRows('profiles', 'id,role,leadership_scope,parent_stage,registration_route,full_name,phone_e164,account_status,must_change_password,active,legacy_account_no,created_at', 'full_name'),
+    fetchRows('profiles', 'id,role,leadership_scope,position_title,parent_stage,registration_route,full_name,phone_e164,account_status,must_change_password,active,legacy_account_no,created_at', 'full_name'),
     fetchRows('admission_audit_log', 'id,student_id,actor_id,previous_status,new_status,created_at', 'created_at'),
     fetchRows('payment_audit_log', 'id,payment_id,actor_id,action,previous_status,new_status,created_at', 'created_at'),
     fetchRows('webhook_events', 'id,event_key,outcome,reason,received_at,processed_at', 'received_at'),
@@ -550,16 +659,17 @@ async function loadPortalData() {
     fetchRows('verified_public_information', 'id,topic,title,summary,detail,status,revision,effective_from,effective_until,created_by,published_by,published_at,reviewed_at,updated_at', 'updated_at'),
     fetchRows('public_information_events', 'id,information_id,actor_id,previous_status,new_status,revision,created_at', 'created_at'),
     fetchRows('leadership_section_records', 'id,section,title,detail,status,created_by,created_at,updated_at', 'updated_at'),
-    fetchRows('leadership_section_events', 'id,record_id,actor_id,action,previous_status,new_status,created_at', 'created_at')
-  ] : Array.from({ length: 12 }, () => Promise.resolve([]));
+    fetchRows('leadership_section_events', 'id,record_id,actor_id,action,previous_status,new_status,created_at', 'created_at'),
+    fetchRows('staff_assignment_changes', 'id,action,current_assignment_id,current_teacher_id,target_teacher_id,target_class_code,target_subject,target_kind,session_name,effective_on,reason,handover_note,status,recommended_by,recommended_at,decided_by,decided_at,decision_note,applied_assignment_id', 'recommended_at')
+  ] : Array.from({ length: 13 }, () => Promise.resolve([]));
 
   const values = await Promise.all([...common, ...adminOnly]);
   const [students, grades, payments, assignments, attendanceSessions, attendanceEntries, homework, staffNotices, dutyRoster, resultAudit,
     admissionApplications, admissionApplicationEvents,
-    profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit, websiteRequests, requestAudit, publicInformation, publicInformationAudit, leadershipRecords, leadershipAudit] = values;
+    profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit, websiteRequests, requestAudit, publicInformation, publicInformationAudit, leadershipRecords, leadershipAudit, assignmentChanges] = values;
   state.data = { students, grades, payments, assignments, attendanceSessions, attendanceEntries, homework, staffNotices, dutyRoster, resultAudit,
     admissionApplications, admissionApplicationEvents,
-    profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit, websiteRequests, requestAudit, publicInformation, publicInformationAudit, leadershipRecords, leadershipAudit };
+    profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit, websiteRequests, requestAudit, publicInformation, publicInformationAudit, leadershipRecords, leadershipAudit, assignmentChanges };
   if (state.features.office) await loadOfficeData();
 }
 
@@ -572,9 +682,10 @@ async function loadOfficeData() {
     fetchRows('class_progression', 'class_code,sort_order,next_class_code,active_for_enrolment,routine_entry_class,graduation_stage', 'sort_order'),
     role === 'admin' ? fetchRows('student_enrolments', 'id,student_id,session_name,class_code,status,started_on,ended_on,source,recorded_by,created_at', 'created_at') : Promise.resolve([]),
     role === 'parent' ? fetchRows('portal_notifications', 'id,student_id,kind,title,message,read_at,created_at', 'created_at') : Promise.resolve([]),
-    role === 'admin' ? fetchRows('graduates', 'student_id,graduation_session,graduated_on,public_status,public_name,public_message,public_photo_path,consent_reference,approved_by,approved_at,published_at,created_at,updated_at', 'graduated_on') : role === 'parent' ? rpcCall('parent_graduates') : Promise.resolve([]),
+    role === 'admin' ? fetchRows('graduates', 'student_id,graduation_session,graduated_on,completion_type,public_status,public_name,public_message,public_photo_path,consent_reference,approved_by,approved_at,published_at,created_at,updated_at', 'graduated_on') : role === 'parent' ? rpcCall('parent_graduates') : Promise.resolve([]),
     role === 'admin' ? fetchRows('admission_checklist_entries', 'id,application_id,label,completed,parent_visible,note,verified_by,verified_at,created_at,updated_at', 'created_at') : role === 'parent' ? rpcCall('parent_admission_checklist_entries') : Promise.resolve([]),
-    role === 'admin' ? fetchRows('admission_followups', 'id,application_id,followup_kind,scheduled_at,completed_at,private_note,parent_note,created_by,created_at', 'created_at') : Promise.resolve([])
+    role === 'admin' ? fetchRows('admission_followups', 'id,application_id,followup_kind,scheduled_at,completed_at,private_note,parent_note,created_by,created_at', 'created_at') : Promise.resolve([]),
+    isTeacher ? rpcCall('teacher_exceptional_progression_entries') : Promise.resolve([])
   ];
   const family = (isParent || isAdmin) ? [
     fetchRows('school_bank_accounts', 'id,bank_name,account_name,account_number,active,approved_at', 'bank_name'),
@@ -600,7 +711,7 @@ async function loadOfficeData() {
     fetchRows('fee_schedule_items', 'id,schedule_id,item_code,label,charge_kind,billing_mode,amount,required,created_at', 'label'),
     fetchRows('legacy_fee_reconciliation', 'source_id,target_schedule_id,target_item_id,status,note,reviewed_by,reviewed_at,created_at', 'source_id'),
     fetchRows('promotion_batches',  'id,source_session,target_session,source_class,status,prepared_by,prepared_at,applied_by,applied_at,note', 'prepared_at'),
-    fetchRows('promotion_entries', 'batch_id,student_id,proposed_outcome,target_class,note,updated_by,updated_at', 'updated_at'),
+    fetchRows('promotion_entries', 'batch_id,student_id,proposed_outcome,target_class,note,exceptional_status,exceptional_outcome,exceptional_target_class,exceptional_reason,recommended_by,recommended_at,approved_by,approved_at,updated_by,updated_at', 'updated_at'),
     fetchRows('inventory_movements', 'id,variant_id,movement_kind,on_hand_delta,reserved_delta,damaged_delta,resulting_on_hand,resulting_reserved,resulting_damaged,order_id,order_line_id,actor_id,actor_type,reason,created_at', 'created_at'),
     fetchRows('inventory_low_stock', 'variant_id,product_name,variant_label,size_label,sku,on_hand,reserved,available,low_stock_threshold', 'product_name'),
     fetchRows('legacy_catalog_reconciliation', 'source_table,source_id,target_product_id,target_variant_id,status,note,reviewed_by,reviewed_at,created_at', 'source_table'),
@@ -612,17 +723,19 @@ async function loadOfficeData() {
     fetchRows('finance_events', 'id,payment_id,invoice_id,order_id,actor_id,event_type,detail,created_at', 'created_at'),
     fetchRows('graduate_publication_events', 'id,student_id,actor_id,previous_status,new_status,note,created_at', 'created_at'),
     fetchRows('legacy_transport_reconciliation', 'source_id,target_service_id,status,note,reviewed_by,reviewed_at,created_at', 'source_id'),
-    fetchRows('enrolment_cutover_control', 'singleton,baseline_open,changed_by,change_reason,changed_at', 'changed_at')
-  ] : Array.from({ length: 17 }, () => Promise.resolve([]));
+    fetchRows('enrolment_cutover_control', 'singleton,baseline_open,changed_by,change_reason,changed_at', 'changed_at'),
+    fetchRows('common_entrance_candidates', 'id,student_id,exam_session,source_class,status,reason,recommended_by,recommended_at,approved_by,approved_at,note,created_at,updated_at', 'recommended_at'),
+    fetchRows('exceptional_progression_events', 'id,batch_id,student_id,actor_id,action,outcome,target_class,note,created_at', 'created_at')
+  ] : Array.from({ length: 19 }, () => Promise.resolve([]));
 
   const values = await Promise.all([...always, ...family, ...teacherOrders, ...admin]);
-  const [classProgression, studentEnrolments, portalNotifications, graduates, admissionChecklist, admissionFollowups,
+  const [classProgression, studentEnrolments, portalNotifications, graduates, admissionChecklist, admissionFollowups, teacherExceptionalEntries,
     bankAccounts, pupilInvoices, pupilInvoiceItems, shopProducts, shopVariants, familyOrders, familyOrderLines,
     restockRequests, returnRequests, transportServices, transportRequests, manualPayments, paymentReceipts,
     teacherOrderRows, teacherOrderLineRows,
     feeSchedules, feeScheduleItems, legacyFeeReconciliation, promotionBatches, promotionEntries, inventoryMovements, lowStock,
     legacyReconciliation, catalogStatusEvents, procurementBatches, procurementLines, stocktakes, stocktakeLines, financeEvents,
-    graduatePublicationEvents, legacyTransportReconciliation, enrolmentCutoverControl] = values;
+    graduatePublicationEvents, legacyTransportReconciliation, enrolmentCutoverControl, commonEntranceCandidates, exceptionalProgressionEvents] = values;
   Object.assign(state.data, {
     classProgression, studentEnrolments, portalNotifications, graduates, bankAccounts, pupilInvoices,
     pupilInvoiceItems, shopProducts, shopVariants, shopOrders: isTeacher ? teacherOrderRows : familyOrders,
@@ -630,7 +743,8 @@ async function loadOfficeData() {
     transportServices, transportRequests, manualPayments, paymentReceipts, feeSchedules, feeScheduleItems,
     legacyFeeReconciliation, promotionBatches, promotionEntries, inventoryMovements, lowStock, legacyReconciliation, procurementBatches,
     procurementLines, stocktakes, stocktakeLines, financeEvents, graduatePublicationEvents,
-    admissionChecklist, admissionFollowups, legacyTransportReconciliation, enrolmentCutoverControl, catalogStatusEvents
+    admissionChecklist, admissionFollowups, teacherExceptionalEntries, legacyTransportReconciliation, enrolmentCutoverControl, catalogStatusEvents,
+    commonEntranceCandidates, exceptionalProgressionEvents
   });
 }
 
@@ -639,7 +753,10 @@ async function establishSession(session) {
     state.user = null;
     state.profile = null;
     state.data = {};
-    renderLogin();
+    const route = window.location.hash.toLowerCase();
+    if (route === '#register' && state.features.registration) renderRegistration();
+    else if (route === '#claim' && state.features.accountClaim) renderAccountClaim();
+    else renderLogin();
     return;
   }
   state.user = session.user;
@@ -650,7 +767,7 @@ async function establishSession(session) {
   try {
     const { data: profile, error } = await state.supabase
       .from('profiles')
-      .select('id,role,leadership_scope,full_name,active,account_status,must_change_password,phone_e164,parent_stage')
+      .select('id,role,leadership_scope,position_title,full_name,active,account_status,must_change_password,phone_e164,parent_stage')
       .eq('id', session.user.id)
       .single();
     if (error || !profile?.active) throw error || new Error('Inactive profile');
@@ -1096,12 +1213,110 @@ function paymentsView() {
     emptyState('Legacy payment mutations are disabled', 'Preserved former records are read-only during reconciliation.'));
 }
 
+function teacherAssignmentRecommendationForm(assignments) {
+  if (state.profile.role !== 'teacher' || !assignments.length) return null;
+  const message = formMessage();
+  const form = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget);
+    const action = values.get('action');
+    try {
+      await rpcCall('recommend_staff_assignment_change', {
+        p_action: action,
+        p_current_assignment_id: values.get('current_assignment_id'),
+        p_target_teacher_id: action === 'move' ? state.profile.id : null,
+        p_target_class_code: action === 'move' ? values.get('target_class_code') : null,
+        p_target_subject: String(values.get('target_subject') || '*').trim() || '*',
+        p_target_kind: values.get('target_kind'),
+        p_session_name: String(values.get('session_name') || '').trim() || null,
+        p_effective_on: values.get('effective_on'),
+        p_reason: String(values.get('reason')).trim(),
+        p_handover_note: String(values.get('handover_note') || '').trim() || null
+      });
+      setFormMessage(message, 'Your assignment recommendation was sent for independent full-leadership approval.'); event.currentTarget.reset();
+    } catch (error) { setFormMessage(message, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('current_assignment_id', 'My current assignment', assignments.map((item) => ({ value: item.id, label: `${item.class_code} — ${item.subject === '*' ? 'All subjects' : item.subject}` })), { placeholder: 'Choose an assignment' }),
+    selectInput('action', 'Recommendation', [{ value: 'move', label: 'Move my assignment to another class' }, { value: 'end', label: 'End my assignment' }], { placeholder: 'Choose move or end' }),
+    selectInput('target_class_code', 'Target class (for a move)', SCHOOL_CLASSES, { placeholder: 'Not needed when ending', required: false }),
+    h('div', { class: 'form-grid' },
+      textInput('target_subject', 'Target subject scope', { maxlength: '80', placeholder: '* for all subjects', required: false }),
+      selectInput('target_kind', 'Target assignment kind', [{ value: 'class_teacher', label: 'Class teacher' }, { value: 'subject_teacher', label: 'Subject teacher' }, { value: 'assistant_teacher', label: 'Assistant teacher' }])
+    ),
+    h('div', { class: 'form-grid' }, textInput('session_name', 'Session (optional)', { maxlength: '40', required: false }), textInput('effective_on', 'Effective date', { type: 'date' })),
+    controlField('Recommendation reason', h('textarea', { name: 'reason', minlength: '3', maxlength: '1000', rows: '3', required: true })),
+    controlField('Handover note (optional)', h('textarea', { name: 'handover_note', maxlength: '2000', rows: '3' })),
+    message, primaryButton('Send assignment recommendation', { type: 'submit', icon: 'classes' })
+  );
+  return h('details', { class: 'form-panel' }, h('summary', { text: 'Recommend a move or end to my assignment' }), form);
+}
+
+function teacherExceptionalProgressionForm() {
+  const entries = state.data.teacherExceptionalEntries || [];
+  if (state.profile.role !== 'teacher' || !state.features.office || !entries.length) return null;
+  const message = formMessage();
+  const form = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget); const [batchId, studentId] = String(values.get('entry')).split(':');
+    try {
+      await rpcCall('recommend_exceptional_progression', {
+        p_batch_id: batchId, p_student_id: studentId, p_outcome: values.get('outcome'),
+        p_target_class: String(values.get('target_class') || '').trim() || null,
+        p_reason: String(values.get('reason')).trim()
+      });
+      setFormMessage(message, 'Exceptional progression recommendation sent for independent full-leadership approval.'); await refreshAfterMutation();
+    } catch (error) { setFormMessage(message, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('entry', 'Pupil in my draft progression preview', entries.map((entry) => ({ value: `${entry.batch_id}:${entry.student_id}`, label: `${nameForStudent(entry.student_id)} — ${entry.source_class} — ${entry.source_session} → ${entry.target_session}` })), { placeholder: 'Choose a pupil preview' }),
+    selectInput('outcome', 'Exceptional outcome', [
+      { value: 'accelerated_promote', label: 'Accelerated move to a later active class' },
+      { value: 'early_secondary_transition', label: 'Primary 4 early secondary transition' },
+      { value: 'accelerated_graduate', label: 'Primary 4 accelerated graduate label' }
+    ], { placeholder: 'Choose an outcome' }),
+    selectInput('target_class', 'Accelerated target class (if applicable)', SCHOOL_CLASSES, { placeholder: 'Not used for a Primary 4 exit label', required: false }),
+    controlField('Recommendation and evidence summary', h('textarea', { name: 'reason', minlength: '3', maxlength: '1000', rows: '4', required: true })),
+    alertBox('warning', 'Recommendation is not approval', 'The Headmistress or another owner-authorised full-write leader must decide it independently. Common Entrance candidacy remains a separate record.'),
+    message, primaryButton('Send progression recommendation', { type: 'submit', icon: 'pupils' })
+  );
+  return h('details', { class: 'form-panel' }, h('summary', { text: 'Recommend exceptional pupil progression' }), form);
+}
+
+function teacherCommonEntranceRecommendationForm() {
+  const pupils = myClassStudents().filter((student) => ['Primary 4', 'Primary 6'].includes(student.class_code));
+  if (state.profile.role !== 'teacher' || !state.features.office || !pupils.length) return null;
+  const message = formMessage();
+  const form = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget);
+    try {
+      await rpcCall('recommend_common_entrance_candidate', { p_student_id: values.get('student_id'), p_exam_session: String(values.get('exam_session')).trim(), p_reason: String(values.get('reason')).trim() });
+      setFormMessage(message, 'Common Entrance candidacy recommended without changing the pupil’s recorded class.'); event.currentTarget.reset();
+    } catch (error) { setFormMessage(message, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('student_id', 'Assigned Primary 4 or Primary 6 pupil', pupils.map((student) => ({ value: student.id, label: `${student.full_name} — ${student.class_code}` })), { placeholder: 'Choose a pupil' }),
+    textInput('exam_session', 'Common Entrance session', { maxlength: '40', placeholder: '2026/2027' }),
+    controlField('Candidacy reason', h('textarea', { name: 'reason', minlength: '3', maxlength: '1000', rows: '3', required: true })),
+    alertBox('info', 'Separate from enrolment', 'A recommendation never presents a Primary 4 pupil as a Primary 6 pupil.'),
+    message, primaryButton('Recommend Common Entrance candidacy', { type: 'submit', icon: 'audit' })
+  );
+  return h('details', { class: 'form-panel' }, h('summary', { text: 'Recommend Common Entrance candidacy' }), form);
+}
+
 function assignedClassesView() {
   const assignments = myAssignments();
   const pupils = myClassStudents();
-  const rows = assignments.map((assignment) => [assignment.class_code, assignment.subject === '*' ? 'All assigned subjects' : assignment.subject, assignment.active ? badge('active') : badge('inactive')]);
+  const rows = assignments.map((assignment) => [assignment.class_code, assignment.subject === '*' ? 'All assigned subjects' : assignment.subject, titleCase(assignment.assignment_kind || 'subject_teacher'), assignment.session_name || 'Not recorded', assignment.active ? badge('active') : badge('inactive')]);
   return section('My Class', 'Both classroom teachers and school leaders work here through their own active class assignments.',
-    table(['Class', 'Subject scope', 'Status'], rows, 'My active class assignments') || emptyState('No active assignment', 'Ask the Headmistress to record the correct class and subject before class work begins.'),
+    table(['Class', 'Subject scope', 'Kind', 'Session', 'Status'], rows, 'My active class assignments') || emptyState('No active assignment', 'Ask the Headmistress to record the correct class and subject before class work begins.'),
+    teacherAssignmentRecommendationForm(assignments),
+    teacherExceptionalProgressionForm(),
+    teacherCommonEntranceRecommendationForm(),
     h('h2', { class: 'subheading', text: 'My assigned pupils' }),
     table(['Pupil', 'Class', 'Admission number'], pupils.map((student) => [student.full_name, student.class_code, student.admission_number]), 'My assigned pupils') || emptyState('No pupils in My Class', 'Pupils appear when an active class assignment matches their class.')
   );
@@ -1591,27 +1806,82 @@ function studentsAdminView() {
 }
 
 function assignmentForm() {
-  const teachers = state.data.profiles.filter((profile) => ['teacher', 'admin'].includes(profile.role) && profile.active);
+  const teachers = state.data.profiles.filter((profile) => ['teacher', 'admin'].includes(profile.role) && profile.active && profile.account_status === 'active');
+  const activeAssignments = state.data.assignments.filter((item) => item.active);
   const message = formMessage();
   const form = h('form', { class: 'data-form', onSubmit: async (event) => {
     event.preventDefault(); if (!form.reportValidity()) return;
     const submit = form.querySelector('[type=submit]'); submit.disabled = true;
     const values = new FormData(form);
+    const action = String(values.get('action'));
+    const sourceId = String(values.get('current_assignment_id') || '') || null;
+    const targetTeacher = String(values.get('target_teacher_id') || '') || null;
+    const targetClass = String(values.get('target_class_code') || '').trim() || null;
+    if (['move', 'replace', 'end'].includes(action) && !sourceId) { setFormMessage(message, 'Choose the current assignment that will change.', true); submit.disabled = false; return; }
+    if (['assign', 'move', 'replace'].includes(action) && (!targetTeacher || !targetClass)) { setFormMessage(message, 'Choose the target teacher and class.', true); submit.disabled = false; return; }
     try {
-      const { error } = await state.supabase.from('teacher_class_assignments').upsert({
-        teacher_id: values.get('teacher_id'), class_code: String(values.get('class_code')).trim(), subject: String(values.get('subject') || '*').trim() || '*', active: true
-      }, { onConflict: 'teacher_id,class_code,subject' });
-      if (error) throw error;
-      setFormMessage(message, 'Teacher assignment saved.'); form.reset(); await refreshAfterMutation();
-    } catch { setFormMessage(message, friendlyError(), true); }
+      await rpcCall('recommend_staff_assignment_change', {
+        p_action: action,
+        p_current_assignment_id: sourceId,
+        p_target_teacher_id: targetTeacher,
+        p_target_class_code: targetClass,
+        p_target_subject: String(values.get('target_subject') || '*').trim() || '*',
+        p_target_kind: values.get('target_kind'),
+        p_session_name: String(values.get('session_name') || '').trim() || null,
+        p_effective_on: values.get('effective_on'),
+        p_reason: String(values.get('reason') || '').trim(),
+        p_handover_note: String(values.get('handover_note') || '').trim() || null
+      });
+      setFormMessage(message, 'Assignment change recommended for independent full-leadership approval.'); form.reset(); await refreshAfterMutation();
+    } catch (error) { setFormMessage(message, error.message || friendlyError(), true); }
     finally { submit.disabled = false; }
   } },
-    selectInput('teacher_id', 'Teacher', teachers.map((teacher) => ({ value: teacher.id, label: teacher.full_name })), { placeholder: teachers.length ? 'Choose a teacher' : 'No teacher profiles available' }),
-    textInput('class_code', 'Class', { placeholder: 'Primary 4', maxlength: '40' }),
-    textInput('subject', 'Subject scope', { placeholder: '* for all subjects', maxlength: '80', required: false, hint: 'Use * only for a class teacher who should manage every subject in that class.' }),
-    message, primaryButton('Save assignment', { type: 'submit', icon: 'classes', disabled: !teachers.length })
+    selectInput('action', 'Change type', [
+      { value: 'assign', label: 'New assignment' }, { value: 'move', label: 'Move the same teacher' },
+      { value: 'replace', label: 'Replace with another teacher' }, { value: 'end', label: 'End assignment without replacement' }
+    ], { placeholder: 'Choose a change type' }),
+    selectInput('current_assignment_id', 'Current assignment (for move, replace or end)', activeAssignments.map((item) => ({ value: item.id, label: `${nameForProfile(item.teacher_id)} — ${item.class_code} — ${item.subject === '*' ? 'All subjects' : item.subject}` })), { placeholder: 'Not needed for a new assignment', required: false }),
+    selectInput('target_teacher_id', 'Target teacher', teachers.map((teacher) => ({ value: teacher.id, label: `${teacher.full_name}${teacher.position_title ? ` — ${teacher.position_title}` : ''}` })), { placeholder: 'Not needed when ending an assignment', required: false }),
+    h('div', { class: 'form-grid' },
+      selectInput('target_class_code', 'Target class', SCHOOL_CLASSES, { placeholder: 'Choose a class', required: false }),
+      textInput('target_subject', 'Subject scope', { placeholder: '* for all subjects', maxlength: '80', required: false })
+    ),
+    h('div', { class: 'form-grid' },
+      selectInput('target_kind', 'Assignment kind', [
+        { value: 'class_teacher', label: 'Class teacher' }, { value: 'subject_teacher', label: 'Subject teacher' }, { value: 'assistant_teacher', label: 'Assistant teacher' }
+      ], { placeholder: 'Choose assignment kind' }),
+      textInput('session_name', 'Session (optional)', { maxlength: '40', required: false, placeholder: '2026/2027' }),
+      textInput('effective_on', 'Effective date', { type: 'date' })
+    ),
+    controlField('Recommendation reason', h('textarea', { name: 'reason', maxlength: '1000', minlength: '3', rows: '3', required: true })),
+    controlField('Handover note (optional)', h('textarea', { name: 'handover_note', maxlength: '2000', rows: '3' })),
+    alertBox('info', 'History is preserved', 'The current assignment is ended rather than overwritten. The replacement receives a new authored assignment only after a different full-authority leader approves it.'),
+    message, primaryButton('Recommend assignment change', { type: 'submit', icon: 'classes', disabled: !teachers.length })
   );
-  return h('details', { class: 'form-panel' }, h('summary', { text: 'Assign a teacher' }), form);
+
+  const pending = (state.data.assignmentChanges || []).filter((item) => item.status === 'recommended' && item.recommended_by !== state.profile.id);
+  const decisionMessage = formMessage();
+  const decisionForm = state.profile.leadership_scope === 'headmistress' ? h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget);
+    try {
+      await rpcCall('decide_staff_assignment_change', { p_change_id: values.get('change_id'), p_decision: values.get('decision'), p_note: String(values.get('note') || '').trim() || null });
+      setFormMessage(decisionMessage, 'Assignment recommendation decided and audit-recorded.'); await refreshAfterMutation();
+    } catch (error) { setFormMessage(decisionMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('change_id', 'Pending independent recommendation', pending.map((item) => ({ value: item.id, label: `${titleCase(item.action)} — ${nameForProfile(item.current_teacher_id || item.target_teacher_id)} — ${item.target_class_code || 'end assignment'} — ${formatDate(item.effective_on)}` })), { placeholder: pending.length ? 'Choose a recommendation' : 'No independently recommended changes' }),
+    selectInput('decision', 'Decision', [{ value: 'approve', label: 'Approve and apply' }, { value: 'reject', label: 'Reject' }], { placeholder: 'Choose a decision' }),
+    textInput('note', 'Decision note (optional)', { maxlength: '1000', required: false }),
+    alertBox('warning', 'Independent approval', 'The person who made the recommendation cannot approve it. A future-dated change is applied only on its effective date.'),
+    decisionMessage, primaryButton('Record assignment decision', { type: 'submit', icon: 'shield', disabled: !pending.length })
+  ) : null;
+
+  return h('div', { class: 'details-grid' },
+    h('details', { class: 'form-panel' }, h('summary', { text: 'Recommend a teacher movement, replacement or new assignment' }), form),
+    decisionForm ? h('details', { class: 'form-panel' }, h('summary', { text: 'Approve or reject an assignment recommendation' }), decisionForm) : null
+  );
 }
 
 function maskPhone(phone) {
@@ -1798,7 +2068,7 @@ function accountDirectory() {
     replace(results, table(['Name', 'Phone', 'Role', 'Account status', 'Password setup'], profiles.map((profile) => [
       profile.full_name,
       maskPhone(profile.phone_e164),
-      badge(profile.role),
+      profile.position_title || badge(profile.role),
       badge(profile.account_status),
       profile.must_change_password ? 'Change required' : 'Complete'
     ]), 'Filtered portal accounts') || emptyState('No matching account', 'Check the spelling, last four phone digits or verified former account number.'));
@@ -1822,9 +2092,18 @@ function peopleView() {
     accountDirectory(),
     h('h2', { class: 'subheading', text: 'Verified caregiver links' }),
     table(['Parent or caregiver', 'Pupil', 'Relationship', 'Access', 'Verified'], guardianRows, 'Verified caregiver links') || emptyState('No caregiver links', 'Verify the relationship before granting a parent access to a child.'),
-    h('h2', { class: 'subheading', text: 'Teacher class scope' }),
+    h('h2', { class: 'subheading', text: 'Teacher class scope and continuity' }),
     assignmentForm(),
-    table(['Teacher', 'Class', 'Subject', 'Status'], state.data.assignments.map((assignment) => [nameForProfile(assignment.teacher_id), assignment.class_code, assignment.subject === '*' ? 'All subjects' : assignment.subject, assignment.active ? badge('active') : badge('inactive')]), 'Teacher assignments') || emptyState('No assignments', 'Add an assignment before teachers enter results.')
+    table(['Teacher', 'Class', 'Scope', 'Kind', 'Session', 'From', 'To / status'], state.data.assignments.map((assignment) => [
+      nameForProfile(assignment.teacher_id), assignment.class_code, assignment.subject === '*' ? 'All subjects' : assignment.subject,
+      titleCase(assignment.assignment_kind || 'subject_teacher'), assignment.session_name || 'Not recorded', assignment.started_on ? formatDate(assignment.started_on) : 'Former date not recorded',
+      assignment.active ? badge('active') : (assignment.ended_on ? formatDate(assignment.ended_on) : badge('inactive'))
+    ]), 'Teacher assignment history') || emptyState('No assignments', 'Recommend an assignment before teachers enter results.'),
+    h('h2', { class: 'subheading', text: 'Assignment recommendations' }),
+    table(['Action', 'Current teacher', 'Target teacher / class', 'Effective', 'Recommended by', 'Status'], (state.data.assignmentChanges || []).slice().reverse().map((item) => [
+      titleCase(item.action), nameForProfile(item.current_teacher_id), `${nameForProfile(item.target_teacher_id)}${item.target_class_code ? ` — ${item.target_class_code}` : ''}`,
+      formatDate(item.effective_on), nameForProfile(item.recommended_by), badge(item.status)
+    ]), 'Assignment recommendation history') || emptyState('No assignment recommendations', 'Teacher movements and replacements will appear here without overwriting authorship history.')
   );
 }
 
@@ -2059,9 +2338,9 @@ function feesHubView() {
 function graduatesView() {
   const graduates = state.data.graduates || [];
   if (state.profile.role === 'parent') {
-    const rows = graduates.map((item) => [nameForStudent(item.student_id), item.graduation_session, formatDate(item.graduated_on), badge(item.public_status)]);
-    return section('Your Graduates', 'Private Graduate Hall records stay linked to your parent account. Public Graduate Wall publication is a separate consent-reviewed decision.',
-      table(['Graduate', 'Session', 'Graduated', 'Public consent status'], rows, 'Your private graduates') || emptyState('No graduates linked yet', 'A Primary 6 pupil appears here only after the promotion batch is confirmed as graduated.'));
+    const rows = graduates.map((item) => [nameForStudent(item.student_id), item.graduation_session, formatDate(item.graduated_on), item.completion_type === 'accelerated_secondary_transition' ? 'Accelerated secondary transition' : 'Standard Primary 6 graduation', badge(item.public_status)]);
+    return section('Your Graduates', 'Private Graduate Hall records stay linked to your parent account. Standard Primary 6 completion and an approved accelerated secondary transition are labelled distinctly.',
+      table(['Graduate', 'Session', 'Recorded', 'Completion label', 'Public consent status'], rows, 'Your private graduates') || emptyState('No graduates linked yet', 'A record appears only after an approved promotion batch is applied.'));
   }
   const message = formMessage();
   const form = h('form', { class: 'data-form', onSubmit: async (event) => {
@@ -2094,10 +2373,10 @@ function graduatesView() {
     alertBox('warning', 'Privacy boundary', 'The public projection never includes parent contacts, results, admission numbers, class history or finance. Revoke publication when consent is withdrawn.'),
     message, primaryButton('Record Graduate Wall decision', { type: 'submit', icon: 'publish', disabled: !graduates.length })
   );
-  const rows = graduates.map((item) => [nameForStudent(item.student_id), item.graduation_session, formatDate(item.graduated_on), item.public_name || 'Private only', badge(item.public_status), item.published_at ? formatDate(item.published_at) : 'Not public']);
-  return section('Graduate Hall', 'Graduation preserves the pupil identity and full enrolment history. Public Graduate Wall fields require explicit reviewed consent.',
+  const rows = graduates.map((item) => [nameForStudent(item.student_id), item.graduation_session, formatDate(item.graduated_on), item.completion_type === 'accelerated_secondary_transition' ? 'Accelerated secondary transition' : 'Standard Primary 6 graduation', item.public_name || 'Private only', badge(item.public_status), item.published_at ? formatDate(item.published_at) : 'Not public']);
+  return section('Graduate Hall', 'Graduation preserves the pupil identity and full enrolment history. Accelerated secondary transition is never presented as ordinary Primary 6 completion.',
     h('details', { class: 'form-panel' }, h('summary', { text: 'Review public Graduate Wall consent' }), form),
-    table(['Graduate', 'Session', 'Graduated', 'Public name', 'Consent status', 'Published'], rows, 'Graduate Hall') || emptyState('Graduate Hall is empty', 'Confirmed Primary 6 graduation batches will add permanent records here.'));
+    table(['Graduate', 'Session', 'Recorded', 'Completion label', 'Public name', 'Consent status', 'Published'], rows, 'Graduate Hall') || emptyState('Graduate Hall is empty', 'Approved standard or accelerated completion records will appear here.'));
 }
 
 function teacherDistributionView() {
@@ -2161,6 +2440,106 @@ function enrolmentAdminView() {
     textInput('note', 'Outcome note (optional)', { maxlength: '1000', required: false }), entryMessage,
     primaryButton('Update preview outcome', { type: 'submit', icon: 'pupils', disabled: !drafts.length })
   );
+  const exceptionalMessage = formMessage();
+  const draftEntries = (state.data.promotionEntries || []).filter((entry) => drafts.some((batch) => batch.id === entry.batch_id));
+  const exceptionalForm = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget); const [batchId, studentId] = String(values.get('entry')).split(':');
+    try {
+      await rpcCall('recommend_exceptional_progression', {
+        p_batch_id: batchId, p_student_id: studentId, p_outcome: values.get('outcome'),
+        p_target_class: String(values.get('target_class') || '').trim() || null,
+        p_reason: String(values.get('reason') || '').trim()
+      });
+      setFormMessage(exceptionalMessage, 'Exceptional progression recommended for independent Headmistress or full-authority approval.'); await refreshAfterMutation();
+    } catch (error) { setFormMessage(exceptionalMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('entry', 'Draft pupil entry', draftEntries.map((entry) => ({ value: `${entry.batch_id}:${entry.student_id}`, label: `${nameForStudent(entry.student_id)} — ${batches.find((item) => item.id === entry.batch_id)?.source_class || 'class'}` })), { placeholder: draftEntries.length ? 'Choose a pupil preview' : 'No draft pupil entries' }),
+    selectInput('outcome', 'Exceptional outcome', [
+      { value: 'accelerated_promote', label: 'Accelerated move to a later active class' },
+      { value: 'early_secondary_transition', label: 'Primary 4 early secondary transition (not graduation)' },
+      { value: 'accelerated_graduate', label: 'Primary 4 accelerated graduate label' }
+    ], { placeholder: 'Choose the truthful exceptional outcome' }),
+    selectInput('target_class', 'Accelerated target class (only for accelerated move)', SCHOOL_CLASSES, { placeholder: 'Not used for a Primary 4 exit label', required: false }),
+    controlField('Recommendation and evidence summary', h('textarea', { name: 'reason', minlength: '3', maxlength: '1000', rows: '4', required: true })),
+    alertBox('warning', 'No invented Primary 6 history', 'Common Entrance candidacy is recorded separately. A Primary 4 early leaver is labelled as an early secondary transition or an accelerated graduate only after independent full-leadership approval.'),
+    exceptionalMessage, primaryButton('Recommend exceptional progression', { type: 'submit', icon: 'pupils', disabled: !draftEntries.length })
+  );
+
+  const recommendedExceptional = draftEntries.filter((entry) => entry.exceptional_status === 'recommended' && entry.recommended_by !== state.profile.id);
+  const exceptionalDecisionMessage = formMessage();
+  const exceptionalDecisionForm = state.profile.leadership_scope === 'headmistress' ? h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget); const [batchId, studentId] = String(values.get('entry')).split(':');
+    try {
+      await rpcCall('decide_exceptional_progression', { p_batch_id: batchId, p_student_id: studentId, p_decision: values.get('decision'), p_note: String(values.get('note') || '').trim() || null });
+      setFormMessage(exceptionalDecisionMessage, 'Exceptional progression decision recorded.'); await refreshAfterMutation();
+    } catch (error) { setFormMessage(exceptionalDecisionMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('entry', 'Independently recommended pupil', recommendedExceptional.map((entry) => ({ value: `${entry.batch_id}:${entry.student_id}`, label: `${nameForStudent(entry.student_id)} — ${titleCase(entry.exceptional_outcome)}${entry.exceptional_target_class ? ` → ${entry.exceptional_target_class}` : ''}` })), { placeholder: recommendedExceptional.length ? 'Choose a recommendation' : 'No independent recommendation awaiting you' }),
+    selectInput('decision', 'Decision', [{ value: 'approve', label: 'Approve exceptional progression' }, { value: 'reject', label: 'Reject and leave pending' }], { placeholder: 'Choose a decision' }),
+    textInput('note', 'Decision note (optional)', { maxlength: '1000', required: false }),
+    exceptionalDecisionMessage, primaryButton('Record Headmistress decision', { type: 'submit', icon: 'shield', disabled: !recommendedExceptional.length })
+  ) : null;
+
+  const eligibleCandidates = state.data.students.filter((student) => student.active && ['Primary 4', 'Primary 6'].includes(student.class_code));
+  const candidateMessage = formMessage();
+  const candidateForm = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget);
+    try {
+      await rpcCall('recommend_common_entrance_candidate', { p_student_id: values.get('student_id'), p_exam_session: String(values.get('exam_session')).trim(), p_reason: String(values.get('reason')).trim() });
+      setFormMessage(candidateMessage, 'Common Entrance candidacy recommended independently from class enrolment.'); event.currentTarget.reset(); await refreshAfterMutation();
+    } catch (error) { setFormMessage(candidateMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('student_id', 'Primary 4 or Primary 6 pupil', eligibleCandidates.map((student) => ({ value: student.id, label: `${student.full_name} — ${student.class_code}` })), { placeholder: eligibleCandidates.length ? 'Choose a pupil' : 'No eligible verified roster record' }),
+    textInput('exam_session', 'Common Entrance session', { maxlength: '40', placeholder: '2026/2027' }),
+    controlField('Candidacy reason', h('textarea', { name: 'reason', minlength: '3', maxlength: '1000', rows: '3', required: true })),
+    alertBox('info', 'Candidacy is not class placement', 'A Primary 4 candidate remains recorded in Primary 4 unless an independently approved progression decision changes the enrolment.'),
+    candidateMessage, primaryButton('Recommend Common Entrance candidate', { type: 'submit', icon: 'audit', disabled: !eligibleCandidates.length })
+  );
+  const pendingCandidates = (state.data.commonEntranceCandidates || []).filter((item) => item.status === 'recommended' && item.recommended_by !== state.profile.id);
+  const candidateDecisionMessage = formMessage();
+  const candidateDecisionForm = state.profile.leadership_scope === 'headmistress' ? h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget);
+    try {
+      await rpcCall('decide_common_entrance_candidate', { p_candidate_id: values.get('candidate_id'), p_decision: values.get('decision'), p_note: String(values.get('note') || '').trim() || null });
+      setFormMessage(candidateDecisionMessage, 'Common Entrance candidacy decision recorded.'); await refreshAfterMutation();
+    } catch (error) { setFormMessage(candidateDecisionMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('candidate_id', 'Pending independent candidacy', pendingCandidates.map((item) => ({ value: item.id, label: `${nameForStudent(item.student_id)} — ${item.source_class} — ${item.exam_session}` })), { placeholder: pendingCandidates.length ? 'Choose a candidacy' : 'No independent candidacy awaiting you' }),
+    selectInput('decision', 'Decision', [{ value: 'approve', label: 'Approve candidacy' }, { value: 'cancel', label: 'Decline / cancel candidacy' }], { placeholder: 'Choose a decision' }),
+    textInput('note', 'Decision note (optional)', { maxlength: '1000', required: false }),
+    candidateDecisionMessage, primaryButton('Record candidacy decision', { type: 'submit', icon: 'shield', disabled: !pendingCandidates.length })
+  ) : null;
+
+  const activeCandidateRecords = (state.data.commonEntranceCandidates || []).filter((item) => ['approved', 'sat'].includes(item.status));
+  const candidateStatusMessage = formMessage();
+  const candidateStatusForm = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const submit = event.currentTarget.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(event.currentTarget);
+    try {
+      await rpcCall('set_common_entrance_candidate_status', { p_candidate_id: values.get('candidate_id'), p_status: values.get('status'), p_note: String(values.get('note') || '').trim() || null });
+      setFormMessage(candidateStatusMessage, 'Common Entrance participation status updated without changing class placement.'); await refreshAfterMutation();
+    } catch (error) { setFormMessage(candidateStatusMessage, error.message || friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    selectInput('candidate_id', 'Approved or participating candidate', activeCandidateRecords.map((item) => ({ value: item.id, label: `${nameForStudent(item.student_id)} — ${item.source_class} — ${titleCase(item.status)}` })), { placeholder: activeCandidateRecords.length ? 'Choose a candidate' : 'No approved candidate record' }),
+    selectInput('status', 'Next candidacy status', [{ value: 'sat', label: 'Sat the examination' }, { value: 'completed', label: 'Participation completed' }, { value: 'cancelled', label: 'Candidacy cancelled' }], { placeholder: 'Choose the next truthful status' }),
+    textInput('note', 'Status note (optional)', { maxlength: '1000', required: false }),
+    candidateStatusMessage, primaryButton('Update candidacy status', { type: 'submit', icon: 'audit', disabled: !activeCandidateRecords.length })
+  );
+
   const applyMessage = formMessage();
   const applyForm = h('form', { class: 'data-form', onSubmit: async (event) => {
     event.preventDefault(); if (!applyForm.reportValidity()) return;
@@ -2180,8 +2559,22 @@ function enrolmentAdminView() {
   const cancelForm = h('form', { class: 'data-form', onSubmit: async (event) => { event.preventDefault(); if (!event.currentTarget.reportValidity()) return; const form = event.currentTarget; const submit = form.querySelector('[type=submit]'); submit.disabled = true; const values = new FormData(form); try { await rpcCall('cancel_promotion_batch', { p_batch_id: values.get('batch_id'), p_reason: String(values.get('reason')).trim() }); setFormMessage(cancelMessage, 'Draft promotion preview cancelled without changing any pupil history.'); await refreshAfterMutation(); } catch { setFormMessage(cancelMessage, friendlyError(), true); } finally { submit.disabled = false; } } }, selectInput('batch_id', 'Draft batch to cancel', drafts.map((batch) => ({ value: batch.id, label: `${batch.source_class} · ${batch.source_session} → ${batch.target_session}` })), { placeholder: drafts.length ? 'Choose a draft batch' : 'No draft batches' }), textInput('reason', 'Cancellation reason', { maxlength: '1000' }), cancelMessage, primaryButton('Cancel draft batch', { type: 'submit', icon: 'shield', disabled: !drafts.length }));
   const historyRows = (state.data.studentEnrolments || []).map((item) => [nameForStudent(item.student_id), item.session_name, item.class_code, badge(item.status), formatDate(item.started_on), formatDate(item.ended_on), titleCase(item.source)]);
   const batchRows = batches.map((item) => [item.source_class, item.source_session, item.target_session, badge(item.status), formatDate(item.prepared_at), item.applied_at ? formatDate(item.applied_at) : 'Preview only']);
-  return section('Enrolment & Promotion', 'Permanent pupil identity, session history and atomic class progression.',
-    h('div', { class: 'details-grid' }, h('details', { class: 'form-panel' }, h('summary', { text: 'Prepare a promotion preview' }), prepareForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Change an individual preview outcome' }), entryForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Confirm and apply a reviewed batch' }), applyForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Cancel a draft preview' }), cancelForm)),
+  const candidateRows = (state.data.commonEntranceCandidates || []).map((item) => [nameForStudent(item.student_id), item.source_class, item.exam_session, nameForProfile(item.recommended_by), badge(item.status), item.approved_by ? nameForProfile(item.approved_by) : 'Awaiting independent decision']);
+  const exceptionalRows = draftEntries.filter((item) => item.exceptional_status !== 'none').map((item) => [nameForStudent(item.student_id), titleCase(item.exceptional_outcome), item.exceptional_target_class || 'No class claim', nameForProfile(item.recommended_by), badge(item.exceptional_status), item.approved_by ? nameForProfile(item.approved_by) : 'Awaiting independent decision']);
+  return section('Enrolment & Promotion', 'Permanent pupil identity, session history, independent exceptional progression and separate Common Entrance candidacy.',
+    h('div', { class: 'details-grid' },
+      h('details', { class: 'form-panel' }, h('summary', { text: 'Prepare a promotion preview' }), prepareForm),
+      h('details', { class: 'form-panel' }, h('summary', { text: 'Change a normal individual outcome' }), entryForm),
+      h('details', { class: 'form-panel' }, h('summary', { text: 'Recommend exceptional progression' }), exceptionalForm),
+      exceptionalDecisionForm ? h('details', { class: 'form-panel' }, h('summary', { text: 'Approve or reject exceptional progression' }), exceptionalDecisionForm) : null,
+      h('details', { class: 'form-panel' }, h('summary', { text: 'Recommend Common Entrance candidacy' }), candidateForm),
+      candidateDecisionForm ? h('details', { class: 'form-panel' }, h('summary', { text: 'Approve or cancel Common Entrance candidacy' }), candidateDecisionForm) : null,
+      h('details', { class: 'form-panel' }, h('summary', { text: 'Update Common Entrance participation status' }), candidateStatusForm),
+      h('details', { class: 'form-panel' }, h('summary', { text: 'Confirm and apply a reviewed batch' }), applyForm),
+      h('details', { class: 'form-panel' }, h('summary', { text: 'Cancel a draft preview' }), cancelForm)
+    ),
+    h('h2', { class: 'subheading', text: 'Exceptional progression recommendations' }), table(['Pupil', 'Outcome', 'Target / label', 'Recommended by', 'Status', 'Decision by'], exceptionalRows, 'Exceptional progression recommendations') || emptyState('No exceptional progression recommendations', 'Use the recommendation form only when a pupil needs a truthful exception to the normal sequence.'),
+    h('h2', { class: 'subheading', text: 'Common Entrance candidacy' }), table(['Pupil', 'Actual class', 'Exam session', 'Recommended by', 'Status', 'Decision by'], candidateRows, 'Common Entrance candidacy') || emptyState('No Common Entrance candidacy records', 'Candidacy remains separate from class placement.'),
     h('h2', { class: 'subheading', text: 'Promotion batches' }), table(['Class', 'From', 'To', 'Status', 'Prepared', 'Applied'], batchRows, 'Promotion batches') || emptyState('No promotion batches', 'Prepare one class at a time.'),
     h('h2', { class: 'subheading', text: 'Permanent enrolment history' }), table(['Pupil', 'Session', 'Class', 'Status', 'Started', 'Ended', 'Source'], historyRows, 'Permanent pupil enrolment history') || emptyState('No enrolment history', 'Initial cutover or admission creates the first history row.'));
 }
@@ -2310,7 +2703,7 @@ function financeAdminView() {
   );
 
   const reversalMessage = formMessage();
-  const reversalForm = state.profile.leadership_scope === 'headmistress' ? h('form', { class: 'data-form', onSubmit: async (event) => { event.preventDefault(); if (!event.currentTarget.reportValidity()) return; const form = event.currentTarget; const submit = form.querySelector('[type=submit]'); submit.disabled = true; const values = new FormData(form); try { await rpcCall('review_manual_payment', { p_payment_id: values.get('payment_id'), p_action: 'reverse', p_note: String(values.get('reason')).trim() }); setFormMessage(reversalMessage, 'Verified payment and receipt reversed with the Headmistress audit reason.'); await refreshAfterMutation(); } catch { setFormMessage(reversalMessage, friendlyError(), true); } finally { submit.disabled = false; } } }, selectInput('payment_id', 'Verified payment', reversiblePayments.map((item) => ({ value: item.id, label: `${item.payment_reference} — ${titleCase(item.method)} — ${formatMoney(item.amount)}` })), { placeholder: reversiblePayments.length ? 'Choose a verified payment' : 'No reversible payments' }), textInput('reason', 'Required reversal reason', { maxlength: '1000' }), alertBox('warning', 'Headmistress-only correction', 'Reversal marks the official receipt reversed and recalculates the invoice or materials-order state. It does not delete any finance event.'), reversalMessage, primaryButton('Reverse verified payment', { type: 'submit', icon: 'shield', disabled: !reversiblePayments.length })) : null;
+  const reversalForm = state.profile.leadership_scope === 'headmistress' && (!state.profile.position_title || state.profile.position_title.toLowerCase() === 'headmistress') ? h('form', { class: 'data-form', onSubmit: async (event) => { event.preventDefault(); if (!event.currentTarget.reportValidity()) return; const form = event.currentTarget; const submit = form.querySelector('[type=submit]'); submit.disabled = true; const values = new FormData(form); try { await rpcCall('review_manual_payment', { p_payment_id: values.get('payment_id'), p_action: 'reverse', p_note: String(values.get('reason')).trim() }); setFormMessage(reversalMessage, 'Verified payment and receipt reversed with the Headmistress audit reason.'); await refreshAfterMutation(); } catch { setFormMessage(reversalMessage, friendlyError(), true); } finally { submit.disabled = false; } } }, selectInput('payment_id', 'Verified payment', reversiblePayments.map((item) => ({ value: item.id, label: `${item.payment_reference} — ${titleCase(item.method)} — ${formatMoney(item.amount)}` })), { placeholder: reversiblePayments.length ? 'Choose a verified payment' : 'No reversible payments' }), textInput('reason', 'Required reversal reason', { maxlength: '1000' }), alertBox('warning', 'Headmistress-only correction', 'Reversal marks the official receipt reversed and recalculates the invoice or materials-order state. It does not delete any finance event.'), reversalMessage, primaryButton('Reverse verified payment', { type: 'submit', icon: 'shield', disabled: !reversiblePayments.length })) : null;
   const bankMessage = formMessage();
   const bankForm = state.profile.leadership_scope === 'headmistress' ? h('form', { class: 'data-form', onSubmit: async (event) => {
     event.preventDefault(); if (!event.currentTarget.reportValidity()) return; const form = event.currentTarget; const submit = form.querySelector('[type=submit]'); submit.disabled = true;
@@ -2583,7 +2976,7 @@ function currentView() {
 function renderAuthenticated() {
   const workspace = h('div', { class: 'portal-shell' },
     h('aside', { class: 'portal-sidebar' },
-      h('div', { class: 'profile-summary' }, h('div', { class: 'avatar', 'aria-hidden': 'true', text: state.profile.full_name.charAt(0).toUpperCase() }), h('div', {}, h('strong', { text: state.profile.full_name }), h('span', { text: state.profile.leadership_scope && state.profile.leadership_scope !== 'none' ? titleCase(state.profile.leadership_scope) : `${titleCase(state.profile.role)} account` }))),
+      h('div', { class: 'profile-summary' }, h('div', { class: 'avatar', 'aria-hidden': 'true', text: state.profile.full_name.charAt(0).toUpperCase() }), h('div', {}, h('strong', { text: state.profile.full_name }), h('span', { text: state.profile.position_title || (state.profile.leadership_scope && state.profile.leadership_scope !== 'none' ? titleCase(state.profile.leadership_scope) : `${titleCase(state.profile.role)} account`) }))),
       portalNavigation(),
       h('button', { type: 'button', class: 'sign-out', onClick: async () => { await state.supabase.auth.signOut({ scope: 'local' }); } }, icon('lock'), h('span', { text: 'Sign out' }))
     ),
@@ -2614,6 +3007,7 @@ async function start() {
       return;
     }
     state.features.registration = config.registrationEnabled === true;
+    state.features.accountClaim = config.accountClaimEnabled === true;
     state.features.office = config.officeEnabled === true;
 
     state.supabase = createClient(config.url, config.publishableKey, {

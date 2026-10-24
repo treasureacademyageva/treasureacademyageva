@@ -1,5 +1,5 @@
 -- Treasure Academy post-migration verification (READ ONLY).
--- Run only after all seven ordered migrations. This script changes no data and
+-- Run only after all eight ordered migrations. This script changes no data and
 -- activates no feature. Review every result; expected anomaly counts are zero.
 
 begin transaction read only;
@@ -16,7 +16,9 @@ with expected(name) as (values
   ('website_requests'), ('verified_public_information'), ('student_enrolments'),
   ('graduates'), ('fee_schedules'), ('pupil_invoices'), ('inventory_movements'),
   ('manual_payments'), ('developer_capabilities'), ('admission_tracking_challenges'),
-  ('admission_tracking_continuations'), ('otp_dispatch_events')
+  ('admission_tracking_continuations'), ('otp_dispatch_events'),
+  ('staff_assignment_changes'), ('common_entrance_candidates'),
+  ('portal_account_claims'), ('portal_account_claim_challenges'), ('portal_account_claim_events')
 )
 select name, to_regclass('public.' || name) is not null as present
 from expected order by name;
@@ -33,18 +35,21 @@ where n.nspname='public'
     'website_requests','verified_public_information','student_enrolments',
     'graduates','fee_schedules','pupil_invoices','inventory_movements',
     'manual_payments','developer_capabilities','admission_tracking_challenges',
-    'admission_tracking_continuations','otp_dispatch_events'
+    'admission_tracking_continuations','otp_dispatch_events',
+    'staff_assignment_changes','common_entrance_candidates',
+    'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events'
   )
 order by c.relname;
 
 -- Expected result: zero rows. Anonymous/authenticated users must have no direct
--- table grants on the four server-only admission/developer tables.
+-- table grants on the server-only admission/developer/account-claim tables.
 select grantee, table_name, privilege_type
 from information_schema.role_table_grants
 where table_schema='public'
   and table_name in (
     'developer_capabilities','admission_tracking_challenges',
-    'admission_tracking_continuations','otp_dispatch_events'
+    'admission_tracking_continuations','otp_dispatch_events',
+    'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events'
   )
   and grantee in ('anon','authenticated')
 order by grantee, table_name, privilege_type;
@@ -56,7 +61,11 @@ with expected(signature) as (values
   ('public.developer_has_capability(uuid,text)'),
   ('public.server_reveal_otp_dispatch(uuid,uuid)'),
   ('public.server_mark_otp_sent(uuid,uuid,text)'),
-  ('public.server_verify_admission_challenge(text,text)')
+  ('public.server_verify_admission_challenge(text,text)'),
+  ('public.server_reveal_portal_claim_otp(uuid,uuid)'),
+  ('public.server_mark_portal_claim_otp(uuid,uuid,text)'),
+  ('public.server_verify_portal_account_claim(text,text,text)'),
+  ('public.server_complete_portal_account_claim(uuid,uuid,text)')
 )
 select signature,
        has_function_privilege('anon', signature, 'execute') as public_execute,
@@ -86,9 +95,24 @@ select count(*) as sensitive_otp_audit_detail_count
 from public.otp_dispatch_events
 where detail::text ~* '"(otp|code|phone|message)"[[:space:]]*:';
 
+select count(*) as duplicate_active_account_claim_phone_count
+from (
+  select phone_hash from public.portal_account_claim_challenges
+  where status in ('queued','revealed','sent')
+  group by phone_hash having count(*) > 1
+) conflicts;
+
+select count(*) as sensitive_account_claim_audit_detail_count
+from public.portal_account_claim_events
+where detail::text ~* '"(otp|code|phone|message)"[[:space:]]*:';
+
 -- These release-critical indexes should all report present=true.
 with expected(name) as (values
   ('admission_tracking_one_active_phone_purpose_idx'),
+  ('portal_claim_one_active_phone_idx'),
+  ('portal_claim_setup_token_unique_idx'),
+  ('teacher_assignments_one_active_scope_idx'),
+  ('teacher_assignments_one_active_class_teacher_idx'),
   ('verified_public_information_one_published_topic_idx')
 )
 select name, to_regclass('public.' || name) is not null as present

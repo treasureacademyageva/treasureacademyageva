@@ -368,6 +368,7 @@ const portalConfigHandler = (await import('../../api/portal-config.mjs')).defaul
 const savedPortalEnv = {
   PORTAL_ENABLED: process.env.PORTAL_ENABLED,
   PORTAL_REGISTRATION_ENABLED: process.env.PORTAL_REGISTRATION_ENABLED,
+  PORTAL_ACCOUNT_CLAIM_ENABLED: process.env.PORTAL_ACCOUNT_CLAIM_ENABLED,
   PORTAL_OFFICE_ENABLED: process.env.PORTAL_OFFICE_ENABLED,
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
@@ -390,20 +391,23 @@ await asyncTest('portal config endpoint fails closed when the activation switch 
 await asyncTest('enabled portal config returns only public keys and gate booleans', async () => {
   process.env.PORTAL_ENABLED = 'true';
   process.env.PORTAL_REGISTRATION_ENABLED = 'false';
+  process.env.PORTAL_ACCOUNT_CLAIM_ENABLED = 'false';
   process.env.PORTAL_OFFICE_ENABLED = 'false';
   process.env.SUPABASE_URL = 'https://fictional-project.supabase.co';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fictional';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional_must-never-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   const body = await response.json();
-  assert.deepEqual(body, { enabled: true, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, officeEnabled: false });
+  assert.deepEqual(body, { enabled: true, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false });
   assert.doesNotMatch(JSON.stringify(body), /secret/i);
   restorePortalEnvironment();
 });
 restorePortalEnvironment();
 
 const accountEnvNames = [
-  'PORTAL_ENABLED', 'PORTAL_ACCOUNTS_ENABLED', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY',
+  'PORTAL_ENABLED', 'PORTAL_ACCOUNTS_ENABLED', 'PORTAL_ACCOUNT_CLAIM_ENABLED',
+  'PORTAL_CLAIM_HASH_PEPPER', 'PORTAL_CLAIM_OTP_ENCRYPTION_KEY',
+  'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_ANON_KEY', 'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY'
 ];
 const savedAccountEnv = Object.fromEntries(accountEnvNames.map((name) => [name, process.env[name]]));
@@ -419,7 +423,7 @@ await asyncTest('the consolidated account Function fails closed for every action
   delete process.env.PORTAL_ACCOUNTS_ENABLED;
   let calls = 0;
   globalThis.fetch = async () => { calls += 1; throw new Error('must not run'); };
-  for (const action of ['create', 'reset', 'status', 'guardian', 'change-password']) {
+  for (const action of ['create', 'reset', 'status', 'guardian', 'change-password', 'claim-request', 'claim-verify', 'claim-complete']) {
     const response = await accountEntryHandler.fetch(new Request(`https://school.example/api/account-service?action=${action}`, { method: 'POST' }));
     assert.equal(response.status, 404);
     assert.deepEqual(await response.json(), { error: 'Not found' });
@@ -789,7 +793,7 @@ await asyncTest('only Headmistress endpoint issues a pupil code and stores its h
 });
 restoreParentEnvironment();
 
-const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
+const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
   read('supabase/migrations/202610230002_portal_accounts.sql'),
   read('supabase/migrations/202610230003_staff_operations_and_requests.sql'),
@@ -797,12 +801,15 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('supabase/migrations/202610230005_self_registration_enrolment_and_graduates.sql'),
   read('supabase/migrations/202610230006_fees_shop_transport_and_manual_payments.sql'),
   read('supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql'),
+  read('supabase/migrations/202610240002_staff_continuity_accelerated_progression_and_account_claims.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
   read('api/monnify-webhook.mjs'),
   read('server/monnify.mjs'),
   read('server/accounts.mjs'),
+  read('server/account-claims.mjs'),
+  read('server/otp-relay.mjs'),
   read('server/requests.mjs'),
   read('server/parent-links.mjs'),
   read('server/admission-tracking.mjs'),
@@ -1021,6 +1028,48 @@ test('manual OTP implementation is WhatsApp-or-SMS only with encrypted payloads 
   assert.match(developerSource, /Overwrite clipboard/);
   assert.match(developerSource, /clearAfterSeconds/);
 });
+test('owner-approved account claims are hash/encryption protected and create no password in SQL', () => {
+  for (const table of ['portal_account_claims', 'portal_account_claim_challenges', 'portal_account_claim_events']) {
+    assert.match(continuityMigration, new RegExp(`alter table public\\.${table} enable row level security`, 'i'));
+  }
+  assert.match(continuityMigration, /revoke all on table public\.portal_account_claims,public\.portal_account_claim_challenges,public\.portal_account_claim_events from public,anon,authenticated/i);
+  assert.match(continuityMigration, /server_verify_portal_account_claim[\s\S]+attempt_count\+1>=5/i);
+  assert.match(continuityMigration, /server_complete_portal_account_claim[\s\S]+setup_token_hash=p_setup_token_hash[\s\S]+status='verified'/i);
+  assert.match(accountClaimServer, /createCipheriv\('aes-256-gcm'/);
+  assert.match(accountClaimServer, /portal-account-claim:\$\{challengeId\}/);
+  assert.match(accountClaimServer, /passwordProblem\(password\)/);
+  assert.match(accountClaimServer, /auth\.admin\.createUser/);
+  assert.doesNotMatch(continuityMigration, /password\s+(?:text|varchar)|temporary_password/i);
+  assert.match(portalSource, /Claim your school account/i);
+  assert.match(portalSource, /\/api\/account\/claim\/request/);
+});
+test('teacher continuity and exceptional progression require independent full-authority approval', () => {
+  assert.match(continuityMigration, /create table if not exists public\.staff_assignment_changes/i);
+  assert.match(continuityMigration, /v_change\.recommended_by=v_actor[\s\S]+Independent recommendation and approval are required/i);
+  assert.match(continuityMigration, /A move keeps the same teacher; use replace for another teacher/i);
+  assert.match(continuityMigration, /'accelerated_promoted'/i);
+  assert.match(continuityMigration, /early_secondary_transition/i);
+  assert.match(continuityMigration, /completion_type in \('standard_primary6','accelerated_secondary_transition'\)/i);
+  assert.match(continuityMigration, /Common Entrance candidacy is independent from class placement/i);
+  assert.match(continuityMigration, /exceptional_status<>'approved'/i);
+  assert.match(continuityMigration, /create or replace function public\.is_designated_headmistress/i);
+  assert.match(continuityMigration, /not public\.is_designated_headmistress\(\)[\s\S]+Only the Headmistress may reverse a verified payment/i);
+  assert.match(portalSource, /No invented Primary 6 history/i);
+});
+test('Paragon relay is server-to-server, signed, gated and excludes school records', () => {
+  assert.match(otpRelayServer, /PARAGON_OTP_RELAY_ENABLED/);
+  assert.match(otpRelayServer, /createPrivateKey/);
+  assert.match(otpRelayServer, /asymmetricKeyType !== 'ed25519'/);
+  assert.match(otpRelayServer, /sign\(null,/);
+  assert.match(otpRelayServer, /X-Paragon-Signature/);
+  assert.match(otpRelayServer, /ed25519=/);
+  assert.match(otpRelayServer, /recipientPhone/);
+  assert.match(otpRelayServer, /authenticationCode/);
+  assert.doesNotMatch(otpRelayServer, /pupil|student|classCode|payment|supabase/i);
+  assert.match(admissionTrackingServer, /dispatchOtpRelay\(\{ challengeId, phone, code, expiresInSeconds: 300 \}\)/);
+  assert.match(accountClaimServer, /dispatchOtpRelay\(\{ challengeId, phone, code, expiresInSeconds: 300 \}\)/);
+  assert.doesNotMatch(otpRelayServer, /\bpurpose\b/i);
+});
 test('opaque admission continuation is session-only, URL-free and account-bound after portal login', () => {
   assert.match(admissionTrackingMigration, /token_hash text not null unique/);
   assert.match(admissionTrackingServer, /eq\('token_hash', tokenHash\)\.eq\('account_id', auth\.user\.id\)/);
@@ -1071,10 +1120,11 @@ test('baseline preserves the former Supabase portal until a separate verified cu
   assert.match(rootSchema, /202610230005_self_registration_enrolment_and_graduates\.sql/i);
   assert.match(rootSchema, /202610230006_fees_shop_transport_and_manual_payments\.sql/i);
   assert.match(rootSchema, /202610240001_admission_tracking_developer_operations_and_answers\.sql/i);
-  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration]) {
+  assert.match(rootSchema, /202610240002_staff_continuity_accelerated_progression_and_account_claims\.sql/i);
+  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration]) {
     assert.ok(rootSchema.includes(orderedMigration.trim()), 'root schema must contain every migration verbatim');
   }
-  assert.ok(rootSchema.trimEnd().endsWith(admissionTrackingMigration.trimEnd()), 'root schema must end with exact migration 007 content');
+  assert.ok(rootSchema.trimEnd().endsWith(continuityMigration.trimEnd()), 'root schema must end with exact migration 008 content');
   assert.match(legacyInventory, /begin transaction read only/i);
   assert.match(legacyInventory, /rollback;/i);
   assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);

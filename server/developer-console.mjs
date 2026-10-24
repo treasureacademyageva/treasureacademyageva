@@ -42,9 +42,12 @@ export async function handleDeveloperConsole(request) {
     // capability is present. Console access is the shell permission, not a
     // shortcut around OTP, information-review or system-health boundaries.
     const noRows = () => Promise.resolve({ data: [], error: null });
-    const [challengeResult, admissionResult, requestResult, publicationResult] = await Promise.all([
+    const [challengeResult, claimChallengeResult, admissionResult, requestResult, publicationResult] = await Promise.all([
       capabilities.otp_dispatch
         ? auth.adminClient.from('admission_tracking_challenges').select('status,expires_at').gt('expires_at', now)
+        : noRows(),
+      capabilities.otp_dispatch && enabled('PORTAL_ACCOUNT_CLAIM_ENABLED')
+        ? auth.adminClient.from('portal_account_claim_challenges').select('status,expires_at').gt('expires_at', now)
         : noRows(),
       auth.adminClient.from('admission_applications').select('status,student_id,submission_source'),
       capabilities.information_review
@@ -54,10 +57,10 @@ export async function handleDeveloperConsole(request) {
         ? auth.adminClient.from('verified_public_information').select('topic,status,effective_until,published_at')
         : noRows()
     ]);
-    const failed = [challengeResult, admissionResult, requestResult, publicationResult].find((result) => result.error);
+    const failed = [challengeResult, claimChallengeResult, admissionResult, requestResult, publicationResult].find((result) => result.error);
     if (failed) throw new Error('query');
 
-    const challenges = challengeResult.data || [];
+    const challenges = [...(challengeResult.data || []), ...(claimChallengeResult.data || [])];
     const admissions = admissionResult.data || [];
     const publications = publicationResult.data || [];
     const converted = admissions.filter((row) => row.student_id).length;
@@ -72,6 +75,10 @@ export async function handleDeveloperConsole(request) {
     const gates = capabilities.system_health_read ? {
       portal: enabled('PORTAL_ENABLED'),
       accounts: enabled('PORTAL_ACCOUNTS_ENABLED'),
+      registration: enabled('PORTAL_REGISTRATION_ENABLED'),
+      accountClaim: enabled('PORTAL_ACCOUNT_CLAIM_ENABLED'),
+      office: enabled('PORTAL_OFFICE_ENABLED'),
+      paragonOtpRelay: enabled('PARAGON_OTP_RELAY_ENABLED'),
       admissionTracking: enabled('ADMISSION_TRACKING_ENABLED'),
       developerConsole: enabled('DEVELOPER_CONSOLE_ENABLED'),
       publicInformation: enabled('PUBLIC_INFORMATION_ENABLED'),

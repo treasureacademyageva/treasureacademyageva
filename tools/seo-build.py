@@ -29,6 +29,7 @@ DESC = {
  "careers.html": "Careers at Treasure Academy, Ageva — ask the office whether any verified vacancy is open and confirm the approved application process before sending documents.",
  "class.html": "Creche, Pre-Nursery, Nursery, Primary 1–4 and Primary 6 at Treasure Academy, Ageva — what each class covers and the daily activities.",
  "contact.html": "Call, email, WhatsApp or visit Treasure Academy, Ageva — opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.",
+ "credits.html": "Website design and implementation credits for Treasure Academy, Ageva, including publisher, data-controller and Paragon Hub processor roles.",
  "elearning.html": "Three Common Entrance-style practice questions for Primary 6 revision in Mathematics, English and Basic Science. Scores stay on the page.",
  "explore.html": "Explore every part of the Treasure Academy, Ageva website by task — admissions, classes, fees, family information, school news and support.",
  "exams.html": "Examination guidance for Treasure Academy, Ageva — ask the school for the current class timetable. Public candidate records and results are not published.",

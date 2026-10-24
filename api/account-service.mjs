@@ -5,6 +5,11 @@ import {
   handleGuardianLink,
   handleResetPassword
 } from '../server/accounts.mjs';
+import {
+  handleAccountClaimComplete,
+  handleAccountClaimRequest,
+  handleAccountClaimVerify
+} from '../server/account-claims.mjs';
 
 function notFound() {
   return new Response(JSON.stringify({ error: 'Not found' }), {
@@ -18,14 +23,21 @@ function notFound() {
 }
 
 async function handle(request) {
-  // Keep the account surface fail-closed before invoking any Supabase account
-  // operation. One dispatcher keeps this Hobby deployment below Vercel's
-  // Serverless Function count while the public routes remain unchanged.
+  // One dispatcher keeps this Hobby deployment below Vercel's Serverless
+  // Function count. Each action still enforces its own independent gate.
+  const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
+  const claimHandlers = {
+    'claim-request': handleAccountClaimRequest,
+    'claim-verify': handleAccountClaimVerify,
+    'claim-complete': handleAccountClaimComplete
+  };
+  if (claimHandlers[action]) {
+    if (process.env.PORTAL_ENABLED !== 'true' || process.env.PORTAL_ACCOUNT_CLAIM_ENABLED !== 'true') return notFound();
+    return claimHandlers[action](request);
+  }
   if (process.env.PORTAL_ENABLED !== 'true' || process.env.PORTAL_ACCOUNTS_ENABLED !== 'true') {
     return notFound();
   }
-
-  const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
   const handlers = {
     create: handleCreateAccount,
     reset: handleResetPassword,

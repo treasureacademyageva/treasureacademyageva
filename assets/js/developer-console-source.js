@@ -172,8 +172,8 @@ async function loadOtpQueue() {
     const result = await api('/api/developer/otp');
     const rows = result.queue || [];
     if (!rows.length) { host.innerHTML = '<p class="queue-empty">No active OTP delivery is waiting.</p>'; return; }
-    host.innerHTML = '<div class="table-wrap"><table class="queue-table"><thead><tr><th>Requested</th><th>Phone</th><th>Channel</th><th>Expires</th><th>Action</th></tr></thead><tbody>' + rows.map((row) => '<tr><td>' + esc(new Date(row.requested_at).toLocaleTimeString('en-NG', {hour:'2-digit',minute:'2-digit'})) + '</td><td>•••• ' + esc(row.phone_last4) + '</td><td><span class="status-pill">' + esc(pretty(row.channel)) + '</span></td><td>' + esc(new Date(row.expires_at).toLocaleTimeString('en-NG', {hour:'2-digit',minute:'2-digit'})) + '</td><td>' + (row.status === 'queued' ? '<button class="primary-button" type="button" data-reveal="' + esc(row.id) + '">Reveal once</button>' : '<span class="status-pill warn">' + esc(pretty(row.status)) + '</span>') + '</td></tr>').join('') + '</tbody></table></div>';
-    host.querySelectorAll('[data-reveal]').forEach((button) => button.addEventListener('click', () => revealOtp(button.dataset.reveal, button)));
+    host.innerHTML = '<div class="table-wrap"><table class="queue-table"><thead><tr><th>Requested</th><th>Purpose</th><th>Phone</th><th>Channel</th><th>Expires</th><th>Action</th></tr></thead><tbody>' + rows.map((row) => '<tr><td>' + esc(new Date(row.requested_at).toLocaleTimeString('en-NG', {hour:'2-digit',minute:'2-digit'})) + '</td><td>' + esc(row.queue_type === 'account_claim' ? 'School account claim' : 'Admission tracking') + '</td><td>•••• ' + esc(row.phone_last4) + '</td><td><span class="status-pill">' + esc(pretty(row.channel)) + '</span></td><td>' + esc(new Date(row.expires_at).toLocaleTimeString('en-NG', {hour:'2-digit',minute:'2-digit'})) + '</td><td>' + (row.status === 'queued' ? '<button class="primary-button" type="button" data-reveal="' + esc(row.id) + '" data-queue-type="' + esc(row.queue_type) + '">Reveal once</button>' : '<span class="status-pill warn">' + esc(pretty(row.status)) + '</span>') + '</td></tr>').join('') + '</tbody></table></div>';
+    host.querySelectorAll('[data-reveal]').forEach((button) => button.addEventListener('click', () => revealOtp(button.dataset.reveal, button.dataset.queueType, button)));
   } catch (error) {
     host.innerHTML = '<div class="error-box">' + esc(error.message) + '</div>';
   }
@@ -188,13 +188,13 @@ function clearReveal(message = 'Delivery payload cleared from this page.') {
 }
 async function logDispatch(action) {
   if (!state.reveal) return;
-  await api('/api/developer/otp', { method: 'POST', body: { challengeId: state.reveal.challengeId, action } });
+  await api('/api/developer/otp', { method: 'POST', body: { challengeId: state.reveal.challengeId, queueType: state.reveal.queueType, action } });
 }
-async function revealOtp(challengeId, button) {
+async function revealOtp(challengeId, queueType, button) {
   button.disabled = true;
   clearReveal('Opening one-time payload…');
   try {
-    const payload = await api('/api/developer/otp', { method: 'POST', body: { challengeId, action: 'reveal' } });
+    const payload = await api('/api/developer/otp', { method: 'POST', body: { challengeId, queueType, action: 'reveal' } });
     state.reveal = payload;
     renderReveal();
     state.revealTimer = setTimeout(() => clearReveal(), Number(payload.clearAfterSeconds || 30) * 1000);

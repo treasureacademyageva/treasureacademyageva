@@ -30,6 +30,7 @@ values
   ('90000000-0000-4000-8000-000000000005', '10000000-0000-4000-8000-000000000005', now(), now()),
   ('90000000-0000-4000-8000-000000000006', '10000000-0000-4000-8000-000000000006', now(), now());
 
+set local role service_role;
 select set_config('request.jwt.claim.role', 'service_role', true);
 
 update public.profiles p
@@ -117,6 +118,7 @@ select set_config('request.jwt.claim.session_id', '90000000-0000-4000-8000-00000
 select pg_temp.assert_true((select count(*) = 1 from public.parent_portal_students()), 'Second caregiver must read the verified shared child');
 select pg_temp.assert_true((select count(*) = 0 from public.parent_portal_students() where id = '20000000-0000-4000-8000-000000000002'), 'Second caregiver must not read an unrelated child');
 reset role;
+set local role service_role;
 update public.student_guardians
    set active = false, verified_by = null, verified_at = null
  where student_id = '20000000-0000-4000-8000-000000000001'
@@ -165,6 +167,7 @@ reset role;
 
 -- A revoked session loses access immediately even while its JWT would otherwise
 -- remain unexpired.
+set local role service_role;
 delete from auth.sessions where id = '90000000-0000-4000-8000-000000000002';
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000002', true);
@@ -176,6 +179,7 @@ select pg_temp.assert_true((select count(*) = 0 from public.grades), 'Revoked te
 reset role;
 
 -- Fictional public and sensitive requests for leadership-scope checks.
+set local role service_role;
 insert into public.website_requests(
   request_reference, tracking_hash, request_type, submitter_name, phone_e164, subject, message, source
 ) values
@@ -320,6 +324,7 @@ select pg_temp.assert_true((select count(*) = 1 from public.admission_audit_log 
 reset role;
 
 -- Pending activation blocks records even when a former relationship still exists.
+set local role service_role;
 select set_config('request.jwt.claim.role', 'service_role', true);
 update public.profiles
    set account_status = 'pending_activation', must_change_password = true

@@ -80,8 +80,9 @@ Apply only in order and only after owner-controlled preservation and isolated st
 5. `202610230005_self_registration_enrolment_and_graduates.sql`
 6. `202610230006_fees_shop_transport_and_manual_payments.sql`
 7. `202610240001_admission_tracking_developer_operations_and_answers.sql`
+8. `202610240002_staff_continuity_accelerated_progression_and_account_claims.sql`
 
-`supabase-schema.sql` mirrors all seven ordered migrations through `202610240001`. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
+`supabase-schema.sql` mirrors all eight ordered migrations through `202610240002`. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
 
 ## Fail-closed feature gates
 
@@ -91,6 +92,7 @@ Copy `.env.example` only as a names/reference file; never commit real secrets. N
 - `PORTAL_ACCOUNTS_ENABLED`
 - `PARENT_LINKING_ENABLED`
 - `PORTAL_REGISTRATION_ENABLED`
+- `PORTAL_ACCOUNT_CLAIM_ENABLED`
 - `PORTAL_OFFICE_ENABLED`
 - `WEBSITE_REQUESTS_ENABLED`
 - `PUBLIC_INFORMATION_ENABLED`
@@ -98,7 +100,7 @@ Copy `.env.example` only as a names/reference file; never commit real secrets. N
 - `ADMISSION_TRACKING_ENABLED`
 - `DEVELOPER_CONSOLE_ENABLED`
 
-`PORTAL_REGISTRATION_PEPPER` is server-only and must be a new private random value of at least 24 characters.
+`PORTAL_REGISTRATION_PEPPER` is server-only and must be a new private random value of at least 24 characters. Account claiming additionally requires independent `PORTAL_CLAIM_HASH_PEPPER` and `PORTAL_CLAIM_OTP_ENCRYPTION_KEY` secrets of at least 32 characters. The Paragon relay stays disabled unless its separate HMAC/replay/tenant acceptance checks pass.
 
 ## Build and tests
 
@@ -109,7 +111,7 @@ npm run test:all-current
 npm run test:sql-local   # requires local PostgreSQL 17 access
 ```
 
-The maintained browser runner starts its own local server. SQL parser checks in the Node suite are not a substitute for applying all seven migrations and all three rollback-only policy suites in disposable Supabase staging. The exact external-agent manifest and staging-only prompt are in `supabase/release/20261024_SQL_AGENT_HANDOFF.md`.
+The maintained browser runner starts its own local server. SQL parser checks in the Node suite are not a substitute for applying all eight migrations and all four rollback-only policy suites in disposable Supabase staging. The exact external-agent manifest and staging-only prompt are in `supabase/release/20261024_SQL_AGENT_HANDOFF.md`.
 
 ## Deployment safety
 

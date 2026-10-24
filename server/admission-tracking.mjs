@@ -8,6 +8,8 @@ import {
   randomUUID
 } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
+import { accountClaimSettingsForDeveloper, decryptAccountClaimDelivery } from './account-claims.mjs';
+import { dispatchOtpRelay } from './otp-relay.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const OTP = /^\d{6}$/;
@@ -299,6 +301,27 @@ export async function handleAdmissionTrackingRequest(request) {
       await adminClient.from('admission_tracking_challenges').update({ status: 'cancelled', cancelled_at: new Date().toISOString(), delivery_ciphertext: null, delivery_iv: null, delivery_tag: null }).eq('id', challengeId);
       throw new Error('queue_audit');
     }
+    if (channel === 'whatsapp') {
+      try {
+        const relay = await dispatchOtpRelay({ challengeId, phone, code, expiresInSeconds: 300 });
+        if (relay.delivered) {
+          const { data: marked, error: markError } = await adminClient.from('admission_tracking_challenges').update({
+            status: 'sent', sent_at: new Date().toISOString(), delivery_ciphertext: null, delivery_iv: null, delivery_tag: null
+          }).eq('id', challengeId).eq('status', 'queued').select('id').maybeSingle();
+          if (markError || !marked) throw new Error('relay_state');
+          const { error: relayAuditError } = await adminClient.from('otp_dispatch_events').insert({
+            challenge_id: challengeId, action: 'marked_sent', channel,
+            detail: { dispatcher: 'paragon_relay', request_id: relay.requestId, provider_reference: relay.providerReference }
+          });
+          if (relayAuditError) {
+            await adminClient.from('admission_tracking_challenges').update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', challengeId);
+            throw new Error('relay_audit');
+          }
+        }
+      } catch {
+        // Preserve the capability-scoped manual queue; provider detail is never public.
+      }
+    }
     return jsonResponse(202, genericRequestResult(requestToken));
   } catch (error) {
     return cleanError(error, 'Admission tracking is temporarily unavailable.');
@@ -445,30 +468,62 @@ export async function handleDeveloperOtp(request) {
         .select('id,phone_last4,channel,status,requested_at,expires_at,revealed_at,sent_at')
         .in('status', ACTIVE_CHALLENGE).gt('expires_at', now).order('requested_at', { ascending: true }).limit(50);
       if (error) throw new Error('queue');
-      return jsonResponse(200, { queue: data || [] });
+      let claimRows = [];
+      if (process.env.PORTAL_ACCOUNT_CLAIM_ENABLED === 'true') {
+        const { data: expiredClaims, error: claimExpiryError } = await auth.adminClient.from('portal_account_claim_challenges').update({
+          status: 'expired', delivery_ciphertext: null, delivery_iv: null, delivery_tag: null
+        }).in('status', ACTIVE_CHALLENGE).lte('expires_at', now).select('id,channel');
+        if (claimExpiryError) throw new Error('claim_queue_expiry');
+        if (expiredClaims?.length) {
+          await auth.adminClient.from('portal_account_claim_events').insert(expiredClaims.map((row) => ({
+            challenge_id: row.id, actor_id: auth.user.id, action: 'expired', channel: row.channel, detail: {}
+          })));
+        }
+        const { data: claims, error: claimQueueError } = await auth.adminClient.from('portal_account_claim_challenges')
+          .select('id,phone_last4,channel,status,requested_at,expires_at,revealed_at,sent_at')
+          .in('status', ACTIVE_CHALLENGE).gt('expires_at', now).order('requested_at', { ascending: true }).limit(50);
+        if (claimQueueError) throw new Error('claim_queue');
+        claimRows = claims || [];
+      }
+      const queue = [
+        ...(data || []).map((row) => ({ ...row, queue_type: 'admission_tracking' })),
+        ...claimRows.map((row) => ({ ...row, queue_type: 'account_claim' }))
+      ].sort((a, b) => String(a.requested_at).localeCompare(String(b.requested_at))).slice(0, 50);
+      return jsonResponse(200, { queue });
     }
     const early = requirePost(request);
     if (early) return early;
     const body = await readJson(request);
     const challengeId = String(body.challengeId || '');
     const action = String(body.action || '');
+    const queueType = body.queueType === 'account_claim' ? 'account_claim' : 'admission_tracking';
     if (!UUID.test(challengeId)) return jsonResponse(400, { error: 'Invalid queue item.' });
     if (action === 'reveal') {
+      if (queueType === 'account_claim') {
+        const claimConfig = accountClaimSettingsForDeveloper();
+        const { data, error } = await auth.adminClient.rpc('server_reveal_portal_claim_otp', {
+          p_challenge_id: challengeId, p_actor_id: auth.user.id
+        });
+        if (error || !data?.[0]) return jsonResponse(409, { error: 'This one-time payload is no longer available.' });
+        const payload = decryptAccountClaimDelivery(claimConfig, data[0], challengeId);
+        return jsonResponse(200, {
+          challengeId, queueType, channel: data[0].channel,
+          phone: payload.phone, message: payload.message, clearAfterSeconds: 30
+        });
+      }
       const { data, error } = await auth.adminClient.rpc('server_reveal_otp_dispatch', {
         p_challenge_id: challengeId, p_actor_id: auth.user.id
       });
       if (error || !data?.[0]) return jsonResponse(409, { error: 'This one-time payload is no longer available.' });
       const payload = decryptDelivery(config, data[0], challengeId);
       return jsonResponse(200, {
-        challengeId,
-        channel: data[0].channel,
-        phone: payload.phone,
-        message: payload.message,
-        clearAfterSeconds: 30
+        challengeId, queueType, channel: data[0].channel,
+        phone: payload.phone, message: payload.message, clearAfterSeconds: 30
       });
     }
     if (['copied', 'opened_channel', 'marked_sent'].includes(action)) {
-      const { data, error } = await auth.adminClient.rpc('server_mark_otp_sent', {
+      const rpc = queueType === 'account_claim' ? 'server_mark_portal_claim_otp' : 'server_mark_otp_sent';
+      const { data, error } = await auth.adminClient.rpc(rpc, {
         p_challenge_id: challengeId, p_actor_id: auth.user.id, p_action: action
       });
       if (error || data !== true) return jsonResponse(409, { error: 'The queue item is no longer available.' });

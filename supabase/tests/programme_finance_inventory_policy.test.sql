@@ -23,8 +23,10 @@ $$;
 
 create temp table programme_ids(key text primary key,id uuid not null);
 grant all on programme_ids to authenticated,service_role;
+set local role service_role;
 select pg_temp.assert_true((select count(*)=10 and count(*) filter(where class_code='Primary 5')=0 from public.class_progression),'Exact progression must contain ten stages and no Primary 5');
 select pg_temp.assert_true((select next_class_code='Primary 6' from public.class_progression where class_code='Primary 4'),'Primary 4 must progress directly to Primary 6');
+reset role;
 
 insert into auth.users(id,phone,raw_user_meta_data) values
  ('11000000-0000-4000-8000-000000000001','+2348111111101','{"full_name":"Fictional Headmistress"}'),
@@ -37,6 +39,7 @@ insert into auth.sessions(id,user_id,created_at,updated_at) values
  ('91000000-0000-4000-8000-000000000003','11000000-0000-4000-8000-000000000003',now(),now()),
  ('91000000-0000-4000-8000-000000000004','11000000-0000-4000-8000-000000000004',now(),now());
 
+set local role service_role;
 select set_config('request.jwt.claim.role','service_role',true);
 update public.profiles p set account_status='active',must_change_password=false,active=true,
  phone=u.phone,phone_e164=u.phone from auth.users u where u.id=p.id and p.id::text like '11000000-%';
@@ -170,6 +173,7 @@ select pg_temp.assert_true((select count(*)=1 from public.teacher_collection_ord
 select pg_temp.assert_true((select count(*)=0 from public.shop_orders),'Teacher must not see base order or finance rows');
 select public.advance_shop_order((select id from programme_ids where key='order2'),'fulfil','Handed fictional workbook to linked pupil');
 reset role;
+set local role service_role;
 select pg_temp.assert_true((select status='handed_to_pupil' from public.shop_orders where id=(select id from programme_ids where key='order2')),'Teacher handover must fulfil the released order');
 select pg_temp.assert_true((select on_hand=9 and reserved=0 from public.shop_variants where id='32000000-0000-4000-8000-000000000001'),'Fulfilment must reduce on-hand and clear only its own reservation');
 select pg_temp.assert_true((select count(*)=1 from public.inventory_movements where order_id=(select id from programme_ids where key='order2') and movement_kind='order_fulfilment'),'Fulfilment must create one immutable movement');
@@ -238,4 +242,3 @@ select pg_temp.assert_throws($q$update public.shop_variants set on_hand=999 wher
 reset role;
 
 rollback;
-
