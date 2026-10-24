@@ -1,3 +1,5 @@
+import { handleCreateRequest, handleRequestStatus } from '../server/requests.mjs';
+
 function unavailable() {
   return new Response(JSON.stringify({ error: 'Request Centre is not active yet.' }), {
     status: 404,
@@ -13,9 +15,8 @@ async function handle(request) {
   if (process.env.WEBSITE_REQUESTS_ENABLED !== 'true') return unavailable();
 
   const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
-  const requests = await import('../server/requests.mjs');
-  if (action === 'create') return requests.handleCreateRequest(request);
-  if (action === 'status') return requests.handleRequestStatus(request);
+  if (action === 'create') return handleCreateRequest(request);
+  if (action === 'status') return handleRequestStatus(request);
   return unavailable();
 }
 

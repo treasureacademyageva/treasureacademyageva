@@ -1,3 +1,6 @@
+import { handleDeveloperOtp } from '../server/admission-tracking.mjs';
+import { handleDeveloperConsole } from '../server/developer-console.mjs';
+
 function notFound() {
   return new Response(JSON.stringify({ error: 'Not found' }), {
     status: 404,
@@ -11,14 +14,8 @@ function notFound() {
 
 async function handle(request) {
   const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
-  if (action === 'console') {
-    const { handleDeveloperConsole } = await import('../server/developer-console.mjs');
-    return handleDeveloperConsole(request);
-  }
-  if (action === 'otp') {
-    const { handleDeveloperOtp } = await import('../server/admission-tracking.mjs');
-    return handleDeveloperOtp(request);
-  }
+  if (action === 'console') return handleDeveloperConsole(request);
+  if (action === 'otp') return handleDeveloperOtp(request);
   return notFound();
 }
 

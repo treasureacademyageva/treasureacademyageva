@@ -414,7 +414,7 @@ function restoreAccountEnvironment() {
   globalThis.fetch = originalFetch;
 }
 const accountEntryHandler = (await import('../../api/account-service.mjs')).default;
-await asyncTest('the consolidated account Function fails closed for every action before loading account dependencies', async () => {
+await asyncTest('the consolidated account Function fails closed for every action before any network use', async () => {
   delete process.env.PORTAL_ENABLED;
   delete process.env.PORTAL_ACCOUNTS_ENABLED;
   let calls = 0;
