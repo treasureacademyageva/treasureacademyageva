@@ -13,8 +13,8 @@ docs/
 tools/
 node_modules/
 README.md
-package.json
-package-lock.json
+# Keep package manifests available to the Vercel builder so Serverless Function
+# dependencies are installed; Vercel omits them from the static output.
 supabase-schema.sql
 assets/js/auth-ui.js
 assets/js/chat-*.js
