@@ -88,7 +88,7 @@
 
 <!-- ux:route:start --><div class="route-bar"><div class="container">
 <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep" aria-hidden="true">›</span><a href="/explore.html">Family Help</a><span class="sep" aria-hidden="true">›</span><span aria-current="page">Get in Touch</span></nav>
-<div class="route-actions"><a href="/contact.html#visit">Schedule a Visit</a><a href="/search.html">Search this site</a></div>
+<div class="route-actions"><a href="/request-centre.html?type=school_visit">Schedule a Visit</a><a href="/search.html">Search this site</a></div>
 </div></div><!-- ux:route:end --><main id="main"><section class="u51-119">
   <div class="container">
     <div class="contact-grid u51-120">
@@ -147,12 +147,13 @@
 <footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid">
 <div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
 <div class="uf-col"><h2>Find it fast</h2><nav class="uf-links" aria-label="Popular pages"><a href="/admissions.html">Admissions</a><a href="/academics.html">Classes</a><a href="/fees.html">Fees</a><a href="/calendar.html">Term dates</a><a href="/uniform.html">Uniform</a><a href="/transport.html">Transport</a></nav></div>
-<div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/about.html">About the school</a><a href="/news.html">News &amp; updates</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/website-help.html">Website help</a></nav></div>
+<div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/request-centre.html">Request Centre</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/website-help.html">Website help</a></nav></div>
 <div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
 </div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span></div></div></footer>
 <div id="toast"></div>
 <script src="assets/js/store.js?v=20261022-ux3"></script>
 <script src="/assets/js/visitor-insights.js?v=20261023-design1"></script>
+<script src="/assets/js/verified-public-information.js?v=20261023-design1"></script>
 <script src="/assets/js/public-shell.js?v=20261023-design1"></script>
 <script src="assets/js/safe-actions.js?v=20261022-ux3"></script>
 <script>
@@ -161,7 +162,7 @@
   /* Verified WhatsApp destination. No browser availability claim is made. */
   function waLink(w){
     const msg = encodeURIComponent(`Hello ${w.name}! I have an enquiry for ${db.school.name}.`);
-    return `https://wa.me/${w.phone}?text=${msg}`;
+    return "/request-centre.html?type=general";
   }
   document.getElementById("waList").innerHTML = db.whatsapp.map(w=>{
     const disp=String(w.phone||"").replace(/^234/,"0");
@@ -169,9 +170,9 @@
     <div class="wa-card">
       <div class="wa-logo"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></div>
       <div><b>${U.esc(w.name)}</b> <small>${disp}</small><br><small>${U.esc(w.role)}</small><br>
-        <small>WhatsApp opens a draft for you to review and send.</small>
+        <small>Create a website reference and track the request privately.</small>
      </div>
-      <a class="btn btn-mint btn-sm" target="_blank" rel="noopener" href="${waLink(w)}">Open WhatsApp</a>
+      <a class="btn btn-mint btn-sm" target="_blank" rel="noopener" href="${waLink(w)}">Open Request Centre</a>
    </div>`; }).join("");
   /* Safe fallback if the shared action layer is unavailable: open a reviewed
      WhatsApp message. The browser never claims delivery or stores the enquiry. */
@@ -179,15 +180,15 @@
     e.preventDefault();
     const f=new FormData(e.target);
     const text=["Hello Treasure Academy, I have a website enquiry.","Name: "+(f.get("name")||""),"Email: "+(f.get("email")||""),"Subject: "+(f.get("subject")||""),"Message: "+(f.get("message")||"")].join("\n");
-    window.open("https://wa.me/2349063932487?text="+encodeURIComponent(text),"_blank","noopener");
-    U.toast("WhatsApp opened. Review the message, then tap Send.");
+    window.location.href="/request-centre.html?type=general";
+    U.toast("Opening the website Request Centre…");
   });
   /* FAQ accordion */
   const FAQS=[
-    ["How do I apply for admission?","Open the Admissions page, then contact the verified school office to confirm the current form, required documents, class availability and bank details before paying."],
-    ["How much are the school fees?","Fees depend on the class. Message the verified WhatsApp line or call the office to confirm the current schedule before payment."],
+    ["How do I apply for admission?","Open the Admissions page, then use the restricted applicant route or verified office to confirm the current form, required documents and class availability. Payment details appear only on an official invoice."],
+    ["How much are the school fees?","Fees depend on the class. Use the website Request Centre or call the office to confirm the current schedule before payment."],
     ["How do I check my child's result?","Parents with a school-issued account can use the secure portal to see published results for linked children. Contact the verified school office if your family has not yet been activated."],
-    ["How do parents get results and payment-record help?","Use the secure portal if the school has issued your account. For access or a correction, contact the verified Call or WhatsApp line; never send a password or child record in a public message."],
+    ["How do parents get results and payment-record help?","Use the secure portal after self-registering with a valid TA-LINK, phone-bound TA-FAMILY invitation or restricted applicant route. For a correction, use the structured Request Centre or visit the office; never send a password, payment evidence or child record in a public message."],
     ["What time does school open and close?","The published school-day guidance is Monday to Friday, 7:30am–3:00pm. Please call before a visit, especially during holidays or breaks."],
     ["What ages do you accept?","Age guidance depends on the class and the child's previous schooling. Contact the admissions office for the current placement guidance."]
   ];
@@ -208,8 +209,8 @@
     event.preventDefault();
     const t = document.getElementById("sgText").value.trim();
     if(!t){ document.getElementById("sgText").focus(); return; }
-    window.open("https://wa.me/2349063932487?text="+encodeURIComponent("Hello Headmistress, I want to share this private feedback:\n"+t),"_blank","noopener");
-    U.toast("WhatsApp opened. Review the message, then tap Send.");
+    window.location.href="/request-centre.html?type=private_feedback";
+    U.toast("Opening the website Request Centre…");
   });
 })();
 </script>

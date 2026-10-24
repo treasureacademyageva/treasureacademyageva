@@ -230,7 +230,25 @@ a `@font-face` can exist for a family that no stack references. Every image in
 - Common Entrance 2025 rows for **Itofa**, **Muhammed Kausara** and **Onimisi**
   came from a blurry photograph and need confirming.
 - `class-feature.jpg` is a placeholder sourced from kogireports.com.
-- Backlog: Supabase credentials, Moniepoint backend, map latitude/longitude,
-  tour video, custom domain, the "TREASURE COLLEGE" naming question, absent-alert
-  automation.
-- Chatbot: the owner is supplying hints; nothing final has been built.
+- Backlog: owner-supplied map latitude/longitude, tour video, the
+  "TREASURE COLLEGE" naming question and absent-alert automation. The custom
+  domain is already live. The former Moniepoint backend idea is superseded and
+  must not be reactivated.
+- Search/chat now uses the maintained verified-answer-first engine. The older
+  corpus remains under separate encrypted review and must not be treated as
+  public truth or training approval.
+
+## Protected admission tracker and developer console
+
+The local implementation is fail-closed. Before any authorised staging activation:
+
+1. Follow `supabase/release/20261024_SQL_AGENT_HANDOFF.md`: apply all seven migrations in exact order to a disposable Supabase staging project, run all three rollback-only SQL suites and the read-only postflight. Production SQL remains separately prohibited.
+2. Generate independent 32+ character random values for `ADMISSION_OTP_HASH_PEPPER` and `ADMISSION_OTP_ENCRYPTION_KEY`. Never place them in HTML, browser configuration, logs or Git.
+3. Provision the intended account in `developer_capabilities` with only the required capabilities and a recorded reason. A school admin is not automatically a developer or OTP dispatcher.
+4. Activate `PORTAL_ENABLED`, `PORTAL_ACCOUNTS_ENABLED`, `ADMISSION_TRACKING_ENABLED` and `DEVELOPER_CONSOLE_ENABLED` only after staged acceptance. Do not activate Monnify; payments remain bank transfer or physical office POS with manual approval.
+5. Exercise request → queue → one-time reveal → WhatsApp/SMS user action → mark sent → verify → unlinked projection. Confirm reveal replay fails, the server ciphertext is null, resends invalidate former codes and audit details contain no code, phone or message.
+6. Exercise a converted admission. Confirm the lightweight tracker exposes no linked child, tokens are absent from URLs, the wrong account cannot consume them, and only the matching full parent sign-in sees the particular admitted applicant/next step.
+7. If a reveal is cleared before delivery, do not recover it from logs or the database. Ask the parent to request a new code. Clipboard erasure is never automatic; use the visible overwrite action.
+8. Keep `developer-review.html` encrypted. If its passphrase is unavailable, recover an authorised unlocked export or re-key from approved source material; never add a bypass.
+
+Build browser bundles with `npm run build:portal` and `npm run build:developer`. Regenerate `supabase-schema.sql` from ordered migrations before release evidence is recorded.

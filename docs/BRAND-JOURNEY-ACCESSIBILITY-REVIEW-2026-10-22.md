@@ -16,7 +16,7 @@
 - All useful public pages are reachable within two actions through navigation, Explore or local Search. The intentional `404.html` is the only page outside the normal graph.
 - Mission/vision, programmes, archived school-life material, announcements, family help, admissions, fee safety and verified contact routes are available without inventing current facts.
 - The retired parent portal remains a truthful support handoff rather than insecure browser authentication.
-- Payments remain bank-transfer-only after office confirmation. There is no checkout, payment-success claim or browser receipt system.
+- Payments use manual bank transfer or the physical school-office POS after office verification. There is no online checkout, card-data collection, WhatsApp payment evidence or browser receipt system.
 
 ## Brand integrity
 

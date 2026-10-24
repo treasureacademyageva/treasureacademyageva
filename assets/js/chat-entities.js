@@ -48,7 +48,6 @@
     "primary 2": ["primary 2", "primary two", "p2", "basic 2", "class 2", "grade 2"],
     "primary 3": ["primary 3", "primary three", "p3", "basic 3", "class 3", "grade 3"],
     "primary 4": ["primary 4", "primary four", "p4", "basic 4", "class 4", "grade 4"],
-    "primary 5": ["primary 5", "primary five", "p5", "basic 5", "class 5", "grade 5"],
     "primary 6": ["primary 6", "primary six", "p6", "basic 6", "class 6", "grade 6"]
   };
 

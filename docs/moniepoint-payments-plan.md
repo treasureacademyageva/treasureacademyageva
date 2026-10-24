@@ -1,4 +1,7 @@
 # Moniepoint / Monnify Payments — Research & Integration Plan
+
+> **Rejected/superseded plan; retain only as historical research.** The owner’s 23 October 2026 decision is manual bank transfer or an in-person physical school-office POS, both manually verified. No gateway, virtual account, online card form, card-data storage or WhatsApp payment evidence is approved. Do not implement or activate the recommendations below.
+
 **Treasure Academy, Ageva — school-fees collection** | Researched Sept 2026
 
 ## 1. What "Moniepoint API" actually is

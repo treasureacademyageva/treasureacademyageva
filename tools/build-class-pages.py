@@ -17,9 +17,8 @@ CLASSES = [
  ("primary-1", "Primary 1", "A strong start for primary school.", "Primary 1 strengthens English, Mathematics, handwriting and good study habits with patient guidance.", ["English and comprehension", "Mental mathematics", "Handwriting", "Computer awareness"]),
  ("primary-2", "Primary 2", "Growing minds and deeper skills.", "Primary 2 stretches vocabulary, multiplication and writing while building confidence through class participation.", ["Grammar and writing", "Multiplication practice", "Reading", "Team activities"]),
  ("primary-3", "Primary 3", "Thinking, reasoning and discovery.", "Primary 3 introduces deeper reasoning, science discovery and age-appropriate computer skills.", ["Reasoning skills", "Science discovery", "Computer studies", "Debate and quiz"]),
- ("primary-4", "Primary 4", "Independent learners emerge.", "Primary 4 pupils read more widely, solve more demanding mathematics and express ideas clearly in writing.", ["Essay writing", "Problem solving", "Reading and research", "Responsible leadership"]),
- ("primary-5", "Primary 5", "Preparing for the final primary stage.", "Primary 5 combines advanced class work with exam technique and growing responsibility.", ["Exam technique", "Advanced mathematics", "Moral leadership", "Project work"]),
- ("primary-6", "Primary 6", "Finish primary school with confidence.", "Primary 6 focuses on Common Entrance practice, interviews and readiness for secondary school.", ["Common Entrance practice", "Interview skills", "Revision planning", "Secondary-school readiness"]),
+ ("primary-4", "Primary 4", "Independent learners emerge.", "Primary 4 pupils read more widely, solve more demanding mathematics and express ideas clearly in writing before progressing directly to Primary 6.", ["Essay writing", "Problem solving", "Reading and research", "Responsible leadership"]),
+ ("primary-6", "Primary 6", "Finish primary school with confidence.", "Primary 6 follows Primary 4 in the school progression and focuses on Common Entrance practice, interviews and readiness for secondary school.", ["Common Entrance practice", "Interview skills", "Revision planning", "Secondary-school readiness"]),
 ]
 
 NAV = '<a href="/">Home</a><a href="/about.html">About</a><a href="/admissions.html">Admissions</a><a href="/academics.html" aria-current="page">Academics</a><a href="/fees.html">Fees</a><a href="/news.html">News</a><a href="/contact.html">Contact</a>'
@@ -58,7 +57,7 @@ for slug, name, tagline, about, activities in CLASSES:
 <div class="panel"><h2>What children build in {escape(name)}</h2><p>{escape(about)}</p><p>Class routines and materials may change during the session. Parents can arrange a visit or ask the school for the current class plan.</p></div>
 <div class="panel"><h2>Learning highlights</h2><ul class="tick">{cards}</ul></div>
 </div></section>
-<section style="padding-top:0"><div class="container"><div class="cta-band"><div><h2>Ask about {escape(name)}</h2><p>Confirm age guidance, available places, current fees and required documents with the school office.</p></div><div><a class="btn btn-sun" target="_blank" rel="noopener" href="https://wa.me/2349063932487?text={wa_text}">Ask on WhatsApp</a> <a class="btn btn-white" href="/admissions.html">Admission Steps</a></div></div></div></section>
+<section style="padding-top:0"><div class="container"><div class="cta-band"><div><h2>Ask about {escape(name)}</h2><p>Confirm age guidance, available places, current fees and required documents with the school office.</p></div><div><a class="btn btn-sun" href="/request-centre.html?type=class_enquiry">Ask the Office</a> <a class="btn btn-white" href="/admissions.html">Admission Steps</a></div></div></div></section>
 </main>
 <footer class="site-footer"><div class="container"><p><b>Treasure Academy, Ageva</b><br>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State</p><p><a href="tel:+2348141943478">+234 814 194 3478</a> · <a href="https://wa.me/2349063932487">WhatsApp 09063932487</a> · <a href="/privacy.html">Privacy</a> · <a href="/safeguarding.html">Safeguarding</a></p></div></footer>
 </body></html>

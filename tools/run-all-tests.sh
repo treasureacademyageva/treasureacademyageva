@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Treasure Academy regression runner.
+# HISTORICAL CONTRACT RUNNER — not a current release gate.
+# Many suites below intentionally describe retired browser-auth/demo behaviour.
+# Use `npm run test:all-current` for the maintained secure architecture.
 #
 # Setup once:  npm install            (installs jsdom; node_modules is gitignored
 #                                      and is wiped by workspace snapshots, so if

@@ -2,9 +2,9 @@
 """
 Build the chatbot knowledge base from the site itself.
 
-Everything the bot knows is extracted from real pages and real school data, so
-the knowledge base cannot drift away from what the site actually says. Run it
-after changing site content:
+Everything the bot knows comes from current public pages and explicit policy
+facts. Former browser-store prices, stock, routes, rosters and fee records are
+never indexed as public truth. Run it after changing site content:
 
     python3 tools/build-kb.py
 
@@ -57,17 +57,11 @@ PAGES = {
     "class.html":        ("Class Pages", "class page primary nursery teacher"),
 }
 
-# Where the bot should send people. Routes that need an account are marked so
-# the bot offers to open the login popup instead of pretending it can help.
+# All roles use the single server-authenticated entry. Former role-specific
+# browser pages are not indexed or suggested.
 ROUTES = [
-    ("Pupil / Parent Portal", "portal/pupil.html", True,
-     "results attendance fees notices timetable report card my child"),
-    ("Teacher Portal", "portal/teacher.html", True,
-     "register attendance results homework duty staff teacher"),
-    ("Admin Console", "portal/admin.html", True,
-     "admin headmistress manage pupils teachers settings"),
-    ("Login / Register", "portal/login.html", False,
-     "login log in sign in register sign up account password"),
+    ("Secure School Portal", "portal/login.html", False,
+     "parent teacher administrator login log in sign in register account password results attendance fees notices timetable report card my child"),
 ]
 
 
@@ -100,28 +94,6 @@ def headings(html):
         if h and len(h) < 90:
             out.append(h)
     return out
-
-
-def js_value(store, name):
-    """Pull one array/object literal out of store.js by walking its brackets."""
-    i = store.find(name + ":")
-    if i < 0:
-        return None
-    j = i
-    while j < len(store) and store[j] not in "[{":
-        j += 1
-    if j >= len(store):
-        return None
-    open_ch, close_ch = store[j], "]" if store[j] == "[" else "}"
-    depth = 0
-    for k in range(j, len(store)):
-        if store[k] == open_ch:
-            depth += 1
-        elif store[k] == close_ch:
-            depth -= 1
-            if depth == 0:
-                return store[j:k + 1]
-    return None
 
 
 def common_boilerplate(texts):
@@ -204,145 +176,9 @@ def build():
                 add("page:%s#%d" % (fname, n), title, chunk.strip(),
                     kw.lower(), fname, False, "page")
 
-    # ---- 2. live school data from store.js ------------------------------
-    store = open(os.path.join(ROOT, "assets/js/store.js"),
-                 encoding="utf-8", errors="ignore").read()
-
-    fees = js_value(store, "fees")
-    if fees:
-        pairs = re.findall(r'"?([A-Za-z0-9 \-]+)"?\s*:\s*(\d{3,6})', fees)
-        if pairs:
-            add("data:fees", "School Fees by Class",
-                "Termly school fees: " +
-                "; ".join("%s N%s" % (c.strip(), a) for c, a in pairs) +
-                ". Payment is by bank transfer to the school account and an "
-                "official receipt number is issued once confirmed.",
-                "fees fee how much cost price pay tuition amount naira class termly",
-                "fees.html", False, "data")
-
-    exams = js_value(store, "exams")
-    if exams:
-        rows = re.findall(r'date:"([^"]+)"[^}]*?time:"([^"]*)"[^}]*?subject:"([^"]+)"', exams)
-        if rows:
-            add("data:exams", "Examination Timetable",
-                "Exam timetable: " +
-                "; ".join("%s %s %s" % (d, t, s) for d, t, s in rows) + ".",
-                "exam exams timetable paper when write subject date time",
-                "exams.html", False, "data")
-
-    routes = js_value(store, "transportRoutes")
-    if routes:
-        rows = re.findall(r'route:"([^"]+)"[^}]*?pickup:"([^"]*)"[^}]*?fee:(\d+)', routes)
-        if rows:
-            add("data:transport", "Transport Routes and Fares",
-                "School bus routes: " +
-                "; ".join("%s picks up at %s for N%s per term" % (r, p, f)
-                          for r, p, f in rows) + ".",
-                "transport bus route pickup fare cost bus stop drop off school bus",
-                "transport.html", False, "data")
-
-    uni = js_value(store, "uniform")
-    if uni:
-        rows = re.findall(r'name:"([^"]+)"[^}]*?price:(\d+)', uni)
-        if rows:
-            add("data:uniform", "Uniform Price List",
-                "Uniform items and prices: " +
-                "; ".join("%s N%s" % (n, p) for n, p in rows) +
-                ". Uniforms are collected at the school office.",
-                "uniform price cost shirt skirt shorts cardigan sportswear sandals socks beret buy",
-                "uniform.html", False, "data")
-
-    shop = js_value(store, "shopItems")
-    if shop:
-        rows = re.findall(r'name:"([^"]+)"[^}]*?price:(\d+)[^}]*?icon:"[^"]*",\s*qty:(\d+)', shop)
-        if rows:
-            add("data:shop", "School Shop Price List",
-                "Shop items: " +
-                "; ".join("%s N%s%s" % (n, p, " (out of stock)" if q == "0" else "")
-                          for n, p, q in rows[:25]) + ".",
-                "shop buy book textbook notebook pen crayon stationery price cost stock available",
-                "shop.html", False, "data")
-
-    cal = js_value(store, "calendar")
-    if cal:
-        rows = re.findall(r'date:"([^"]+)"[^}]*?title:"([^"]+)"', cal)
-        if rows:
-            add("data:calendar", "School Calendar",
-                "Key dates: " + "; ".join("%s %s" % (d, t) for d, t in rows) + ".",
-                "calendar date term resumption holiday closing event when school resume start",
-                "calendar.html", False, "data")
-
-    school = js_value(store, "school")
-    if school:
-        sess = re.search(r'session:"([^"]+)"', school or "")
-        term = re.search(r'term:"([^"]+)"', school or "")
-        if sess or term:
-            add("data:session", "Current Session and Term",
-                "The current academic session is %s and the current term is %s."
-                % (sess.group(1) if sess else "the current session",
-                   term.group(1) if term else "the current term"),
-                "session term current which what now academic year",
-                "calendar.html", False, "data")
-
-    # ---- 2b. the ten class pages ----------------------------------------
-    # academics.html links to class.html?class=NAME, so each class is really
-    # its own page generated from data. Nothing indexed them before, which
-    # meant "what happens in Nursery 1" had no answer.
-    cls_block = js_value(store, "classPages")
-    if cls_block:
-        for m in re.finditer(
-                r'\{class:"([^"]+)",\s*tagline:"([^"]*)",\s*about:"([^"]*)",'
-                r'\s*activities:\[([^\]]*)\]', cls_block, re.S):
-            cname, tagline, about_txt, acts = m.groups()
-            acts_clean = ", ".join(a.strip().strip('"') for a in acts.split('","'))
-            acts_clean = acts_clean.replace('"', "")
-            short = cname.lower().replace("primary ", "p").replace("nursery ", "n")
-            add("class:" + cname, cname,
-                "%s %s %s Activities in %s: %s."
-                % (cname, tagline, about_txt, cname, acts_clean),
-                ("%s %s class what happens learn learning taught do activities "
-                 "daily routine curriculum age" % (cname.lower(), short)),
-                "class.html?class=" + cname.replace(" ", "%20"), False, "class")
-
-    # ---- 2c. staff, with the qualifications the school actually lists ----
-    wall = None
-    widx = store.find("STAFF_WALL_SEED")
-    if widx >= 0:
-        bstart = store.find("[", widx)
-        if bstart >= 0:
-            depth = 0
-            for k in range(bstart, len(store)):
-                if store[k] == "[":
-                    depth += 1
-                elif store[k] == "]":
-                    depth -= 1
-                    if depth == 0:
-                        wall = store[bstart:k + 1]
-                        break
-    if wall:
-        people = re.findall(
-            r'name:"([^"]+)",(?:\s*gender:"[^"]*",)?\s*class:"([^"]*)",\s*position:"([^"]*)",\s*quals:"([^"]*)"',
-            wall)
-        if people:
-            lines = []
-            for nm, cl, pos, ql in people:
-                lines.append("%s - %s%s%s" % (nm, pos,
-                             (" for " + cl) if cl else "",
-                             (", " + ql) if ql else ""))
-            add("data:staff", "Our Teachers and Their Qualifications",
-                "The teaching team: " + "; ".join(lines) + ".",
-                "teacher teachers staff who teaches qualification qualified "
-                "degree nce hnd bsc trained experience class teacher name",
-                "alumni.html#staff", False, "data")
-            for nm, cl, pos, ql in people:
-                if not cl:
-                    continue
-                add("staff:" + cl, "Teacher for " + cl,
-                    "%s is the %s for %s%s." % (nm, pos.lower(), cl,
-                                                (", holding " + ql) if ql else ""),
-                    "who teaches %s teacher for %s class teacher %s"
-                    % (cl.lower(), cl.lower(), cl.lower()),
-                    "alumni.html#staff", False, "data")
+    # Former browser store data is intentionally not indexed. Prices, stock,
+    # routes, rosters and fee records remain unverified until reconciled in the
+    # protected office schema; static store.js values are not public truth.
 
     # ---- 2d. the FAQ blocks the school wrote itself ----------------------
     # contact.html and admissions.html each hold a FAQS array rendered by
@@ -387,108 +223,54 @@ def build():
 
     # ---- 4. things a parent asks that no page states outright -----------
     facts = [
-        ("fact:hours", "School Hours",
-         "School runs Monday to Friday. The gate opens at 7:00am, assembly is "
-         "7:45am, lessons start 8:00am, break is 10:00am and closing time is "
-         "3:00pm. Pupils should be picked up by 3:00pm.",
-         "hours time open close closing what time pick up collect child when finish dismissal", "index.html", False),
-        ("fact:payment", "How to Pay Fees",
-         "Fees are paid by bank transfer to the school account. After paying, "
-         "take the teller or transfer receipt to the school office, or check it "
-         "on the Receipt page. An official receipt number is issued once "
-         "confirmed. The school does not collect cash online.",
-         "pay payment how to pay bank transfer account teller receipt confirm fees", "fees.html", False),
-        ("fact:password", "Password and Login Help",
-         "New pupils enter their Registration Number and the Create Password "
-         "form appears automatically. If a password is wrong twice the Forgot "
-         "Password form opens so it can be reset. Staff log in with Staff ID "
-         "and PIN. The headmistress can reset any staff PIN.",
-         "password forgot reset cannot login cant log in locked out pin wrong", "portal/login.html", False),
+        ("fact:payment", "Safe School Payments",
+         "Approved payment methods are manual bank transfer using the account on a signed-in portal invoice, or an in-person transaction on the school physical office POS. Both require manual office verification. A notification or POS record is not a receipt; an official receipt appears only after verification. There is no online card form, card-data storage or WhatsApp payment-evidence workflow.",
+         "pay payment bank transfer office pos receipt invoice verify card whatsapp evidence", "fees.html", False),
+        ("fact:password", "Portal Registration and Login Help",
+         "Parents create their own phone-and-password accounts through a private TA-LINK code for an existing pupil, a phone-bound TA-FAMILY invitation for a second parent, or the restricted applicant route. The Headmistress does not create ordinary parent accounts. Browser sessions are not made persistent; use a structured account-help request if access fails.",
+         "password login phone register ta-link ta-family applicant account help", "portal/login.html", False),
         ("fact:results", "Checking Results",
-         "Log in to the pupil portal with the Registration Number and password, "
-         "open Results, and the report card can be viewed and downloaded.",
-         "result results report card grade score check download term", "portal/pupil.html", True),
-        ("fact:whatsapp", "WhatsApp Support",
-         "For an urgent reply, chat with the school on WhatsApp on 09063932487. "
-         "For anything that can wait, use the message form on the Contact page "
-         "and the reply comes by email.",
-         "whatsapp urgent talk human agent person real chat call now speak", "contact.html", False),
+         "A signed-in parent can view published results only for a verified linked pupil. Payment never publishes a result, changes admission, changes promotion or controls portal access.",
+         "result results report card grade score check linked pupil published", "portal/login.html", True),
+        ("fact:whatsapp", "WhatsApp Is Ordinary Contact",
+         "WhatsApp 09063932487 is an ordinary contact line only. Structured admissions, account help, fees, shop, transport and record requests belong on the website or in the signed-in portal. WhatsApp is not payment evidence and does not create an official request record.",
+         "whatsapp contact request payment evidence official record", "request-centre.html", False),
         ("fact:head", "School Leadership",
-         "The headmistress of Treasure Academy, Ageva is Mrs. Salihu Nanahawa. "
-         "She leads the teaching staff and can be reached through the school "
-         "office or the Contact page.",
-         "headmistress head principal proprietor owner who runs leader boss "
-         "in charge madam management", "about.html", False),
+         "The Headmistress of Treasure Academy, Ageva is Mrs. Salihu Nanahawa. Contact the school through the public Contact page or website Request Centre.",
+         "headmistress head principal leadership management", "about.html", False),
         ("fact:where", "Where the School Is",
-         "Treasure Academy is at Ageva, Okene, Kogi State. The Contact page has "
-         "directions, a map and the school phone numbers.",
-         "where located location address directions map find come visit place "
-         "area town state", "contact.html", False),
-        ("fact:sibling", "More Than One Child and Sibling Discounts",
-         "Sibling discounts may apply when more than one child from the same "
-         "family attends, but the amount is not fixed on the website - ask the "
-         "school office. One parent account holds all the children: register "
-         "the first, then register the next with the same phone number and the "
-         "system attaches them to the same account.",
-         "sibling siblings discount second child two children brother sister "
-         "family reduce reduction cheaper more than one", "admissions.html", False),
-        ("fact:jobs", "Working at Treasure Academy",
-         "Treasure Academy hires teachers and support staff. We hire for "
-         "character first, then skill: people who keep promises, speak kindly "
-         "and treat every child like their own. Small classes, supportive "
-         "leadership and a termly teaching plan. Pay is discussed at interview "
-         "and paid on time. Apply with the form on the Careers page giving your "
-         "name, WhatsApp number, the position, your highest qualification and "
-         "brief experience. Shortlisted applicants are called within two weeks.",
-         "job jobs vacancy vacancies employment hiring hire recruit teach work "
-         "career apply position cv resume salary interview staff", "careers.html", False),
-        ("fact:new-parent", "Bringing Your Child to Treasure Academy",
-         "Admissions are open. The school takes children from Creche at six "
-         "months, through Pre-Nursery, Nursery 1 and 2, to Primary 1 up to "
-         "Primary 6. Register through Login/Register in three steps - ward, "
-         "guardian, payment - then visit the school within two weeks to "
-         "complete it. Parents are welcome to visit the school first and look "
-         "around. One parent account can hold several children.",
-         "new parent prospective bring my child join start school place space "
-         "enrol enroll admit accept intake beginner first time", "admissions.html", False),
-        ("fact:why-us", "Why Parents Choose Treasure Academy",
-         "Small classes so every child is known by name. Creche through to "
-         "Primary 6 on one permanent site. Founded in 2016 by Shaibu Sidikat "
-         "Ruth, a mother and trained teacher, and on its own site since the "
-         "third year. Common Entrance practice built into Primary 6. "
-         "Supervised school transport on three routes. Results, attendance and "
-         "fees are visible to parents in the portal.",
-         "why choose better compare different advantage best good reputation "
-         "standard quality recommend", "about.html", False),
+         "Treasure Academy is opposite Morak Pure-Water Factory in Ageva, Okene, Kogi State. The Contact page has current directions and public contact details.",
+         "where located location address directions map visit", "contact.html", False),
+        ("fact:classes", "Exact School Progression",
+         "The class progression is Creche, Pre-Nursery, Nursery 1, Nursery 2, Primary 1, Primary 2, Primary 3, Primary 4, Primary 6 and Graduate Hall. There is no Primary 5; Primary 4 progresses directly to Primary 6.",
+         "classes progression primary 4 primary 5 primary 6 graduate hall", "academics.html", False),
+        ("fact:family", "Linked Parents and Children",
+         "One parent account may link several verified children. A pupil may have at most two active parents or guardians, each with a separate account. A name and class alone never reveal a pupil or grant access.",
+         "siblings multiple children second parent guardian family link privacy", "portal/login.html", False),
+        ("fact:new-parent", "Starting an Admission Enquiry",
+         "A new family uses the restricted applicant route or the verified school office. The administrators decide admission. Payment never approves admission, and payment details appear only on an official invoice.",
+         "new parent applicant admission enrol apply invoice", "admissions.html", False),
         ("fact:visit", "Visiting the School",
-         "Visitors are welcome at Ageva, Okene, Kogi State. The office is open "
-         "Monday to Friday, 7:30am to 3:00pm. No appointment is needed to look "
-         "around, but a message on 09063932487 means someone is expecting you "
-         "and the headmistress can make time for your questions.",
-         "visit tour come see inspect look around appointment open day "
-         "walk in viewing", "contact.html", False),
-        ("fact:safety", "Safety and Supervision",
-         "Children are supervised from arrival to pick-up. The gate opens at "
-         "7:00am, assembly is 7:45am and closing is 3:00pm. Pupils are released "
-         "only to a parent or a named guardian. A duty teacher is on the "
-         "assembly ground daily, minor injuries are handled at the sick bay and "
-         "parents are called straight away if a child is unwell.",
-         "safe safety secure security supervision gate pick up collect guardian "
-         "sick bay injury first aid nurse emergency", "index.html", False),
-        ("fact:partners", "Partnerships and Sponsorship",
-         "Partnership, sponsorship and supplier enquiries are handled "
-         "personally by the school office rather than published on the website. "
-         "Speak to the headmistress, Mrs. Salihu Nanahawa, on 09063932487, or "
-         "send the details through the Contact page. Offers of support in kind, "
-         "such as books, furniture or fans, are listed on the Support Us page.",
-         "partner partnership sponsor sponsorship collaborate affiliate "
-         "donate donation supplier vendor ngo organisation support", "contact.html", False),
-        ("fact:multi-child", "Parents With More Than One Child",
-         "One parent account can hold several children. Register the first "
-         "child, then register the next with the same phone number and the "
-         "system asks whether it is another child for the same account, so all "
-         "the children sit under one login.",
-         "two children second child another child siblings more than one multiple", "portal/login.html", False),
+         "Use the website Request Centre to ask for a school visit, then follow the office response. Do not publish a child list, medical file or other unnecessary private information in a public message.",
+         "visit tour appointment school office request", "request-centre.html?type=school_visit", False),
+        ("fact:homework", "Homework Is Offline",
+         "Teachers may publish clear homework instructions, but the website does not accept pupil uploads or online assignment submissions. Pupils complete and return work through the school-approved offline process.",
+         "homework assignment submit upload online offline teacher", "homework.html", False),
+        ("fact:cbt", "Primary 6 Common Entrance Practice",
+         "The CBT-style activity is only for Primary 6 Common Entrance practice. It is practice, not an official examination or published result.",
+         "cbt common entrance practice primary 6 exam", "elearning.html", False),
+        ("fact:shop", "School Materials Orders",
+         "Verified school materials belong in the signed-in parent portal. Physical products use sizes or variants, real stock reservations and office collection or teacher handover after release. Unavailable items use a restock request; term fees and transport are not cart products.",
+         "shop materials uniform stock size order collection teacher handover restock", "shop.html", True),
+        ("fact:transport", "School Transport Requests",
+         "A linked parent requests transport in the signed-in portal. The school reviews route and capacity before issuing any service invoice. Transport does not change physical stock and a request does not guarantee a place.",
+         "transport route capacity request invoice linked pupil", "transport.html", True),
+        ("fact:graduates", "Graduate Hall and Graduate Wall",
+         "Graduation keeps the permanent pupil identity and history. Parents see their linked former pupils privately in Your Graduates. The public Graduate Wall shows only a consent-approved display name, graduation session and optional message.",
+         "graduate hall wall alumni consent former pupil your graduates", "alumni.html", False),
+        ("fact:birthdays", "Birthday Privacy",
+         "Birthday information is limited to authorised staff and the Headmistress. Pupil and staff birthday dates are not published on the public website.",
+         "birthday privacy staff headmistress pupil date", "birthdays.html", False),
     ]
     for fid, title, text, kw, url, need in facts:
         add(fid, title, text, kw, url, need, "fact")

@@ -15,7 +15,7 @@ The owner completed two separate read-only catalog inventories against the exist
 - 1 `public` sequence;
 - 0 Auth users and 0 Auth identities;
 - 0 Storage buckets and 0 Storage objects;
-- no secure-portal tables from migrations `202610230001` or `202610230002`.
+- no secure-portal tables from local migrations `202610230001` through `202610230004`.
 
 The owner also downloaded two private CSV rescue files directly from the Supabase Dashboard to the owner's device:
 
@@ -144,9 +144,15 @@ The reviewed migrations add, without name collision with the current tables:
 - `account_audit_log`
 - `legacy_account_mappings`
 
-They also add account/payment/admission enum types, portal authorization helpers, server-only lifecycle RPCs and RLS policies.
+The subsequent local operations and parent-linking migrations additionally add attendance, homework, result-review, website-request, verified-public-information, staff-notice, duty-roster, protected leadership-section, hash-only pupil-linking, second-parent invitation and admission-application tables plus their audit records. They add no people or school facts.
 
-No new table above currently exists in production.
+Migrations 005 and 006 add restricted parent applicants, self-registration audit hashes, exact class progression, permanent enrolment history, promotion previews, Graduate Hall/Wall, term invoices, physical catalogue variants, immutable inventory movements, procurement, stocktakes, transport capacity, fulfilment, returns/exchanges and manual bank/POS payment verification. They insert no pupil, price, bank account, route or other owner data.
+
+Migration 007 adds service-only admission tracking and manual OTP records, capability-scoped developer access, and extensions for reviewed public answers. It preserves the former tables and inserts no people, applications or operational facts.
+
+Together the seven migrations add account/payment/admission/operations types, portal authorization helpers, narrow security-definer RPCs and RLS policies.
+
+No new secure table currently exists in production.
 
 ## 6. Collision review and local correction
 
@@ -169,10 +175,11 @@ Required owner-provided facts at that later step:
 
 Do not place these values in repository files, migration SQL, chat transcripts or public deployment configuration.
 
-After the first administrator is active:
+After the owner-controlled Headmistress bootstrap and activation:
 
-- teacher accounts may be created one at a time from verified staff evidence;
-- parent accounts may be created only when the office has a verified parent and child relationship;
+- teacher accounts may be created one at a time by the Headmistress from verified staff evidence;
+- ordinary parent accounts are self-created through a school-issued `TA-LINK`, a phone-bound `TA-FAMILY`, or a restricted new-applicant route; the Headmistress does not create ordinary parent accounts;
+- a restricted applicant cannot read pupil lists, fees, bank details, shop, results or current-family records until an authorised admission creates and links one permanent pupil;
 - no pupil login is created;
 - no payment or admission event creates or activates an account.
 
@@ -183,9 +190,9 @@ The current owner CSV preservation satisfies the **current-row migration-preserv
 Before any production migration:
 
 1. regenerate and review the root `supabase-schema.sql` mirror after the legacy-function isolation correction;
-2. rerun repository security/browser tests;
-3. apply migrations only to a disposable Supabase staging project;
-4. execute the rollback-only SQL RLS/session matrix in staging;
+2. rerun the maintained repository security/browser tests;
+3. follow `supabase/release/20261024_SQL_AGENT_HANDOFF.md` and apply all seven migrations through `202610240001`, in exact order, only to a disposable Supabase staging project;
+4. execute all three rollback-only SQL RLS/session suites and the read-only postflight in staging;
 5. validate direct `auth.sessions` reads/deletes and revoked-session denial on the actual Supabase version;
 6. validate first-admin bootstrap and one fictional teacher/parent lifecycle;
 7. confirm legacy tables and all 70 preserved production rows remain unchanged by the staged migration procedure;

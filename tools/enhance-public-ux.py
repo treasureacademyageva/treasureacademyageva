@@ -6,7 +6,6 @@ import html
 import json
 import re
 from pathlib import Path
-from urllib.parse import quote
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,13 +68,13 @@ def lite_nav(rel: str) -> str:
 def primary_action(rel: str, title: str) -> tuple[str, str]:
     group = page_group(rel)
     if rel == "safeguarding.html":
-        return "Raise a concern", "https://wa.me/2349063932487?text=" + quote("Hello Treasure Academy, I need to raise a safeguarding concern privately.")
-    if rel == "contact.html" or rel == "openday.html": return "Schedule a Visit", "/contact.html#visit"
+        return "Raise a concern", "/request-centre.html?type=safeguarding"
+    if rel == "contact.html" or rel == "openday.html": return "Schedule a Visit", "/request-centre.html?type=school_visit"
     if rel == "fees.html":
-        return "Request current fees", "https://wa.me/2349063932487?text=" + quote("Hello Treasure Academy, please send the current written fee schedule.")
+        return "Request current fees", "/request-centre.html?type=fee_schedule"
     if rel.startswith("classes/"):
         label = re.sub(r"\s+—.*$", "", title)
-        return f"Ask about {label}", "https://wa.me/2349063932487?text=" + quote(f"Hello Treasure Academy, I want to ask about {label}.")
+        return f"Ask about {label}", "/request-centre.html?type=class_enquiry"
     if group == "admissions": return "Start an admission enquiry", "/admissions.html#apply"
     if group == "academics": return "Explore all classes", "/academics.html"
     if group == "fees": return "View family essentials", "/explore.html#families"
@@ -98,7 +97,7 @@ def footer() -> str:
     return '''<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid">
 <div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
 <div class="uf-col"><h2>Find it fast</h2><nav class="uf-links" aria-label="Popular pages"><a href="/admissions.html">Admissions</a><a href="/academics.html">Classes</a><a href="/fees.html">Fees</a><a href="/calendar.html">Term dates</a><a href="/uniform.html">Uniform</a><a href="/transport.html">Transport</a></nav></div>
-<div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/about.html">About the school</a><a href="/news.html">News &amp; updates</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/website-help.html">Website help</a></nav></div>
+<div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/request-centre.html">Request Centre</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/portal/login.html">Parent help</a><a href="/website-help.html">Website help</a></nav></div>
 <div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
 </div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span></div></div></footer>'''
 
@@ -196,11 +195,14 @@ for path in paths:
     if not path.exists(): continue
     rel = path.relative_to(ROOT).as_posix()
     text = path.read_text(encoding="utf-8", errors="ignore")
-    text = replace_css(text)
     if rel in SKIP_SHELL:
+        # Private developer surfaces keep their own isolated styling and never
+        # inherit the public visitor shell bundle.
+        text = re.sub(r'\s*<link\b[^>]*href=["\'][^"\']*assets/css/site\.css[^"\']*["\'][^>]*>', '', text, flags=re.I)
         text = text.replace("20261022-ux1", VERSION).replace("20261022-ux2", VERSION)
         path.write_text(text, encoding="utf-8")
         continue
+    text = replace_css(text)
 
     # The owner explicitly directed restoration of the familiar school crest
     # on 23 October 2026. Keep decorative instances silent because the adjacent
@@ -226,10 +228,12 @@ for path in paths:
     # Preserve the shared shell's current position on script-dependent core pages.
     shell_rx = r'<script\b[^>]*src=["\'][^"\']*assets/js/(?:site|public-shell)\.js[^"\']*["\'][^>]*></script>'
     insight_rx = r'\s*<script\b[^>]*src=["\'][^"\']*assets/js/visitor-insights\.js[^"\']*["\'][^>]*></script>'
+    verified_info_rx = r'\s*<script\b[^>]*src=["\'][^"\']*assets/js/verified-public-information\.js[^"\']*["\'][^>]*></script>'
     text = re.sub(insight_rx, "", text, flags=re.I)
+    text = re.sub(verified_info_rx, "", text, flags=re.I)
     text, shell_count = re.subn(shell_rx, "__UX_SHELL__", text, count=1, flags=re.I)
     text = re.sub(shell_rx, "", text, flags=re.I)
-    shell_tag = f'<script src="/assets/js/visitor-insights.js?v={VERSION}"></script>\n<script src="/assets/js/public-shell.js?v={VERSION}"></script>'
+    shell_tag = f'<script src="/assets/js/visitor-insights.js?v={VERSION}"></script>\n<script src="/assets/js/verified-public-information.js?v={VERSION}"></script>\n<script src="/assets/js/public-shell.js?v={VERSION}"></script>'
     if shell_count:
         text = text.replace("__UX_SHELL__", shell_tag, 1)
     else:

@@ -77,8 +77,13 @@ ok('structured data uses the owner-restored crest and omits unverified social pr
 ok('shared form layer supplies visible errors and invalid-state focus support',/initAccessibleForms/.test(read('assets/js/public-shell.js'))&&/aria-invalid/.test(read('assets/js/public-shell.js'))&&/field-error/.test(read('assets/css/ux.css')));
 ok('homepage and shared routes use consistent Apply and Schedule a Visit actions',/Apply for Admission/.test(read('index.html'))&&/Schedule a Visit/.test(read('index.html'))&&/Schedule a Visit/.test(read('about.html')));
 const helpPage=read('website-help.html');
-ok('visitor problem report is voluntary, category-only and opens verified WhatsApp',/Review Report in WhatsApp/.test(helpPage)&&/wa\.me\/2349063932487/.test(helpPage)&&/No report is sent automatically/.test(helpPage)&&!/<textarea/i.test(helpPage)&&!/problemDetail/.test(helpPage));
-ok('developer operations provides brand, accessibility, journey, research and agent handoff tools',['runHealth','labQuery','brandCards','a11yCards','reportCode','journeyRows','copyAgentBrief'].every(id=>read('developer-operations.html').includes(`id="${id}"`))&&/No demographic inference/.test(read('developer-operations.html')));
+ok('visitor problem report is voluntary, category-only and uses the trackable Request Centre',/Continue to the Request Centre/.test(helpPage)&&/type=website_problem/.test(helpPage)&&/No report is sent automatically/.test(helpPage)&&/taa_request_prefill/.test(helpPage)&&!/<textarea/i.test(helpPage)&&!/problemDetail/.test(helpPage));
+const developer=read('developer.html');
+const retiredOperations=read('developer-operations.html');
+ok('developer operations are consolidated behind the capability-scoped console',
+  /developer-console\.js/.test(developer)&&/Protected developer operations/.test(developer)&&
+  ['#otp','#information','#admissions','#search','#quality','#system','#release'].every(id=>developer.includes(`href="${id}"`))&&
+  /developer\.html#overview/.test(retiredOperations)&&!/developer-experience\.js/.test(retiredOperations));
 
 console.log(`\nVISITOR UX: ${passed} passed, ${failed} failed`);
 if(failed)process.exit(1);

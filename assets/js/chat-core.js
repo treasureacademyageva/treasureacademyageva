@@ -172,6 +172,25 @@
       var greet = this.smallTalk(q);
       if (greet) return greet;
 
+      /* Shared, owner-verified public facts take precedence over the legacy
+         retrieval branches. Search uses the same engine. Low-confidence
+         Search escalation remains outside this branch so the conversation can
+         still try safe KB retrieval before it offers a human/update route. */
+      if (global.TAVerifiedAnswers && typeof global.TAVerifiedAnswers.answer === "function") {
+        var verified = global.TAVerifiedAnswers.answer(q);
+        if (verified && verified.verified && verified.confidence >= 0.9) {
+          var verifiedLinks = (verified.actions || []).map(function (action) {
+            var href = String(action[1] || "");
+            if (!/^(\/|tel:)/.test(href)) return "";
+            return '<a class="chat-link" href="' + esc(href) + '">' + esc(action[0]) + '</a>';
+          }).filter(Boolean).join(" &nbsp; ");
+          this.stat("asked", q);
+          this.stat("answered", q, verified.confidence, verified.title);
+          this.pending = { kind: "feedback", question: q, title: verified.title };
+          return { type: "answer", html: "<b>" + esc(verified.title) + "</b><br>" + esc(verified.text) + (verifiedLinks ? "<br><br>" + verifiedLinks : ""), source: "Verified public information", confidence: verified.confidence, feedback: true };
+        }
+      }
+
       /* A bare "it can wait" or "yes" outside a flow is a stray chip click,
          not a question. Only treat it as such when the whole message is that
          phrase, so real questions like "is there school today" are untouched. */
@@ -510,20 +529,51 @@
       var ent = global.TAEntities ? global.TAEntities.read(q)
                                   : { intent: null, thing: null, klass: null, subject: null };
 
+      /* Current school-office controls override all preserved legacy answer
+         branches below. Never quote former browser prices, routes, rosters or
+         timetables; restore browser sign-up/checkout; or describe Primary 5 as
+         an active class. */
+      if (/\b(primary ?5|primary five|p5|basic ?5|class ?5|grade ?5)\b/.test(s)) {
+        return { html: "Treasure Academy has <b>no Primary 5</b>. The confirmed progression moves directly from <b>Primary 4 to Primary 6</b>. Ask the office about placement; do not rely on an old class page or fee list.", source: "Current class progression" };
+      }
+      if (/\b(what classes|which classes|class levels|classes (?:do|does) (?:the school|you)|after primary ?4|progression)\b/.test(s)) {
+        return { html: "The confirmed progression is <b>Creche → Pre-Nursery → Nursery 1 → Nursery 2 → Primary 1 → Primary 2 → Primary 3 → Primary 4 → Primary 6 → Graduate Hall</b>. There is no Primary 5.", source: "Current class progression" };
+      }
+      if (/\b(where (?:is|are) (?:the )?school|school (?:address|location)|how (?:do|can) i get to (?:the )?school|directions? to (?:the )?school)\b/.test(s)) {
+        return { html: "Treasure Academy is opposite <b>Morak Pure-Water Factory in Ageva, Okene, Kogi State</b>. Use the public Contact page for current directions or create a school-visit request; I will not infer a transport route from your location.", source: "Current school location" };
+      }
+      if (/\b(enrol|enroll|admission|admissions|apply|register (?:my|a) child|join (?:the )?school)\b/.test(s)) {
+        return { html: "A new family uses the <b>restricted applicant route</b> or the verified school office. Existing-pupil parents use a private <b>TA-LINK</b>, and a second parent uses the phone-bound <b>TA-FAMILY</b> invitation. The administrators decide admission; payment never approves it.", source: "Current admission and registration policy" };
+      }
+      if (/\b(homework|assignment)\b/.test(s) && /\b(online|upload|submit|send)\b/.test(s)) {
+        return { html: "The website does <b>not</b> accept pupil uploads or online assignment submissions. Teachers may publish instructions, but pupils complete and return work through the school-approved offline process.", source: "Current homework policy" };
+      }
+      if (/\b(cbt|computer based test|common entrance practice)\b/.test(s)) {
+        return { html: "The CBT-style activity is only for <b>Primary 6 Common Entrance practice</b>. It is practice, not an official examination, assignment submission or published result.", source: "Current CBT policy" };
+      }
+      if (/\b(graduate wall|graduate hall|your graduates|former pupils?|alumni)\b/.test(s)) {
+        return { html: "Graduation keeps the pupil’s permanent identity and history. Linked parents see former pupils privately in <b>Your Graduates</b>. The public Graduate Wall shows only a consent-approved display name, graduation session and optional message.", source: "Current graduate policy" };
+      }
+      if (/\b(second parent|second guardian|two parents|another parent)\b/.test(s)) {
+        return { html: "A pupil may have at most two active parents or guardians, each with a separate account. The second parent uses a phone-bound <b>TA-FAMILY</b> invitation; a name and class alone never grant access.", source: "Current family-linking policy" };
+      }
+      if (/\b(pupil list|student list|class list|show (?:me )?(?:the )?(?:pupils|students|children))\b/.test(s)) {
+        return { html: "I cannot display or suggest a pupil or class list. A name and class alone never reveal a pupil or grant access. Parents see only children linked through an approved private credential.", source: "Pupil privacy policy" };
+      }
+      if (/\b(result|results|report card|grade|score)\b/.test(s) && !/common entrance practice/.test(s)) {
+        return { html: "A signed-in parent can view <b>published results only for a verified linked pupil</b>. Payment never publishes a result, changes admission or promotion, or controls account access.", source: "Current results policy" };
+      }
+      if (/\b(fee|fees|school ?fees|price|prices|cost|how much|payment|pay|receipt|bank|account details|account number|uniform|shirt|skirt|shorts|cardigan|sandal|beret|sock|sportswear|jersey|kit|shop|order|materials?|textbook|stationery|transport|bus|pickup|pick up|fare)\b/.test(s)) {
+        return { html: "I will not quote a former price, route or bank account. Current term bills, verified materials, transport, orders and official receipts belong in the signed-in parent portal after the school publishes them.<br><br>Approved payment methods are a <b>manual bank transfer</b> or the school’s <b>physical office POS</b>. Both require authorised office verification. There is no online card form, WhatsApp is not a payment-evidence workflow, and payment never approves admission.", source: "Current payment and school-office policy" };
+      }
+
       /* Photo Day is a booking page, not a dated calendar entry - and the
          intent classifier hears "photo" and reaches for the admissions
          document list ("2 passport photographs"). Answer from the Photo
          Day page's own content, whatever the classifier thought. */
       if (/\b(photo|picture|photograph) ?days?\b/.test(s)) {
-        return { html: "Photo Day is booked on the <b>Photo Day</b> page: " +
-                       "pick a free time slot, add your child's name, class " +
-                       "and your phone number, and tap Book. Pupils come in " +
-                       "full school uniform. Photo packages are ordered on " +
-                       "the same page and paid by bank transfer, and the " +
-                       "prints are ready on photo day itself. Watch the News " +
-                       "page or ask the office on <b>" + WHATSAPP + "</b> for " +
-                       "this term's date.",
-                 source: "Photo Day page" };
+        return { html: "No current Photo Day booking or package price is published. The former browser booking was retired because it did not create a reliable school record.<br><br>Ask the office whether a date, consent process and collection arrangement has been approved before sharing a child’s photograph or paying.",
+                 source: "Current Photo Day guidance" };
       }
 
       function naira(n) {
@@ -1224,17 +1274,9 @@
          what it is, how long, what it covers, and one way in. */
       /* One parent, several children - the account model the school uses. */
       if (ent.intent === "multichild") {
-        return { html: "Yes - <b>one parent account holds all your children</b>." +
-                       "<br><br>Register the first child as normal. When you " +
-                       "register the next one, use the <b>same phone number</b> " +
-                       "and the system asks whether this is another child for " +
-                       "the same account - say yes, and they sit together under " +
-                       "one login.<br><br>" +
-                       "It works for five children as comfortably as for two, " +
-                       "and you see all their results and fees from the same " +
-                       "place. Sibling discounts may apply - ask the office on " +
-                       "<b>" + WHATSAPP + "</b>.",
-                 source: "Admissions" };
+        return { html: "Yes - <b>one parent account can hold all your linked children</b>." +
+                       "<br><br>Create the account once. Each already-enrolled child needs that child’s own private <b>TA-LINK</b> code, and each new applicant uses the admission workflow. A second parent uses a separate phone-bound <b>TA-FAMILY</b> invitation and a separate password.<br><br>No child is exposed from a name, class or public phone search.",
+                 source: "Secure parent registration" };
       }
 
       /* Things the school decides case by case and does not publish. Being
@@ -1252,47 +1294,23 @@
       }
 
       if (ent.intent === "transfer") {
-        return { html: "Transfers are welcome mid-way - plenty of pupils join " +
-                       "from other schools.<br><br>" +
-                       "Bring the <b>previous report card</b> along with the " +
-                       "usual papers: birth certificate photocopy and 2 passport " +
-                       "photographs. The report card is what lets the school " +
-                       "place your child in the right class rather than guessing." +
-                       "<br><br>Register online first, then visit within two " +
-                       "weeks with the documents. If you are unsure which class " +
-                       "your child should enter, the office will look at the " +
-                       "report card with you - <b>" + WHATSAPP + "</b>.",
+        return { html: "A routine fresh-name entry after cutover is normally <b>Creche only</b>. A child joining a higher class needs an authorised admission exception and placement review.<br><br>Create a restricted applicant account, submit the family application, and follow the office’s private instructions. Do not send results, medical records or identity documents through public chat.",
                  source: "Admissions" };
       }
 
       if (ent.intent === "afterreg") {
-        return { html: "<b>After you register online</b><br>" +
-                       "<b>1.</b> Pay the fee by bank transfer to the school " +
-                       "account.<br>" +
-                       "<b>2.</b> Visit the school <b>within two weeks</b> with " +
-                       "your receipt and the documents - birth certificate, 2 " +
-                       "passport photographs, previous report card for " +
-                       "transfers, immunisation record for Creche and Nursery.<br>" +
-                       "<b>3.</b> The office completes the admission and gives " +
-                       "you the portal login details and the start date.<br><br>" +
-                       "You can watch the status yourself by entering your " +
-                       "registration phone number on the Admissions page.",
+        return { html: "<b>After parent self-registration</b><br>" +
+                       "<b>1.</b> Sign in and submit the restricted family application.<br>" +
+                       "<b>2.</b> Track office contact, requested information, school-visit steps and the admission decision in the portal.<br>" +
+                       "<b>3.</b> If admitted, the system creates one permanent pupil identity, links the parent and starts enrolment history.<br><br>" +
+                       "Payment never approves admission, changes promotion, publishes results or controls account access.",
                  source: "Admissions" };
       }
 
       /* What to bring. Straight from the admissions page list. */
       if (ent.intent === "documents" &&
           !/\bdefine|editing|edit my|photoshop\b/.test(s)) {
-        return { html: "<b>What to bring to the school office</b><br>" +
-                       "&bull; Birth certificate (photocopy)<br>" +
-                       "&bull; 2 passport photographs<br>" +
-                       "&bull; Previous report card - for Primary transfers<br>" +
-                       "&bull; Immunisation record - for Creche and Nursery<br><br>" +
-                       "Bring them within <b>two weeks</b> of registering online, " +
-                       "together with your payment receipt, and the admission is " +
-                       "completed on the spot.<br><br>" +
-                       "The office confirms the exact list for your child's class - " +
-                       "call <b>" + WHATSAPP + "</b> if you are unsure about any of it.",
+        return { html: "The school office confirms the current document checklist privately for the child and class. Do not rely on an old fixed list or send identity, health, result or payment documents through public chat.<br><br>Use the restricted applicant portal for the family application and follow only the current office next step shown there.",
                  source: "Admissions" };
       }
 

@@ -4,7 +4,7 @@
 const DB_KEY = "treasure_db_v5";
 const SCHOOL_DEFAULTS = {
   name: "Treasure Academy, Ageva",
-  levels: "Creche • Pre-Nursery • Nursery • Primary 1–6",
+  levels: "Creche • Pre-Nursery • Nursery 1–2 • Primary 1–4 • Primary 6",
   motto: "Our God is able",
   address: "Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State",
   phone: "+234 814 194 3478",
@@ -43,7 +43,7 @@ const PUBLIC_DB = {
   whatsapp: [{id:"W1",name:"School WhatsApp",role:"Verified school office contact",phone:"2349063932487"}],
   promotions: [{id:"PR1",badge:"Admissions Open",title:"2026/2027 Admission Is On",text:"Ask the school office about places from Creche to Primary 6 and confirm every payment instruction.",cta:"Admission Details",link:"admissions.html",color:"sun"}],
   newsEvents: PUBLIC_NEWS,
-  classes: ["Creche","Pre-Nursery","Nursery 1","Nursery 2","Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","Primary 6"],
+  classes: ["Creche","Pre-Nursery","Nursery 1","Nursery 2","Primary 1","Primary 2","Primary 3","Primary 4","Primary 6"],
   calendar: [], staffWall: [], formerTeachers: [], teachers: [], pupils: [], admins: [],
   results: [], registrations: [], applications: [], graduates: [], supportPledges: [],
   testimonials: [], exams: [], shopItems: [], lostfound: [], notices: [],

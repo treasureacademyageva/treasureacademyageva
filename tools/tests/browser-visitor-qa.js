@@ -71,10 +71,9 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
  await help.click('#previewDiagnostics');
  const diagnosticText=await help.locator('#diagnosticPreview').innerText();
  ok('website problem report can preview a safe diagnostic code',/^Safe diagnostic code: TAUX2-/.test(diagnosticText));
- await help.evaluate(()=>{window.open=url=>{window.__reportUrl=url;};});
- await help.selectOption('#problemType',{label:'Writing was unclear'});await help.selectOption('#problemGoal',{label:'Fees or payment guidance'});await help.click('#problemForm button[type="submit"]');
- const reportDraft=decodeURIComponent(await help.evaluate(()=>window.__reportUrl||''));
- ok('WhatsApp report draft contains categories but no typed form details',/wa\.me\/2349063932487/.test(reportDraft)&&/Problem category: Writing was unclear/.test(reportDraft)&&/Task area: Fees or payment guidance/.test(reportDraft)&&!/I was trying to:|What happened:/.test(reportDraft));
+ await help.selectOption('#problemType',{label:'Writing was unclear'});await help.selectOption('#problemGoal',{label:'Fees or payment guidance'});await Promise.all([help.waitForURL(/request-centre\.html\?type=website_problem/),help.click('#problemForm button[type="submit"]')]);
+ const reportDraft=(await help.inputValue('[name="subject"]'))+'\n'+(await help.inputValue('[name="message"]'));
+ ok('website report carries only broad categories into the trackable Request Centre',/Website problem: Writing was unclear/.test(reportDraft)&&/Problem category: Writing was unclear/.test(reportDraft)&&/Task area: Fees or payment guidance/.test(reportDraft)&&/Safe diagnostic code: TAUX2-/.test(reportDraft)&&!/I was trying to:|What happened:/.test(reportDraft));
  const contact=await context.newPage();await contact.goto(new URL('contact.html',BASE).href,{waitUntil:'domcontentloaded'});
  await contact.click('#contactForm button[type="submit"]');await contact.waitForTimeout(80);
  ok('shared form errors identify and focus the first invalid field',await contact.locator('#contactName').getAttribute('aria-invalid')==='true'&&await contact.locator('#contactName-error',{hasText:'Complete this required field'}).count()>0&&await contact.evaluate(()=>document.activeElement&&document.activeElement.id)==='contactName');
@@ -85,15 +84,10 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
  await contact.close();
  const abandoned=await context.newPage();await abandoned.goto(new URL('contact.html',BASE).href,{waitUntil:'domcontentloaded'});await abandoned.fill('#contactName','Not retained');await abandoned.goto(new URL('about.html',BASE).href,{waitUntil:'domcontentloaded'});const abandonedJourney=await abandoned.evaluate(()=>window.TA_VISITOR_INSIGHTS&&window.TA_VISITOR_INSIGHTS.snapshot());
  ok('journey diagnostics mark an incomplete form without retaining its value',abandonedJourney&&abandonedJourney.events.some(e=>e.t==='form_abandon'&&e.form==='contact')&&!JSON.stringify(abandonedJourney).includes('Not retained'));await abandoned.close();
- const dev=await context.newPage();await dev.goto(new URL('developer-operations.html',BASE).href,{waitUntil:'domcontentloaded'});
- ok('developer studio renders brand, accessibility and journey-map evidence',await dev.locator('#brandCards .metric-card').count()>=5&&await dev.locator('#pageAuditRows tr').count()===56&&await dev.locator('#journeyRows tr').count()===5);
- ok('agent handoff contains safeguards and evidence instead of credentials',/Non-negotiable safeguards/.test(await dev.inputValue('#agentPreview'))&&/Do not fabricate school facts/.test(await dev.inputValue('#agentPreview'))&&!/github[_-]pat|password\s*=/.test(await dev.inputValue('#agentPreview')));
- await dev.locator('[data-gap]').first().selectOption({label:'Owner supplied'});ok('owner evidence decisions flow into the no-code agent handoff',/\[Owner supplied\]/.test(await dev.inputValue('#agentPreview')));
- await dev.fill('#labQuery','school charges');await dev.click('#runLab');
- ok('developer search lab explains related fee wording',await dev.locator('#labOutput',{hasText:'Fees & payments'}).count()>0);
- await dev.fill('#reportCode',diagnosticText);await dev.click('#addReport');
- ok('developer dashboard imports only safe problem diagnostics',await dev.locator('#reportStatus',{hasText:'Safe diagnostic imported'}).count()>0&&await dev.locator('.report-item').count()===1);
- await dev.click('#clearReports');
+ const dev=await context.newPage();await dev.goto(new URL('developer-operations.html',BASE).href,{waitUntil:'domcontentloaded'});await dev.waitForTimeout(150);
+ ok('retired Developer Operations redirects to the unified console',/developer\.html#overview$/.test(dev.url()));
+ ok('developer console presents capability-scoped sign-in instead of public operational data',await dev.locator('h1',{hasText:'Developer Console'}).count()===1&&await dev.locator('#developerLogin').count()===1&&await dev.locator('#otpQueue').count()===0);
+ ok('developer console keeps encrypted Review separate and lists the consolidated work areas',await dev.locator('a[href="/developer-review.html"]').count()===1&&await dev.locator('a[href="#information"]').count()===1&&await dev.locator('a[href="#release"]').count()===1);
  await dev.close();await help.close();await search.close();await context.close();
  const dark=await browser.newContext({viewport:{width:390,height:844},colorScheme:'dark'});
  for(const rel of ['index.html','fees.html','search.html']){

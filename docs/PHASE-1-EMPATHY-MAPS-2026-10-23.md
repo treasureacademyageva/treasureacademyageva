@@ -186,7 +186,7 @@ The maps use Says / Thinks / Does / Feels. They reflect common service condition
 ### Design implications
 
 - Separate payment and admission tables, forms, triggers and audit logs.
-- Webhook RPC can update only the matching Monnify payment and payment audit.
+- The historical gateway webhook RPC remains dormant and is not part of the approved manual payment workflow.
 - New auth users default to parent; admin/teacher promotion is protected.
 - Initial admin UI omits destructive deletion and emphasises status changes.
 
@@ -196,7 +196,7 @@ The maps use Says / Thinks / Does / Feels. They reflect common service condition
 
 - “Do not publish claims or media I have not verified.”
 - “Keep the site simple and maintainable.”
-- “Bank transfer remains active; Monnify must stay off until I approve it.”
+- “Manual bank transfer and the physical school-office POS both require office verification; no gateway may be activated.”
 - “I do not want private records or credentials exposed.”
 
 ### Thinks
@@ -222,5 +222,5 @@ The maps use Says / Thinks / Does / Feels. They reflect common service condition
 
 - Keep owner verification gates visible in the runbook.
 - Preserve files and restoration history; never equate “exists in repository” with “approved for publication”.
-- Separate `PORTAL_ENABLED` from both Monnify switches.
+- Keep `PORTAL_ENABLED`, `PORTAL_OFFICE_ENABLED` and all historical gateway switches separate and fail closed.
 - Require explicit owner verification and production credentials before webhook activation; expose no checkout.

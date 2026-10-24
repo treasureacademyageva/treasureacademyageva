@@ -158,14 +158,14 @@ job enquiry; "do you teach French" is not.
 
 The clearest way a bot gives itself away is losing the thread:
 
-    "How much is Primary 3?"   ->  Primary 3 is N30,000 per term.
-    "and Primary 4?"           ->  (generic Academics page)
+    "Where is my term bill?"   ->  Use the current pupil invoice in the signed-in parent portal.
+    "and transport?"           ->  (generic Academics page)
 
 `withContext()` fixes that. It remembers what the last substantive question
 was *about* - fees, timetable, lost property, results, employment - and when
-the next message is only a fragment ("and primary 4?", "what about nursery
-2", or a bare "creche?") it carries the topic forward before anything
-searches.
+the next message is only a fragment it carries the topic forward before
+anything searches. Current payment safeguards still override inherited
+context: the bot never quotes a former price, bank account or route value.
 
 Guardrails, because stale context is worse than none:
 

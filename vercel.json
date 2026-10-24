@@ -29,6 +29,11 @@
       "permanent": true
     },
     {
+      "source": "/developer-operations.html",
+      "destination": "/developer.html#overview",
+      "permanent": true
+    },
+    {
       "source": "/portal/admin.html",
       "destination": "/portal/login.html",
       "permanent": true
@@ -51,6 +56,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/portal/register",
+      "destination": "/api/portal-register"
+    },
+    {
       "source": "/api/admin/accounts",
       "destination": "/api/admin-accounts"
     },
@@ -69,6 +78,58 @@
     {
       "source": "/api/account/change-password",
       "destination": "/api/account-change-password"
+    },
+    {
+      "source": "/api/parent/pupil-match",
+      "destination": "/api/parent-pupil-match"
+    },
+    {
+      "source": "/api/parent/pupil-link",
+      "destination": "/api/parent-pupil-link"
+    },
+    {
+      "source": "/api/parent/second-invitation",
+      "destination": "/api/parent-second-invitation"
+    },
+    {
+      "source": "/api/parent/second-redemption",
+      "destination": "/api/parent-second-redemption"
+    },
+    {
+      "source": "/api/admin/pupil-link-code",
+      "destination": "/api/admin-pupil-link-code"
+    },
+    {
+      "source": "/api/public/graduates",
+      "destination": "/api/public-graduates"
+    },
+    {
+      "source": "/api/admission/track/request",
+      "destination": "/api/admission-track-request"
+    },
+    {
+      "source": "/api/admission/track/verify",
+      "destination": "/api/admission-track-verify"
+    },
+    {
+      "source": "/api/portal/admission-continuation",
+      "destination": "/api/portal-admission-continuation"
+    },
+    {
+      "source": "/api/developer/console",
+      "destination": "/api/developer-console"
+    },
+    {
+      "source": "/api/developer/otp",
+      "destination": "/api/developer-otp"
+    },
+    {
+      "source": "/api/requests",
+      "destination": "/api/website-request"
+    },
+    {
+      "source": "/api/requests/status",
+      "destination": "/api/website-request-status"
     }
   ],
   "headers": [
@@ -224,6 +285,10 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-src 'none'; media-src 'self' blob:; upgrade-insecure-requests"
         }
       ]
     },
@@ -296,6 +361,10 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'none'; media-src 'self'; upgrade-insecure-requests"
         }
       ]
     },

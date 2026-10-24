@@ -1,11 +1,11 @@
 /* Treasure Academy offline shell. Never cache private, operational or review routes. */
-const CACHE = 'treasure-v20261022-ux3';
+const CACHE = 'treasure-v20261024-secure1';
 const CORE = [
   '/', '/index.html', '/about.html', '/academics.html', '/admissions.html',
   '/contact.html', '/news.html', '/privacy.html', '/safeguarding.html', '/explore.html', '/search.html', '/404.html',
-  '/assets/css/site.css?v=20261022-ux3',
-  '/assets/js/theme-init.js?v=20261022-ux3', '/assets/js/visitor-insights.js?v=20261022-ux3',
-  '/assets/js/public-shell.js?v=20261022-ux3',
+  '/assets/css/site.css?v=20261023-design1',
+  '/assets/js/theme-init.js?v=20261023-design1', '/assets/js/visitor-insights.js?v=20261023-design1',
+  '/assets/js/public-shell.js?v=20261023-design1',
   '/assets/img/icons.svg',
   '/assets/fonts/general-sans-400.woff2', '/assets/fonts/clash-display-600.woff2'
 ];
@@ -32,6 +32,10 @@ function isPrivate(pathname) {
     pathname === '/developer-review' || pathname === '/developer-review.html' ||
     pathname === '/admission-form.html' || pathname === '/receipt.html' ||
     pathname === '/assets/js/developer-review.js' ||
+    pathname === '/assets/js/developer-console.js' ||
+    pathname === '/assets/css/developer-console.css' ||
+    pathname === '/assets/js/portal-app.js' ||
+    pathname === '/assets/css/portal.css' ||
     pathname === '/assets/js/developer-experience.js' ||
     pathname === '/assets/js/experience-audit.js' ||
     pathname === '/assets/js/content-quality.js' ||

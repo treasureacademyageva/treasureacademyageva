@@ -20,19 +20,19 @@ DESC = {
  "about.html": "Our story, mission and the people behind Treasure Academy, Ageva — a Creche to Primary 6 school serving Ageva and Okene, Kogi State.",
  "academics.html": "Phonics, mathematics, science and computer studies from Creche to Primary 6 at Treasure Academy, Ageva, Okene — how we teach and assess.",
  "admissions.html": "How to enrol your child at Treasure Academy, Ageva. Entry classes, required documents, fees and the admission steps for the 2026/2027 session.",
- "admission-form.html": "Safe admission-form guidance for Treasure Academy, Ageva — confirm the current fee and bank details with the verified school office before paying.",
+ "admission-form.html": "Safe admission-form guidance for Treasure Academy, Ageva — admission decisions stay separate from payment, and payment details appear only on an official invoice.",
  "alumni.html": "Former-pupil record requests and consent-cleared achievement updates at Treasure Academy, Ageva, with clear privacy and safeguarding boundaries.",
  "anthem.html": "The restored Treasure Academy school anthem, creed, pledge and motto, preserved from the previous website for final owner review.",
  "birthdays.html": "Staff birthday-notice guidance for Treasure Academy, Ageva. Children’s birthdays are not displayed publicly; contact the office to pass on a private greeting.",
  "board.html": "School-notice guidance for Treasure Academy, Ageva. Check published news and confirm dates, closures, deadlines and payment instructions with the office.",
  "calendar.html": "Current term-date guidance for Treasure Academy, Ageva, with verified office contacts for resumption, breaks, examinations and closing dates.",
  "careers.html": "Careers at Treasure Academy, Ageva — ask the office whether any verified vacancy is open and confirm the approved application process before sending documents.",
- "class.html": "Creche, Pre-Nursery, Nursery and Primary 1 to 6 at Treasure Academy, Ageva — what each class covers and the daily activities.",
+ "class.html": "Creche, Pre-Nursery, Nursery, Primary 1–4 and Primary 6 at Treasure Academy, Ageva — what each class covers and the daily activities.",
  "contact.html": "Call, email, WhatsApp or visit Treasure Academy, Ageva — opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.",
  "elearning.html": "Three Common Entrance-style practice questions for Primary 6 revision in Mathematics, English and Basic Science. Scores stay on the page.",
  "explore.html": "Explore every part of the Treasure Academy, Ageva website by task — admissions, classes, fees, family information, school news and support.",
  "exams.html": "Examination guidance for Treasure Academy, Ageva — ask the school for the current class timetable. Public candidate records and results are not published.",
- "fees.html": "School fee and safe-payment guidance for Treasure Academy, Ageva, with verified contacts to request current amounts and confirm bank details before transfer.",
+ "fees.html": "School fee and safe-payment guidance for Treasure Academy, Ageva: current amounts and approved bank details appear only in the signed-in portal or official invoice.",
  "holiday.html": "Holiday-learning guidance for Treasure Academy, Ageva. Ask the class teacher for current work; assignments are not submitted through the public website.",
  "homework.html": "Homework guidance for Treasure Academy, Ageva. Confirm current work with the class teacher; the public website does not accept assignment submissions.",
  "lost-found.html": "Lost-property guidance for Treasure Academy, Ageva — contact the school office to report or claim an item without publishing a child’s private details.",
@@ -45,16 +45,17 @@ DESC = {
  "pta.html": "Parents–Teachers Association information for Treasure Academy, Ageva — ask the office for the next confirmed meeting, agenda and approved contributions.",
  "reading.html": "Reading-at-home guidance from Treasure Academy, Ageva. The former device-only log and leaderboard were retired and did not create a school record.",
  "receipt.html": "Verify a Treasure Academy receipt through the school office. A public browser-only lookup cannot prove that a payment reached the school.",
+ "request-centre.html": "Send a structured request to Treasure Academy, receive a website reference and privately check its status with a tracking code.",
  "search.html": "Search the Treasure Academy, Ageva website — fees, uniform, transport, admissions, calendar and more.",
- "shop.html": "School-supply guidance for Treasure Academy, Ageva — confirm approved items, current stock, price and bank details with the office before ordering.",
+ "shop.html": "School-material ordering belongs in the signed-in parent portal, with verified stock, current prices and manually verified payment guidance.",
  "story.html": "Read the full story from Treasure Academy, Ageva, Okene — news, events and life at our school.",
- "support.html": "How to discuss a proposed contribution to Treasure Academy, Ageva safely and confirm the purpose and bank details through verified school contacts.",
+ "support.html": "How to discuss a proposed contribution safely through the website Request Centre and require official written payment instructions.",
  "testimonials.html": "Private family-feedback guidance for Treasure Academy, Ageva. Unverified sample endorsements have been removed and publication requires review and consent.",
  "transport.html": "School transport enquiry guidance for Treasure Academy, Ageva — ask the office to confirm current availability, pickup arrangements and fees.",
  "uniform.html": "Uniform guidance for Treasure Academy, Ageva — ask the office to confirm the current approved list, sizes, prices and stock before paying.",
  "volunteer.html": "Volunteer enquiries for Treasure Academy, Ageva — contact the office to discuss skills, supervision and required safeguarding checks before a visit.",
  "welcome.html": "New-family checklist for Treasure Academy, Ageva — confirm admission, start date, fees, uniform, books, transport and parent support with the office.",
- "website-help.html": "Report a missing, unclear or broken Treasure Academy website page through verified WhatsApp, with optional privacy-safe diagnostics.",
+ "website-help.html": "Report a missing, unclear or broken Treasure Academy website page through the website Request Centre, with optional privacy-safe diagnostics.",
 }
 
 DESC["news/2026-2027-admissions-open.html"] = "Treasure Academy, Ageva is receiving 2026/2027 admission enquiries from Creche to Primary 6. Follow the verified, bank-transfer-safe application steps."
@@ -75,7 +76,6 @@ for _slug, _name, _focus in [
     ("primary-2", "Primary 2", "vocabulary, multiplication and confident writing"),
     ("primary-3", "Primary 3", "reasoning, science discovery and computer skills"),
     ("primary-4", "Primary 4", "wide reading, problem solving and independent learning"),
-    ("primary-5", "Primary 5", "advanced topics, exam technique and leadership"),
     ("primary-6", "Primary 6", "Common Entrance practice and secondary-school readiness"),
 ]:
     DESC[f"classes/{_slug}.html"] = f"{_name} at Treasure Academy, Ageva — {_focus}, taught with care in Ageva, Okene, Kogi State."
@@ -181,6 +181,7 @@ def build():
         # Strip any previous pass so the script stays idempotent.
         html = re.sub(r'\n?[ \t]*<!-- seo:start -->.*?<!-- seo:end -->', "", html, flags=re.S)
         html = re.sub(r'\n?[ \t]*<meta name="description"[^>]*>', "", html)
+        html = re.sub(r'\n?[ \t]*<meta name="robots"[^>]*>', "", html)
 
         block = ["<!-- seo:start -->",
                  f'<meta name="description" content="{esc(desc)}">']
@@ -188,7 +189,7 @@ def build():
             # Private pages get the robots tag and nothing else: no canonical,
             # no og:url, no breadcrumb. Publishing the URL of a page we are
             # asking crawlers to ignore is self-defeating.
-            block.append('<meta name="robots" content="noindex, nofollow">')
+            block.append('<meta name="robots" content="noindex, nofollow, noarchive">')
             block.append("<!-- seo:end -->")
             html = insert_seo_block(html, block)
             if html is None:

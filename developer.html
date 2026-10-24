@@ -1,10 +1,63 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Internal Review Tools — Treasure Academy</title><link rel="icon" href="assets/img/logo.jpg"><style>main{max-width:760px;margin:0 auto;padding:70px 20px}.status{border:1px solid var(--line);border-radius:18px;padding:28px;background:var(--surface)}.status p{line-height:1.7}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}</style>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>Developer Console | Treasure Academy</title>
+  <link rel="icon" href="/assets/img/logo.jpg">
 
-<!-- seo:start -->
-<meta name="description" content="Internal developer console for Treasure Academy, Ageva. Private area, not for public use.">
-<meta name="robots" content="noindex, nofollow">
-<!-- seo:end -->
+  <!-- seo:start -->
+  <meta name="description" content="Internal developer console for Treasure Academy, Ageva. Private area, not for public use.">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <!-- seo:end -->
 
-<link rel="stylesheet" href="/assets/css/site.css?v=20261023-design1">
-</head><body><main><div class="status"><span class="sec-tag">Internal</span><h1>Browser Developer Console Retired</h1><p>The former client-side console was not a secure administration service and has been removed. School records, accounts, payments and operational submissions are not managed in the public browser.</p><p>Authorised corpus reviewers may use the separately encrypted review gateway and its passphrase. The gateway does not authorise model training or connect to the production website.</p><div class="actions"><a class="btn btn-mint" href="developer-review.html">Open Encrypted Review Gateway</a><a class="btn btn-white" href="developer-operations.html">Website Operations &amp; CMS Plan</a><a class="btn btn-white" href="/">Return to Website</a></div></div></main></body></html>
+  <link rel="stylesheet" href="/assets/css/developer-console.css?v=20261024-2">
+</head>
+<body>
+  <a class="skip-link" href="#developerApp">Skip to developer workspace</a>
+  <header class="dev-header">
+    <a class="dev-brand" href="/" aria-label="Treasure Academy home">
+      <img src="/assets/img/logo.jpg" width="397" height="397" alt="">
+      <span><strong>Treasure Academy</strong><small>Protected developer operations</small></span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-button" id="developerTheme" type="button" aria-label="Switch developer console colour theme" aria-pressed="false"><span>Use dark theme</span></button>
+      <button class="icon-button" id="developerSignOut" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+  <div class="dev-layout">
+    <aside class="dev-sidebar" id="developerShell" hidden>
+      <div class="identity" id="developerIdentity"><strong>Protected console</strong><span>Authorised accounts only</span></div>
+      <nav class="dev-nav" aria-label="Developer console sections">
+        <a href="#overview">Overview</a>
+        <a href="#otp">OTP inbox</a>
+        <a href="#information">Information Needed</a>
+        <a href="#admissions">Admissions</a>
+        <a href="#search">Ask &amp; Search</a>
+        <a href="#quality">Experience quality</a>
+        <a href="#system">System health</a>
+        <a href="#release">Release readiness</a>
+      </nav>
+      <div class="sidebar-actions">
+        <a class="quiet-button" href="/developer-review.html">Encrypted Review</a>
+        <a class="quiet-button" href="/portal/login.html">School portal</a>
+        <a class="quiet-button" href="/">Public website</a>
+      </div>
+    </aside>
+    <main class="dev-main">
+      <p class="console-status" id="developerStatus" role="status" aria-live="polite"></p>
+      <div id="developerApp" tabindex="-1">
+        <h1 class="sr-only">Developer Console</h1>
+        <div class="console-card"><p>Checking protected developer access…</p></div>
+      </div>
+    </main>
+  </div>
+  <footer class="dev-footer">Treasure Academy developer operations · Access is capability-scoped and audited.</footer>
+  <script src="/assets/js/content-quality.js?v=20261024-1"></script>
+  <script src="/assets/js/experience-audit.js?v=20261024-1"></script>
+  <script src="/assets/js/search-index.js?v=20261024-1"></script>
+  <script src="/assets/js/developer-console.js?v=20261024-2" defer></script>
+</body>
+</html>

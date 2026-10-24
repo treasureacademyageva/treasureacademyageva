@@ -648,7 +648,8 @@ begin
     or new.legacy_account_no is distinct from old.legacy_account_no
     or new.last_password_change_at is distinct from old.last_password_change_at
   )
-  and session_user not in ('postgres', 'supabase_admin', 'supabase_auth_admin', 'authenticator') then
+  and session_user not in ('postgres', 'supabase_admin', 'supabase_auth_admin')
+  and coalesce((select auth.role()), '') <> 'service_role' then
     raise exception 'Protected account fields require the trusted account service' using errcode = '42501';
   end if;
   return new;
@@ -753,7 +754,6 @@ drop policy if exists students_select on public.students;
 create policy students_select on public.students for select to authenticated
 using (
   (select public.is_admin())
-  or public.parent_can_access_student(id)
   or (
     public.portal_account_can_access((select auth.uid()))
     and exists (

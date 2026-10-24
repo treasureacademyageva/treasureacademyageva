@@ -129,7 +129,7 @@
  },
  {
   "q": "do you have a school bus",
-  "expect": "transport|route|bus"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "what is your pass rate",
@@ -261,7 +261,7 @@
  },
  {
   "q": "what happens in primary 5",
-  "expect": "Primary 5|exam|advanced"
+  "expect": "no Primary 5|Primary 4 to Primary 6"
  },
  {
   "q": "tell me about primary 6",
@@ -373,11 +373,11 @@
  },
  {
   "q": "how much are the fees",
-  "expect": "30,000|25,000|fee"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "how much is primary 4",
-  "expect": "35,000"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "how do i enrol my child",
@@ -393,7 +393,7 @@
  },
  {
   "q": "do you have excursions",
-  "expect": "Excursion|excursion|Primary 5"
+  "expect": "Excursion|excursion|office"
  },
  {
   "q": "is there a debate club",
@@ -413,7 +413,7 @@
  },
  {
   "q": "how much be school fee for nursery 1",
-  "expect": "25,000"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "abeg who be the head of the school",
@@ -445,7 +445,7 @@
  },
  {
   "q": "who be the teacher for primary 5",
-  "expect": "Rebeca|Omeiza"
+  "expect": "no Primary 5|Primary 4 to Primary 6"
  },
  {
   "q": "what activities does primary 6 do",
@@ -517,7 +517,7 @@
  },
  {
   "q": "do children go on trips",
-  "expect": "Excursion|excursion|Primary 5"
+  "expect": "office|current|excursion"
  },
  {
   "q": "is there a quiz competition",
@@ -541,7 +541,7 @@
  },
  {
   "q": "what is the uniform price",
-  "expect": "4,500|uniform|Shirt"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "when is the next exam",
@@ -665,43 +665,43 @@
  },
  {
   "q": "how do i verify a receipt",
-  "expect": "receipt|verify|genuine"
+  "expect": "official receipt|verify|verification"
  },
  {
   "q": "is my receipt genuine",
-  "expect": "receipt|verify"
+  "expect": "official receipt|verify|verification"
  },
  {
   "q": "how much are the school fees",
-  "expect": "30,000|25,000|fee"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "how much is creche",
-  "expect": "30,000"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "how much is nursery 1",
-  "expect": "25,000"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "how much is primary 6",
-  "expect": "35,000"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "what is the cheapest class",
-  "expect": "25,000|Nursery|Pre-Nursery|fee"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "can i pay online",
-  "expect": "bank transfer|account"
+  "expect": "manual bank transfer|physical office POS|no online card"
  },
  {
   "q": "do you accept cash",
-  "expect": "bank transfer|office|account"
+  "expect": "manual bank transfer|physical office POS|office"
  },
  {
   "q": "do i get a receipt after paying",
-  "expect": "receipt"
+  "expect": "official receipt|verify|verification"
  },
  {
   "q": "is there a discount for two children",
@@ -717,7 +717,7 @@
  },
  {
   "q": "how much is the uniform",
-  "expect": "4,500|uniform|Shirt"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "where do we buy uniforms",
@@ -725,7 +725,7 @@
  },
  {
   "q": "how much are the books",
-  "expect": "4,500|3,500|textbook|shop"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "is transport included in the fees",
@@ -733,7 +733,7 @@
  },
  {
   "q": "how much is the school bus",
-  "expect": "5000|6000|3000|route"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "what ages do you accept",
@@ -857,7 +857,7 @@
  },
  {
   "q": "which class cheap pass",
-  "expect": "25,000|lowest|Nursery"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "i wan complain about something",
@@ -869,7 +869,7 @@
  },
  {
   "q": "how i go check if my receipt na real one",
-  "expect": "receipt|verify|Receipt"
+  "expect": "official receipt|verify|verification"
  },
  {
   "q": "how far my application",
@@ -917,11 +917,11 @@
  },
  {
   "q": "how much for primary 2 and primary 5 together",
-  "expect": "30,000|35,000|fee"
+  "expect": "no Primary 5|Primary 4 to Primary 6"
  },
  {
   "q": "what is the total cost for creche",
-  "expect": "30,000|Creche"
+  "expect": "former price|signed-in parent portal|office|current"
  },
  {
   "q": "can i visit before i register",

@@ -8,6 +8,30 @@
 > drift apart.
 
 
+## 24 October 2026 — production schema installed; code release pending
+
+The owner authorised the existing Supabase project directly. All seven migrations are now recorded in production and the read-only postflight passed. Every one of the 25 former table counts remained unchanged (70 total rows), Auth remains empty, all release-marker tables and critical indexes are present, RLS/function grants passed, and Auth/database/REST/Storage remained healthy. No private data was imported, no account or developer capability was created, and every application/runtime gate remains off. Evidence: `supabase/release/20261024_PRODUCTION_SQL_EXECUTION_EVIDENCE.md`.
+
+This current status supersedes the earlier historical statements below that production SQL had not yet run. The source commit/push/deployment is the next separately recorded operation.
+
+## 23 October 2026 — School Office Operations Programme (local, inactive)
+
+Migrations 005 and 006, parent self-registration, permanent enrolment history, the exact no-Primary-5 progression, promotion previews, Graduate Hall/consent-reviewed Graduate Wall, term invoices, physical inventory, procurement, fulfilment, transport, returns/exchanges and manual bank/physical-office-POS verification are implemented locally. Ordinary parents self-register using `TA-LINK`, phone-bound `TA-FAMILY` or a restricted applicant route; the Headmistress provisions staff, not ordinary parents. No payment gateway, online card form, card-data storage or WhatsApp payment-evidence workflow is part of the approved design. See `docs/SCHOOL-OFFICE-OPERATIONS-PROGRAMME-2026-10-23.md`.
+
+No commit, push, deployment, production SQL, real-data import or gate activation was performed for this programme. `PORTAL_REGISTRATION_ENABLED`, `PORTAL_OFFICE_ENABLED` and `PUBLIC_GRADUATE_WALL_ENABLED` remain fail-closed in addition to all earlier gates.
+
+## 23 October 2026 — staff operations and Website Request Centre implementation
+
+The approved teacher/administrator programme is implemented on the protected branch, including the mobile four-image gallery, independent Headmistress/Assistant scope, leadership My Class workspaces, attendance, offline homework, CA1 20 + CA2 20 + Exam 60 result workflow, Operations Inbox, admission/payment/publication separation, bank-transfer verification, staff information, protected historical Headmistress sections and supporting audits. Structured school-number WhatsApp drafts now route to the website Request Centre; generic WhatsApp remains. Public/staff requests receive a database reference plus one-time private tracking code, of which only a hash is stored. See `docs/STAFF-OPERATIONS-AND-REQUEST-CENTRE-2026-10-23.md`.
+
+No production SQL, Auth account, portal/request/public-information/parent-linking activation or deployment has occurred. Migrations 001–004, live RLS/session validation, owner-controlled account provisioning and each environment gate remain separate safety steps.
+
+## 23 October 2026 — parent–pupil linking implementation
+
+The owner approved and authorised local implementation of the complete parent-linking design after the teacher/administrator build. Existing pupils are added class by class and remain distinct from new admission applicants. A parent types the registered pupil name after choosing a class; the website never displays a pupil-name list. A candidate match shows a limited green confirmation, but private access requires a school-issued, hashed, single-use pupil-linking code. A successful code check links automatically without a second manual approval. A pupil may have at most two independently authenticated parent/guardian accounts; the first may share a separate, expiring second-parent invitation, never the original code. Linking happens once and future access uses normal phone/password sign-in. See `docs/APPROVED-PARENT-PUPIL-LINKING-DESIGN-2026-10-23.md`.
+
+Migration 004, same-origin server Functions and the parent/admin workspaces implement linking locally behind `PARENT_LINKING_ENABLED`. Migration 005 supersedes the account-first part of this earlier design: ordinary parents now self-register with a valid private credential, while genuinely new families receive restricted applicant access. There is still no name/class-only access or pupil login. Nothing has been migrated, activated, populated with real pupils or deployed.
+
 ## 23 October 2026 — owner-directed familiar design restoration
 
 The owner explicitly requested restoration of the familiar crest, imagery and visual richness before teacher/administrator work continues. Public navigation, footer and portal entry now use `assets/img/logo.jpg`; the homepage/About/News visual sections and portal illustration are restored without undoing the secure portal foundation. Large earlier-site visuals are described as illustrations rather than verified current campus photography. Images visibly naming other schools remain excluded. See `docs/DESIGN-RESTORATION-2026-10-23.md`. The account Function entry points were also changed to fail closed before loading Supabase dependencies when portal accounts are disabled.
@@ -41,13 +65,13 @@ Batch 43 additions (owner-directed): "Treasure Sans" (Sora-based) + "Treasure Se
 - Data-truth asserts retire whenever owner changes data (b8 T007 Nursery 1, b9 Aunty Rafatu votes, b14 sort order = Creche first/Bose last, b40/b41 wall semantics).
 
 ## Owner standing rules (short list)
-Real data from owner only (never invent names/dates); WhatsApp 09063932487 only; no online assignment submission; birthdays staff+headmistress only; CBT only as Primary 6 CE practice; professional look, no pills nav, no hamburger (sidebars OK desktop); day+dark token colors; payments = bank transfer to school account; keep site simple — delete unneeded files; suggestions each round (owner approves/rejects each).
+Real data from owner only (never invent names/dates); WhatsApp 09063932487 only; no online assignment submission; birthdays staff+headmistress only; CBT only as Primary 6 CE practice; professional look, no pills nav, no hamburger (sidebars OK desktop); day+dark token colors; payments = manually verified bank transfer or in-person physical school-office POS, with no online card form or WhatsApp payment evidence; keep site simple — delete unneeded files; suggestions each round (owner approves/rejects each).
 
 ## Open items for next rounds
 - Shaibu Memunat (11th name on staff filing) — no role/quals given; owner must send details → add to staffWall (suggested Nursery 2).
 - CE 2025 score rows for Itofa, Muhammed Kausara, Onimisi were blurry — correct on owner's clearer photo.
 - Purge round 2 still unanswered (admin tabs to remove, owner replies numbers).
-- BACKLOG: private Supabase, Moniepoint backend, map lat/long (ask owner), tour video, custom domain, TREASURE COLLEGE naming phase, absent-alert automation (backend phase).
+- BACKLOG: map latitude/longitude (ask owner), tour video, custom domain, TREASURE COLLEGE naming phase and absent-alert automation. The former Moniepoint idea is superseded and must not be reactivated.
 - OWNER_IMAGES: upload real staff/group photos → drop into teacher profiles + staff group slot (class-feature.jpg currently a Kogi public-school news photo from kogireports.com).
 
 
@@ -195,7 +219,7 @@ Still intentionally parked: current-session/news archive restructure; self-hosti
 - All 37 root pages with `#siteFooter` now ship substantive static footer navigation, verified contact details, Privacy/Safeguarding links, and **Treasure Academy Ageva Limited · RC 9634403**. JavaScript enhances this to the richer footer while retaining Quick Links. Birthdays is included so every intended root public page is reachable from the homepage in no more than three static-link clicks.
 - Added the approved information-architecture cross-links: Admissions → Fees/Uniform/Transport; Academics → Exams/Homework/E-Learning; About → Careers/Volunteer/Board/Anthem/Support; News → Calendar/event pages/Poster/Birthdays. `poster.html` is no longer orphaned.
 - The paid public `admission-form.html` is now indexable and included in `sitemap.xml`; receipt/search/story/developer/404 remain outside the sitemap as appropriate.
-- Fees has a visible no-JS fallback that tells parents to confirm the current bank account via the verified school Call line **+234 814 194 3478** or WhatsApp **09063932487**. No bank name, holder or number was invented. Verified live data can still replace the fallback at runtime.
+- Fees has a visible no-JS fallback that directs parents to the private portal or official invoice for approved bank details, or to the physical school-office POS. WhatsApp remains ordinary contact only and is not payment evidence. No bank name, holder or number was invented.
 - Corrected headings on Academics, E-Learning, Welcome, Anthem and portal login. Login now has exactly one H1 (`School Portal — Login`), New Registration is H2, checks use the SVG system, and the username/password fields support password managers.
 - Migrated the targeted static inline styling into reusable `.u51-*` classes and normalized those rules to existing design tokens; genuine content emoji on the audited pages were removed/replaced with sprite icons. Dynamic width/height and state styles were kept where they are data-driven.
 - Reveal animation now follows progressive enhancement: content is visible by default when JavaScript is disabled; the synchronous theme bootstrap adds `.js` before CSS paints so enhanced reveal motion still works when scripts run.
@@ -227,3 +251,14 @@ Still intentionally parked: current-session/news archive restructure; self-hosti
 - Evidence: production audit 16/16; Visitor UX 45/45; browser QA 1,424/1,424; automated accessibility 58/58 light pages and 4/4 representative dark pages with no serious/critical findings. Experience audit covers 56 pages; 55/56 are within two actions and only the intentional 404 is unreachable.
 - Full review: `docs/BRAND-JOURNEY-ACCESSIBILITY-REVIEW-2026-10-22.md`. Owner evidence checklist: `docs/OWNER-BRAND-EVIDENCE-CHECKLIST-2026-10-22.md`.
 - The owner explicitly asked to push and make this release live. A personal access token was pasted into chat and is compromised; it must be revoked and must not be used. Deployment remains pending a secure GitHub connection or a fresh credential entered outside chat.
+
+## Protected-console and admission-tracking release (24 Oct 2026 — schema installed, code deployment pending)
+
+- `developer.html` is now the intended authenticated, capability-scoped operations console. `developer-operations.html` is a compatibility redirect. `developer-review.html` remains a separate AES-encrypted/passphrase boundary; there is no password bypass.
+- Migration `202610240001_admission_tracking_developer_operations_and_answers.sql` adds explicit developer capabilities, the encrypted manual OTP queue, code-free audit events, opaque post-login continuations, parent-safe active-application projection and the extended verified-public-information registry.
+- Admission tracking uses the registered phone only. A requester chooses WhatsApp or SMS and confirms WhatsApp availability when relevant. The server keeps one five-minute code per phone/purpose, invalidates earlier codes, rate-limits requests and attempts, and encrypts the delivery payload. An authorised dispatcher may reveal it once; that server payload is destroyed in the reveal transaction. The console clears its page copy rapidly and provides a user-gesture clipboard overwrite.
+- Lightweight tracking returns only unlinked new-pupil applications. It never joins pupil/guardian/result/fee data. Converted applications receive opaque short-lived tokens kept in browser session storage, never a URL. The particular admitted applicant and private next step appear only after the same parent completes full phone/password portal sign-in.
+- Public Search now uses `verified-answer-engine.js`: owner-confirmed answer first, related page matches second, and a structured “Ask the school to add or update it” request when confidence is low. `chat-core.js` gives the same verified facts precedence while the legacy corpus remains under review.
+- New gates are fail-closed: `ADMISSION_TRACKING_ENABLED` and `DEVELOPER_CONSOLE_ENABLED`. New secrets are server-only: `ADMISSION_OTP_HASH_PEPPER` and `ADMISSION_OTP_ENCRYPTION_KEY`, each at least 32 random characters. This workflow has no SNS or AWS dependency.
+- Owner/DB operator must explicitly provision each row in `developer_capabilities`; administrator role alone is insufficient. The schema is installed, but no account, capability or runtime gate has been activated.
+- Final local re-audit evidence is recorded in `docs/LOCAL-RELEASE-VERIFICATION-2026-10-24.md`; completed production SQL evidence is in `supabase/release/20261024_PRODUCTION_SQL_EXECUTION_EVIDENCE.md`. The staging handoff remains a future reusable template and is not the governing record for this completed production migration.

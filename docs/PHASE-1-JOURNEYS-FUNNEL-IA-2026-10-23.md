@@ -14,7 +14,7 @@
 | Does payment mean admission? | a payment step can feel like acceptance | payment and admission are visibly separate; admin records the decision | separate enums/tables/forms/audit; webhook cannot update students |
 | Can I see my child’s record? | old browser-only portal was not shared secure data | school-issued Supabase account; parent sees linked child only | auth session + RLS parent link |
 | Can staff see every child? | browser role controls can be bypassed | teachers see only matching active class/subject assignments | RLS helper checks assignments |
-| Is online checkout available? | Monnify code can be mistaken for an active payment promise | no checkout exists; webhook returns 404 unless both activation switches are true | environment gate and bank-transfer-only UI |
+| Is online checkout available? | Monnify code can be mistaken for an active payment promise | no checkout is approved; the dormant historical webhook remains inaccessible | fail-closed environment gates and manual-payment UI |
 | Was my report sent? | hand-off links can imply automatic submission | interface states that WhatsApp/call is a hand-off and the user completes it | transparent copy; no delivery claim |
 
 ## 2. Journey A — prospective parent
@@ -49,7 +49,7 @@
 |---|---|---|---|---|
 | 1. Discover | opens homepage/landing page | wrong-school doubt; slow page; unclear location | immediate text identity; static fast page; canonical domain | page reached (aggregate only if analytics is later verified) |
 | 2. Consider | reviews classes, mission, safeguarding, activities | generic claims; unverified imagery; missing class fit | verified facts only; class routes; visit CTA | clicks class, safeguarding or visit route |
-| 3. Understand cost | opens Fees | stale amount fear; hidden extras; unsafe bank instruction | current-status labels; office confirmation; bank-transfer-only statement | Fees route reached |
+| 3. Understand cost | opens Fees | stale amount fear; hidden extras; unsafe bank instruction | current-status labels; office confirmation; manual bank-transfer/physical-POS statement | Fees route reached |
 | 4. Prepare | opens Admissions/requirements | too many documents; unclear sequence; mobile scroll | short checklist and staged next steps | Admissions route reached |
 | 5. Enquire/visit | calls or opens WhatsApp | no reply expectation; fear of oversharing | verified channel; minimal first-message guidance; schedule-visit option | hand-off chosen; never claim message delivery |
 | 6. Apply | obtains/returns approved form | fake online submission; uncertain record receipt | office-confirmed process; no claim of online submission | admin records application outside public site |
@@ -63,7 +63,7 @@
 - No public form is described as submitting an admission to the school unless a verified server workflow exists.
 - No browser receipt page proves that funds reached the school.
 - No webhook, payment status or bank reference changes admission status.
-- Monnify checkout remains absent; its webhook is a dormant server scaffold.
+- No gateway checkout is approved; the historical Monnify webhook scaffold remains dormant and must not be activated.
 - Raw searches, names, phone numbers, child records, passwords, payment information and form values are excluded from insights.
 
 ## 4. Journey C — current parent
@@ -71,7 +71,7 @@
 ### Future state
 
 1. Opens Portal in one click from public navigation.
-2. Sees bank-transfer-only and no-auto-admission statements before sign-in.
+2. Sees manual bank-transfer/physical-office-POS, manual-verification and no-auto-admission statements before sign-in.
 3. Signs in with a school-issued account; no public sign-up and no pupil account.
 4. Sees only linked children.
 5. Opens published Results or Payments using consistent portal navigation.
@@ -127,7 +127,7 @@
 
 ### Secondary layer — decision support
 
-- Academics and classes (Creche, Pre-Nursery, Nursery 1–2, Primary 1–6)
+- Academics and classes (Creche, Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6)
 - About, mission/vision and school story
 - Activities, events and notices
 - Safeguarding and privacy

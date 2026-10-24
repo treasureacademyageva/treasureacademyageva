@@ -135,7 +135,7 @@ async function authenticate(request, adminRequired) {
   const [{ data: profile, error: profileError }, { data: sessionIsCurrent, error: sessionError }] = await Promise.all([
     adminClient
       .from('profiles')
-      .select('id,role,active,account_status,must_change_password')
+      .select('id,role,leadership_scope,active,account_status,must_change_password')
       .eq('id', data.user.id)
       .single(),
     adminClient.rpc('server_validate_portal_session', {
@@ -149,6 +149,7 @@ async function authenticate(request, adminRequired) {
 
   if (adminRequired && !(
     profile.role === 'admin'
+    && profile.leadership_scope === 'headmistress'
     && profile.active === true
     && profile.account_status === 'active'
     && profile.must_change_password === false
@@ -199,15 +200,15 @@ export async function handleCreateAccount(request) {
 
   const fullName = cleanText(body.fullName, 120);
   const phone = normalizeNigerianPhone(body.phone);
-  const role = body.role === 'parent' || body.role === 'teacher' ? body.role : null;
+  // Ordinary parent accounts are never created by administrators. Parents use
+  // the self-registration routes with a private pupil/family credential, or a
+  // restricted new-admission applicant account. This endpoint provisions staff.
+  const role = body.role === 'teacher' ? 'teacher' : null;
   const legacySource = body.legacySource ? cleanText(body.legacySource, 80) : null;
   const legacyAccountNo = body.legacyAccountNo ? cleanText(body.legacyAccountNo, 120) : null;
   const studentIds = Array.isArray(body.studentIds) ? [...new Set(body.studentIds)] : [];
-  if (!fullName || !phone || !role || studentIds.length > 20 || studentIds.some((id) => !UUID.test(String(id)))) {
-    return jsonResponse(400, { error: 'Check the verified name, Nigerian phone, role and linked pupils.' });
-  }
-  if (role === 'teacher' && studentIds.length) {
-    return jsonResponse(400, { error: 'Teacher accounts cannot be linked as caregivers.' });
+  if (!fullName || !phone || !role || studentIds.length || studentIds.some((id) => !UUID.test(String(id)))) {
+    return jsonResponse(400, { error: 'Enter the verified staff name and Nigerian phone. Parent accounts must self-register.' });
   }
 
   const temporaryPassword = generateTemporaryPassword();

@@ -56,7 +56,7 @@ For each admissions guide, fee schedule, calendar, uniform list or prospectus, p
 - intended public page;
 - confirmation that it contains no pupil, applicant, staff, bank-account or other private record that should not be public.
 
-Payments remain bank-transfer-only after office confirmation. A public document must not create a checkout, browser receipt or payment-success claim.
+Payments use manual bank transfer or the physical school-office POS after office confirmation. A public document must not create a checkout, card-data form, WhatsApp payment-evidence workflow, browser receipt or unverified payment-success claim.
 
 ## 5. Current school information
 

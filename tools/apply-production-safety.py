@@ -28,11 +28,11 @@ def sanitise_store() -> None:
     s = replace_once(s, r"    admins: \[.*?\n    \],\n    teachers: \[.*?\n    \],\n    formerTeachers:", "    admins: [],\n    teachers: [],\n    formerTeachers:", "account seeds")
     s = replace_once(s, r"    pupils: \[.*?\n    \],\n    duty:", "    pupils: [],\n    duty:", "pupil seeds")
     s = replace_once(s, r"    promotions: \[.*?\n    \],\n    newsEvents:", '''    promotions: [
-      {id:"PR1", badge:"Admissions Open", title:"2026/2027 Admission Is On", text:"Creche, Pre-Nursery, Nursery and Primary forms are available through the school office. Confirm every payment instruction using the verified Call or WhatsApp line.", cta:"Admission Details", link:"admissions.html", color:"sun"}
+      {id:"PR1", badge:"Admissions Open", title:"2026/2027 Admission Is On", text:"Creche, Pre-Nursery, Nursery and Primary admission enquiries use the restricted applicant route or school office. Pay only from an official invoice; WhatsApp is not payment evidence.", cta:"Admission Details", link:"admissions.html", color:"sun"}
     ],
     newsEvents:''', "promotions")
     s = replace_once(s, r"    newsEvents: \[.*?\n    \],\n\n    practiceQuestions:", '''    newsEvents: [
-      {id:"NEA26", type:"news", title:"2026/2027 Admissions Are Open", date:"2026-09-15", image:"assets/img/hero-kids.png", videoUrl:"", views:0, likes:0, images:[], text:"Admissions are open from Creche to Primary 6. Contact the verified school office before paying.", story:"Admissions for the 2026/2027 academic session are open from Creche to Primary 6. Contact the school on 0814 194 3478 or the verified WhatsApp line 0906 393 2487 to confirm the current form fee, required documents and bank details before making a transfer. Visit the school office in Ageva to complete the official process."}
+      {id:"NEA26", type:"news", title:"2026/2027 Admissions Are Open", date:"2026-09-15", image:"assets/img/hero-kids.png", videoUrl:"", views:0, likes:0, images:[], text:"Admissions are open from Creche to Primary 6. Use the restricted applicant route or verified office before acting.", story:"Admissions for the 2026/2027 academic session are open from Creche to Primary 6. Use the restricted applicant route or website Request Centre to confirm the current form and required documents. Payment details appear only on an official invoice, and payment never approves admission. Visit the school office in Ageva when instructed."}
     ],
 
     practiceQuestions:''', "news seed")

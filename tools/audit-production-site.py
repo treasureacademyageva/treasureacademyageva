@@ -156,8 +156,9 @@ def main():
     # Required architecture and content.
     for p in CORE:
         if p not in docs:fail(f'missing core page {p}')
-    for slug in ('creche','pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-5','primary-6'):
+    for slug in ('creche','pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-6'):
         if f'classes/{slug}.html' not in docs:fail(f'missing static class page {slug}')
+    if 'classes/primary-5.html' in docs:fail('Primary 5 must not be published as an active class page')
     if 'news/2026-2027-admissions-open.html' not in docs:fail('missing crawlable admissions article')
     index=(ROOT/'index.html').read_text()
     if 'id="quickAnswers"' not in index:fail('home page missing quick-answer section')
@@ -227,7 +228,8 @@ def main():
         if parsed.scheme!='https' or parsed.netloc!='www.treasureacademyageva.com':fail(f'sitemap uses non-canonical host or scheme: {loc}')
         rel=unquote(parsed.path).lstrip('/') or 'index.html'
         if not (ROOT/rel).is_file():fail(f'sitemap URL has no deployable file: {loc}')
-    required_sitemap_paths={f'classes/{name}.html' for name in ('creche','pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-5','primary-6')}
+    required_sitemap_paths={f'classes/{name}.html' for name in ('creche','pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-6')}
+    if 'classes/primary-5.html' in {urlsplit(loc).path.lstrip('/') for loc in locs}:fail('sitemap must not publish Primary 5')
     required_sitemap_paths.add('news/2026-2027-admissions-open.html')
     actual_paths={urlsplit(loc).path.lstrip('/') for loc in locs}
     for rel in sorted(required_sitemap_paths-actual_paths):fail(f'sitemap nested path missing: {rel}')

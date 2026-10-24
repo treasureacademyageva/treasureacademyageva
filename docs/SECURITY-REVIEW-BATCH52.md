@@ -1,7 +1,9 @@
 # Batch 52 focused security review
 
+> **Historical review — superseded for current operations.** The approved payment methods are now manually verified bank transfer or in-person physical school-office POS. Parent access uses the new server-authenticated, RLS-protected portal design; former browser-only portal and shop behavior must not be restored. See `docs/SCHOOL-OFFICE-OPERATIONS-PROGRAMME-2026-10-23.md`.
+
 Date: 29 September 2026  
-Scope approved by owner: retain the portal, read-only Supabase content layer and Treasure Support chatbot; fix confirmed exposure and document the remaining boundary.
+Historical scope: retain the then-current portal, read-only Supabase content layer and Treasure Support chatbot; fix confirmed exposure and document the remaining boundary.
 
 ## Executive decision
 
@@ -43,7 +45,7 @@ No public or portal page now renders bank name, account number or holder from br
 - Call: `+234 814 194 3478`
 - WhatsApp: `09063932487`
 
-Shop checkout is bank-transfer only; the stale POS option was removed to match the owner rule.
+This historical review disabled the former browser checkout. The current approved design instead supports manually reviewed bank-transfer notifications and separately recorded in-person physical office-POS payments inside the protected portal; neither is an online checkout.
 
 ### 5. Response headers — strengthened
 

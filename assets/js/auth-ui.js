@@ -252,8 +252,8 @@
         '<div class="fld"><label for="taRclass">Class applying for</label>' +
           '<select id="taRclass" required>' +
             "<option value=''>Select a class</option>" +
-            ["Creche", "Nursery 1", "Nursery 2", "Primary 1", "Primary 2",
-             "Primary 3", "Primary 4", "Primary 5", "Primary 6"]
+            ["Creche", "Pre-Nursery", "Nursery 1", "Nursery 2", "Primary 1", "Primary 2",
+             "Primary 3", "Primary 4", "Primary 6"]
               .map(function (c) { return "<option>" + c + "</option>"; }).join("") +
           "</select></div>" +
         '<button class="ta-btn" type="submit">Continue</button>' +

@@ -22,7 +22,13 @@ async function handle(request) {
     return json(200, { enabled: false });
   }
 
-  return json(200, { enabled: true, url, publishableKey });
+  return json(200, {
+    enabled: true,
+    url,
+    publishableKey,
+    registrationEnabled: process.env.PORTAL_REGISTRATION_ENABLED === 'true',
+    officeEnabled: process.env.PORTAL_OFFICE_ENABLED === 'true'
+  });
 }
 
 export default { fetch: handle };

@@ -150,17 +150,20 @@
 
   var ANSWERS = {
     location:{title:"Treasure Academy is in Ageva, Okene",text:"The campus is opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State. Call before visiting, especially during holidays or breaks.",actions:[["Plan a visit","contact.html#visit"],["Call the school","tel:+2348141943478"]]},
-    admissions:{title:"Start admission through the verified school office",text:"The school serves Creche, Pre-Nursery, Nursery 1–2 and Primary 1–6. Confirm availability, documents and bank details before paying.",actions:[["Admission steps","admissions.html#apply"],["WhatsApp admissions","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20I%20want%20to%20ask%20about%20admission."]]},
+    admissions:{title:"Start admission through the verified school office",text:"The school serves Creche, Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6. Confirm availability and documents with the office; payment details appear only in the signed-in portal or official invoice.",actions:[["Admission steps","admissions.html#apply"],["Create an admission request","request-centre.html?type=admission"]]},
     fees:{title:"Request the current written fee schedule",text:"Fees depend on class and term. Ask the verified office for the written schedule and confirm the bank account before transferring.",actions:[["Fee guidance","fees.html"],["Request current fees","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20please%20send%20the%20current%20written%20fee%20schedule."]]},
     contact:{title:"Use a verified school contact",text:"Call +234 814 194 3478, WhatsApp 09063932487, or email treasuregroupofschool@gmail.com. You must tap Send in the chosen service.",actions:[["Contact options","contact.html"],["Call now","tel:+2348141943478"]]},
-    classes:{title:"Classes run from Creche to Primary 6",text:"Explore Creche, Pre-Nursery, Nursery 1–2 and Primary 1–6. The office confirms placement and availability.",actions:[["Explore classes","academics.html"],["Ask about a class","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20I%20want%20to%20ask%20about%20a%20class."]]},
-    records:{title:"Use the secure parent and staff portal",text:"Parents with a school-issued account can view linked children, published results and payment records. Staff access is limited by role and class assignment. If secure login is not yet active, contact the verified office.",actions:[["Secure portal","portal/login.html"],["WhatsApp the office","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20I%20need%20parent%20support%20with%20a%20private%20school%20record."]]},
+    classes:{title:"Classes run from Creche to Primary 6",text:"Explore Creche, Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6. The office confirms placement and availability.",actions:[["Explore classes","academics.html"],["Ask about a class","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20I%20want%20to%20ask%20about%20a%20class."]]},
+    records:{title:"Use the secure parent and staff portal",text:"Parents with a school-issued account can view linked children, published results and payment records. Staff access is limited by role and class assignment. If secure login is not yet active, contact the verified office.",actions:[["Secure portal","portal/login.html"],["Create an account-help request","request-centre.html?type=account_help"]]},
     time:{title:"Published school-day guidance",text:"The published guidance is Monday to Friday, 7:30am–3:00pm. Confirm holiday, break and special-day arrangements before visiting.",actions:[["Visit information","contact.html#visit"],["Calendar guidance","calendar.html"]]},
     safety:{title:"Raise a safeguarding concern promptly",text:"Speak to the Headmistress or a teacher, call the school, or use verified WhatsApp. Do not place a child’s sensitive information in public search.",actions:[["Safeguarding guidance","safeguarding.html"],["Call the school","tel:+2348141943478"]]},
     website:{title:"Get help with the website",text:"If a page is unclear, missing or not working, send a voluntary problem report. The report can include safe device and page diagnostics, never form values or raw search text.",actions:[["Report a website problem","website-help.html"],["Browse all pages","explore.html"]]}
   };
   var ANSWER_ORDER = ["safety","records","fees","admissions","location","time","classes","contact","website"];
   function directAnswer(query) {
+    if (window.TAVerifiedAnswers && typeof window.TAVerifiedAnswers.answer === "function") {
+      return window.TAVerifiedAnswers.answer(query);
+    }
     var analysis = analyze(query), ids = analysis.families.map(function (family) { return family.id; });
     if (ids.indexOf("safety") >= 0 && /\b(safe|safety|safeguard|protect|bully|bullying|abuse|neglect|harm|welfare|concern)\b/i.test(query)) return ANSWERS.safety;
     if (ids.indexOf("records") >= 0) return ANSWERS.records;
@@ -194,7 +197,7 @@
     if (q.length < 2) status.textContent = "Popular destinations";
     else {
       var understood = family ? "Related topic: " + family.label + ". " : "";
-      status.textContent = understood + (answer ? "Direct answer plus " : "") + ranked.length + " useful page" + (ranked.length === 1 ? "" : "s") + ".";
+      status.textContent = understood + (answer ? (answer.verified ? "Verified answer plus " : "Safe next step plus ") : "") + ranked.length + " useful page" + (ranked.length === 1 ? "" : "s") + ".";
     }
     if (submitted && q.length >= 2 && window.TA_VISITOR_INSIGHTS) {
       TA_VISITOR_INSIGHTS.record(previousSearch ? "search_refine" : "search", {family:currentFamily,resultCount:ranked.length,hasAnswer:!!answer});
@@ -236,4 +239,13 @@
     if (location.search) history.replaceState(null, "", "search.html");
   } catch (error) {}
   run(initial, false, !!initial);
+  if (window.TAVerifiedAnswers && typeof window.TAVerifiedAnswers.load === "function") {
+    fetch('/api/public-information', {headers:{Accept:'application/json'},cache:'no-store'})
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (payload) {
+        if (!payload || !Array.isArray(payload.items)) return;
+        window.TAVerifiedAnswers.load(payload.items);
+        renderResults(input.value.trim(), false);
+      }).catch(function () {});
+  }
 })();

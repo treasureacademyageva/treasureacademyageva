@@ -46,7 +46,7 @@ test('gateway is noindex, unlisted and exposes required review controls', () => 
   }
   assert.doesNotMatch(read('sitemap.xml'), /developer-review/);
   assert.match(read('robots.txt'), /Disallow: \/developer-review\.html/);
-  assert.match(read('developer.html'), /href=["']developer-review\.html["']/);
+  assert.match(read('developer.html'), /href=["']\/?developer-review\.html["']/);
 });
 
 test('browser controller keeps review decisions hash-bound and grants no training approval', () => {

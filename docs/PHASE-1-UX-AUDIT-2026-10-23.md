@@ -58,7 +58,7 @@ Evaluation combined repository inspection, responsive page review, keyboard/acce
 
 - Keep Fees, Portal, Admissions and Contact in persistent navigation and portal utility navigation.
 - Keep Apply Now and Schedule a Visit in early public-page action groups.
-- Show bank-transfer-only and payment/admission separation before a parent enters the portal.
+- Show manual bank transfer or physical school-office POS, office verification and payment/admission separation before a parent enters the portal.
 - Parent portal queries are limited to linked pupils by RLS; published results only are visible.
 - Missing configuration produces a truthful maintenance state, not a pretend login.
 

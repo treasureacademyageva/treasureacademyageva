@@ -1,5 +1,7 @@
 # Secure portal and disabled Monnify runbook
 
+> **Superseded payment design — preservation reference only.** The approved payment methods are now manual bank transfer or an in-person physical school-office POS, both manually verified. There is no approved Monnify, online card, card-data or WhatsApp payment-evidence workflow. Do not activate gateway settings from this historical document. Use `docs/SCHOOL-OFFICE-OPERATIONS-PROGRAMME-2026-10-23.md` for migrations 005–006 and `supabase/manual/README.md` for the complete seven-migration order and current operations.
+
 **Date:** 23 October 2026  
 **Audience:** authorised Treasure Academy owner/administrator and deployment engineer  
 **Rule:** use fictional data in staging. Do not paste secrets into chat, commits, browser code, screenshots or public documents.
@@ -8,16 +10,22 @@
 
 - Secure baseline migration: `supabase/migrations/202610230001_secure_school_portal.sql`
 - Account/verified-caregiver migration: `supabase/migrations/202610230002_portal_accounts.sql`
-- Safe root SQL entry point containing both migrations in order: `supabase-schema.sql`
+- Staff operations/request workflow migration: `supabase/migrations/202610230003_staff_operations_and_requests.sql`
+- Parent–pupil linking/admission migration: `supabase/migrations/202610230004_parent_pupil_linking.sql`
+- Self-registration/enrolment/graduates migration: `supabase/migrations/202610230005_self_registration_enrolment_and_graduates.sql`
+- Fees/shop/transport/manual-payments migration: `supabase/migrations/202610230006_fees_shop_transport_and_manual_payments.sql`
+- Admission tracking/developer/verified-answers migration: `supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql`
+- Safe root SQL mirror containing all seven migrations in exact filename order: `supabase-schema.sql`
 - Portal entry: `portal/login.html` (with `portal/index.html` equivalent)
 - Browser-safe runtime config: `api/portal-config.mjs`
 - Server-only account service: `server/accounts.mjs` plus same-origin `/api/admin/*` and `/api/account/change-password` Functions
+- Server-only parent-linking service: `server/parent-links.mjs` plus same-origin `/api/parent/*` and `/api/admin/pupil-link-code` Functions
 - Disabled webhook: `api/monnify-webhook.mjs`
 - Webhook validation library: `server/monnify.mjs`
 - Portal source/bundle: `assets/js/portal-source.js` → `assets/js/portal-app.js`
 - Policy/account/webhook regression test: `tools/tests/portal-security.test.mjs`
 
-The portal supports Nigerian phone + password for admin, teacher and parent roles. There is no public registration and no pupil account. Bank transfer is active. No Monnify checkout route or button exists. The local account implementation remains undeployed and disabled until inventory, backup and staging acceptance are complete.
+The portal supports Nigerian phone + password for admin, teacher and parent roles. Ordinary parents self-register only through a valid `TA-LINK`, phone-bound `TA-FAMILY` or restricted-applicant route; there is no pupil account. The approved payment methods are manual bank transfer or an in-person physical school-office POS, both manually verified. No gateway checkout route or button exists. The local account implementation remains undeployed and disabled until inventory, backup and staging acceptance are complete.
 
 ## 2. Preserve the former Supabase portal first
 
@@ -51,29 +59,32 @@ Do not proceed with real pupil data merely because the SQL runs.
 2. Open SQL Editor as an authorised project administrator.
 3. Review and apply `supabase/migrations/202610230001_secure_school_portal.sql`.
 4. Review and apply `supabase/migrations/202610230002_portal_accounts.sql` second.
-5. Confirm the baseline tables plus these account tables exist:
-   - `student_guardians`
-   - `account_audit_log`
-   - `legacy_account_mappings`
-6. Confirm RLS is enabled on every portal, account and audit table.
-7. Confirm `students.parent_id` remains only a deprecated migration reference and parent access now requires an active, office-verified `student_guardians` row.
-8. Confirm every legacy object reported by the inventory is still present and unchanged. Neither migration may revoke, drop, truncate or rewrite `school_data`, `pupils`, `results`, `attendance`, `fee_payments` or other former portal objects.
-9. Confirm account provisioning/reset/status/caregiver RPCs and `process_monnify_payment_event` can be executed only by `service_role`.
-10. Run `supabase/tests/rls_portal_policy.test.sql` only in disposable staging and retain redacted aggregate results.
+5. Review and apply `supabase/migrations/202610230003_staff_operations_and_requests.sql` third.
+6. Review and apply `supabase/migrations/202610230004_parent_pupil_linking.sql` fourth.
+7. Review and apply `supabase/migrations/202610230005_self_registration_enrolment_and_graduates.sql` fifth.
+8. Review and apply `supabase/migrations/202610230006_fees_shop_transport_and_manual_payments.sql` sixth.
+9. Review and apply `supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql` seventh.
+10. Confirm the baseline tables plus account, attendance, homework, result-review, request, publication, parent-linking, admission-application, admission-tracking, developer-capability, fees, inventory, transport and protected leadership tables exist.
+11. Confirm RLS is enabled on every portal, account, operations, linking, finance and audit table.
+12. Confirm `students.parent_id` remains only a deprecated migration reference and parent access requires an active verified `student_guardians` row.
+13. Confirm every legacy object reported by the inventory is still present and unchanged. No migration may revoke, drop, truncate or rewrite `school_data`, `pupils`, `results`, `attendance`, `fee_payments` or other former portal objects.
+14. Confirm account lifecycle, request creation, parent-linking, admission tracking and `process_monnify_payment_event` RPCs can be executed only by `service_role` where documented.
+15. Run all three `supabase/tests/*.test.sql` policy suites only in disposable staging, then run `supabase/release/20261024_post_migration_read_only_verification.sql`; retain redacted aggregate results.
 
 Do not apply old `db/*.sql` or an earlier copy of `supabase-schema.sql` over these migrations. Do not run the manual retirement SQL until verified cut-over.
 
-## 5. Bootstrap the first portal admin safely
+## 5. Bootstrap the two leadership accounts safely
 
-New Auth users deliberately receive a restricted pending parent-shaped profile. Browser metadata can never assign an administrator role.
+New Auth users deliberately receive a restricted pending parent-shaped profile. Browser metadata can never assign an administrator or leadership scope.
 
-1. In **staging** Supabase Dashboard → Authentication → Users, create the owner-verified Nigerian phone account with a unique strong temporary password and confirm the phone through the trusted dashboard workflow. Do not use email as the portal identifier and do not paste the password or an access token into chat.
+1. In **staging** Supabase Dashboard → Authentication → Users, create the owner-verified Headmistress phone account with a unique strong temporary password and confirm the phone through the trusted dashboard workflow. Do not use email as the portal identifier and do not paste the password or an access token into chat.
 2. Copy only the resulting user UUID.
-3. In SQL Editor, promote that exact verified UUID while keeping first-password activation required:
+3. In SQL Editor, promote that exact verified UUID while keeping first-password activation required. Replace every uppercase marker locally with owner-verified values:
 
 ```sql
 update public.profiles
 set role = 'admin',
+    leadership_scope = 'headmistress',
     full_name = 'OWNER-VERIFIED NAME',
     phone = '+234XXXXXXXXXX',
     phone_e164 = '+234XXXXXXXXXX',
@@ -86,23 +97,29 @@ set role = 'admin',
 where id = 'OWNER-VERIFIED-USER-UUID';
 ```
 
-4. In Preview only, enable the portal/account gates after migrations and tests, sign in with phone + temporary password and complete the forced 12-character password change. No school-record query should occur before that succeeds.
-5. Verify the account becomes `active`, `must_change_password=false`, an account audit row exists and the Admin role badge appears.
-6. Creating, promoting, resetting, suspending or archiving another administrator remains an owner-controlled dashboard recovery action. The ordinary admin UI intentionally cannot do it.
-7. Enable MFA for Supabase dashboard administrators where supported. Portal-user TOTP expansion is a later separately tested step.
+4. Repeat the owner-controlled Dashboard creation for the Assistant Headmistress, using `leadership_scope='assistant_headmistress'`. This second administrator is not created through the ordinary account screen.
+5. Add separate active `teacher_class_assignments` only after class verification: Headmistress → Nursery 1 and Assistant Headmistress → Primary 4. Leadership scope does not itself grant class-teacher writes.
+6. In Preview only, enable the approved portal/account gates after migrations and tests. Each leader signs in with their own phone and temporary password and completes the forced 12-character password change. No school-record query should occur before that succeeds.
+7. Verify both accounts become `active`, `must_change_password=false` and display the correct leadership/My Class workspace. Verify the Assistant cannot open account, assignment, duty-roster, contact/WhatsApp, testimonials, website-extras, shop/orders, code-of-conduct or settings controls.
+8. Account creation, reset, suspension, teacher assignment, manual caregiver correction and Parent Linking Code issuance are Headmistress-only. Parents may redeem a valid school-issued code and create/redeem the separately controlled second-parent invitation. Creating or recovering another administrator remains an owner-controlled Dashboard action.
+9. Enable MFA for Supabase dashboard administrators where supported. Portal-user TOTP expansion is a later separately tested step.
 
 ## 6. Create parent and teacher users
 
-Use the **Accounts & Classes** administrator screen only after `PORTAL_ACCOUNTS_ENABLED=true` has been approved in staging.
+Use the Headmistress-only **Teachers & Accounts** screen only after `PORTAL_ACCOUNTS_ENABLED=true` has been approved in staging.
 
 ### Parent
 
-1. Verify the person, Nigerian phone and caregiver relationship through the office process.
-2. Create the phone/password parent account through **Create a parent or teacher account**. The trusted server calls Supabase Auth Admin with `phone_confirm=true`; there is no public sign-up.
-3. Record the generated temporary password once and provide it privately after verification. It is never stored in a school table or log.
-4. Link only verified children through `student_guardians`; one parent may have several children and a child may have multiple verified caregivers.
-5. The parent signs in, replaces the temporary password, then receives only RLS-authorised linked-child access.
-6. Never search or link a household through a publicly callable phone-number lookup.
+1. Verify the person and Nigerian phone through the office process.
+2. Create the phone/password parent account through **Create a parent or teacher account**. The trusted server calls Supabase Auth Admin with `phone_confirm=true`; there is no unrestricted public sign-up.
+3. Record the generated temporary password once and provide it privately. It is never stored in a school table or log.
+4. The parent signs in and replaces the temporary password before any school-record query.
+5. If the parent has no linked child, first activation opens **Add a Child**. The same screen remains available later inside the parent portal.
+6. For an existing enrolled pupil, the parent selects the class and types the register name. The interface never displays a class list. A green candidate confirmation grants no records by itself.
+7. The Headmistress issues a private single-use Parent Linking Code after checking the correct family hand-off. Only its SHA-256 hash is stored. The valid name, class and code create the first verified relationship automatically; no second manual approval is required.
+8. One parent may link several children. One pupil may have at most two active parent/guardian accounts. The first linked parent can create a separate 48-hour, phone-bound second-parent invitation; the original pupil code is never reused.
+9. New-pupil applications remain separate. On the `offered → admitted` decision, the database creates one permanent pupil and verified parent link. Payment never makes this transition.
+10. Never search or link a household through a publicly callable phone-number lookup.
 
 ### Teacher
 
@@ -130,6 +147,15 @@ Run with fictional records in staging. Use distinct browser profiles so sessions
 | Parent A reads Child B | denied/no row |
 | second verified caregiver reads shared Child A | allowed; unrelated children denied |
 | removed caregiver reads Child A | denied immediately |
+| parent types class + register name | candidate confirmation only; no roster or pupil details returned |
+| matching name/class without valid pupil code | no link and no private records |
+| matching name/class + valid active code | first parent link created; code immediately consumed |
+| reused, revoked or expired pupil code | denied |
+| first parent creates phone-bound second-parent invitation | allowed for a linked child with only one active parent |
+| invitation redeemed from another phone | denied |
+| third active parent/guardian attempted | database trigger denies |
+| new-pupil application submitted | application only; no active pupil created |
+| offered application admitted by either admin | one pupil + verified parent link; audited |
 | Parent A reads published grade for Child A | allowed |
 | Parent A reads draft grade for Child A | denied/no row |
 | Parent A reads Child B payment | denied/no row |
@@ -156,7 +182,10 @@ Set server-side Vercel environment variables through the protected project setti
 | Variable | Initial value | Purpose |
 |---|---|---|
 | `PORTAL_ENABLED` | `false` | fail-closed portal UI/config switch |
-| `PORTAL_ACCOUNTS_ENABLED` | `false` | separate fail-closed server account-operation switch |
+| `PORTAL_ACCOUNTS_ENABLED` | `false` | separate fail-closed Headmistress account-operation switch |
+| `WEBSITE_REQUESTS_ENABLED` | `false` | public/staff request creation and private status lookup switch |
+| `PUBLIC_INFORMATION_ENABLED` | `false` | read-only website display of administrator-published operational information |
+| `PARENT_LINKING_ENABLED` | `false` | one-time pupil matching/linking and second-parent invitations |
 | `SUPABASE_URL` | staging/production project URL | returned to portal only when enabled |
 | `SUPABASE_PUBLISHABLE_KEY` | browser-safe publishable key | preferred browser key |
 | `SUPABASE_ANON_KEY` | optional fallback only | legacy browser-safe key |
@@ -167,13 +196,14 @@ The config function never reads or returns a secret/service key.
 
 ### Staging activation
 
-1. Keep `PORTAL_ENABLED=false` and `PORTAL_ACCOUNTS_ENABLED=false`; deploy and confirm the truthful inactive state and 404 account endpoints.
+1. Keep `PORTAL_ENABLED=false`, `PORTAL_ACCOUNTS_ENABLED=false`, `WEBSITE_REQUESTS_ENABLED=false`, `PUBLIC_INFORMATION_ENABLED=false` and `PARENT_LINKING_ENABLED=false`; deploy and confirm the truthful inactive portal and controlled 404 API responses.
 2. Set staging Supabase URL, publishable key and server-only secret key.
-3. Apply both migrations and run fictional database/account tests.
-4. Change `PORTAL_ENABLED=true` and `PORTAL_ACCOUNTS_ENABLED=true` in Preview only.
-5. Execute phone sign-in, forced password change, local sign-out, admin creation, office reset/session revocation, suspend/reactivate, multi-caregiver RLS, keyboard, screen-reader, mobile, dark-mode and correction-flow tests.
-6. Review support responsibility, former-account reconciliation and real-data readiness with the owner.
-7. Only then repeat with the production Supabase project and explicit owner approval.
+3. Apply all seven migrations through `202610240001` in exact filename order, run all rollback-only fictional RLS/session suites and then run the read-only postflight.
+4. Privately bootstrap the verified Headmistress and Assistant Headmistress identities; assign independent leadership scopes and their owner-confirmed My Class records. Do not place phones, UUIDs or temporary passwords in source files or chat.
+5. Activate only the individually owner-approved Preview switches needed for that test phase; keep every other gate false. Follow the current gate inventory in `README.md` and `docs/HANDOVER.md` rather than treating this historical five-switch list as complete.
+6. Execute phone sign-in, forced password change, local sign-out, Headmistress account creation/reset and pupil-code issuance, Assistant denial from those controls, existing-pupil typed-name matching, one-time code consumption, two-guardian limit, phone-bound second-parent invitation, parent new-pupil application, both-admin admission decisions and operational publication, teacher attendance/homework/results, Assistant review, Headmistress publication, staff request registration, public reference/status lookup, sensitive-request filtering, keyboard, screen-reader, mobile and dark-mode tests.
+7. Review support responsibility, former-account reconciliation, request retention and real-data readiness with the owner.
+8. Only then repeat approved switches with the production Supabase project and explicit owner approval.
 
 ## 9. Monnify remains disabled
 
@@ -260,7 +290,7 @@ Local static preview does not provide Vercel Functions. Without `/api/portal-con
 
 Rollback:
 
-1. Set `PORTAL_ENABLED=false` and `PORTAL_ACCOUNTS_ENABLED=false` to fail closed immediately without removing evidence.
+1. Set `PORTAL_ENABLED=false`, `PORTAL_ACCOUNTS_ENABLED=false`, `WEBSITE_REQUESTS_ENABLED=false`, `PUBLIC_INFORMATION_ENABLED=false` and `PARENT_LINKING_ENABLED=false` to fail closed immediately without removing evidence.
 2. Set both Monnify switches false if ever activated.
 3. Revoke affected Supabase user sessions/keys when incident scope requires it.
 4. Restore the previous verified deployment.
