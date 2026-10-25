@@ -1,0 +1,4 @@
+project_id = "biyizitalhylkwtshrqt"
+
+[db.migrations]
+enabled = true

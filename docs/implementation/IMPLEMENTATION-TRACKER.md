@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 25 October 2026 — Run 3
-**Overall status:** Runs 1–3 complete locally; no production database, deployment, real identity/password/authorisation or feature gate changed
+**Last updated:** 25 October 2026 — Run 4 requirements preflight
+**Overall status:** Runs 1–3 complete locally; the Run 4 migration-ledger bridge is prepared and fully tested locally. Live Run 4 remains blocked on private provider readiness and an explicit owner-authorised production acceptance window. No Run 4 production mutation has occurred.
 
 ## Status key
 
@@ -21,7 +21,7 @@
 | 1 | Authority, baseline, preservation and inventory | Approved plan committed; complete QA baseline; reproducible source/route/content/API/database inventory; defect register; no behavior change | Owner-approved plan | `DONE` locally at the Run 1 audit commit |
 | 2 | One-time developer bootstrap data boundary | One additive local migration for a one-use owner authorisation, capability binding and code-free audit; preservation and RLS tests | Run 1 | `DONE` locally at the Run 2 migration commit |
 | 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `DONE` locally at the Run 3 endpoint/UI commit |
-| 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3 and an owner acceptance window | `BLOCKED` |
+| 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3, the prepared migration-ledger bridge and an owner acceptance window | `BLOCKED` — source reconciliation passed; awaiting private provider readiness and live-window approval |
 | 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `BLOCKED` |
 | 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `BLOCKED` |
 | 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `BLOCKED` |
@@ -49,7 +49,7 @@
 
 | Item | Evidence | Result |
 |---|---|---|
-| Additive developer-bootstrap migration | `202610250001_owner_authorised_developer_bootstrap.sql` | Pass locally; not production-applied |
+| Additive developer-bootstrap migration | `20261025000100_owner_authorised_developer_bootstrap.sql` | Pass locally; not production-applied |
 | Owner-only issuance boundary | Dashboard-only function rejects deployed service role and stores only SHA-256 hash | Pass |
 | Independent capability boundary | Exact developer claim shape; no leadership/class/payment/pupil/publishing authority | Pass |
 | One-use/race controls | Live-purpose uniqueness, reservation, expiry, five-attempt lock and hash destruction | Pass |
@@ -65,7 +65,7 @@
 |---|---|---|
 | Multiplexed trusted endpoint | `/api/developer/bootstrap` uses existing `developer-service` Function | Pass; no Function-count increase |
 | Gate and request boundary | Gate defaults false; exact same-origin JSON, 8 KiB limit and strong-password schema | Pass |
-| Persistent privacy-safe rate limit | Migration `202610250002`; rotating HMAC-only network and network+phone buckets | Pass locally; not production-applied |
+| Persistent privacy-safe rate limit | Migration `20261025000200`; rotating HMAC-only network and network+phone buckets | Pass locally; not production-applied |
 | Auth Admin and compensation | Create/update only on trusted server; new user deleted on completion failure; unsafe release prohibited | Pass |
 | Recovery session safety | Additive migration revokes all former `auth.sessions` after recovery | Pass |
 | Private accessible UI | Labelled first-password/recovery fields, day/dark mobile reflow, no-OTP/share-password warnings | Pass |
@@ -117,14 +117,15 @@ The following are not defects and do not block Runs 2–5 unless their capabilit
 
 No password, OTP or provider secret is requested in chat.
 
-## Known workspace exception
+## Run 4 preparation state
 
-The working tree contains only these pre-existing, zero-content mode changes outside the implementation commits:
+The three mode-only tool drifts observed after Run 3 were reconciled on 25 October 2026 by restoring their already-committed `100755` modes. No tool content changed.
 
-- `tools/build-supabase-schema.py` — `100755 → 100644`;
-- `tools/run-current-tests.sh` — `100755 → 100644`.
+Current official Supabase CLI guidance confirms that migration history is matched by timestamp version, not migration name. Read-only production inspection mapped all 15 existing remote versions. A fail-closed production bridge now represents those versions without replaying them and carries byte-for-byte copies of only pending migrations 009 and 010. Both pending filenames use current 14-digit versions; their SQL and reviewed hashes are unchanged.
 
-They must stay unstaged and must not be folded into implementation commits unless their owner explicitly authorises a separate mode-only commit.
+The bridge generator/test, disposable 10-migration rebuild, five policy suites, postflight and complete application/browser regression passed. Production remains untouched. The live window must still prove that `migration list` aligns and the dry run proposes only migrations 009 and 010; history repair, `--include-all`, former-migration replay and migration-control bypass remain prohibited.
+
+Evidence is in `RUN-04-MIGRATION-LEDGER-RECONCILIATION.md`; the full owner/agent boundary, stop conditions and execution order are in `RUN-04-PRODUCTION-ACCEPTANCE-REQUIREMENTS.md`.
 
 ## Tracker update protocol
 

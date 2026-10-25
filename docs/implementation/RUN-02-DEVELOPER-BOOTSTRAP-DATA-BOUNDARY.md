@@ -2,7 +2,7 @@
 
 **Implemented locally:** 25 October 2026
 **Production status:** not applied; no Auth user, authorisation, password, deployment or feature-gate change
-**Migration:** `202610250001_owner_authorised_developer_bootstrap.sql`
+**Migration:** `20261025000100_owner_authorised_developer_bootstrap.sql`
 
 ## Purpose
 

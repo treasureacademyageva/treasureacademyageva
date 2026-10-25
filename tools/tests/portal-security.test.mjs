@@ -814,8 +814,8 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('supabase/migrations/202610230006_fees_shop_transport_and_manual_payments.sql'),
   read('supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql'),
   read('supabase/migrations/202610240002_staff_continuity_accelerated_progression_and_account_claims.sql'),
-  read('supabase/migrations/202610250001_owner_authorised_developer_bootstrap.sql'),
-  read('supabase/migrations/202610250002_developer_bootstrap_http_controls.sql'),
+  read('supabase/migrations/20261025000100_owner_authorised_developer_bootstrap.sql'),
+  read('supabase/migrations/20261025000200_developer_bootstrap_http_controls.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
@@ -1190,8 +1190,8 @@ test('baseline preserves the former Supabase portal until a separate verified cu
   assert.match(rootSchema, /202610230006_fees_shop_transport_and_manual_payments\.sql/i);
   assert.match(rootSchema, /202610240001_admission_tracking_developer_operations_and_answers\.sql/i);
   assert.match(rootSchema, /202610240002_staff_continuity_accelerated_progression_and_account_claims\.sql/i);
-  assert.match(rootSchema, /202610250001_owner_authorised_developer_bootstrap\.sql/i);
-  assert.match(rootSchema, /202610250002_developer_bootstrap_http_controls\.sql/i);
+  assert.match(rootSchema, /20261025000100_owner_authorised_developer_bootstrap\.sql/i);
+  assert.match(rootSchema, /20261025000200_developer_bootstrap_http_controls\.sql/i);
   for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration]) {
     assert.ok(rootSchema.includes(orderedMigration.trim()), 'root schema must contain every migration verbatim');
   }

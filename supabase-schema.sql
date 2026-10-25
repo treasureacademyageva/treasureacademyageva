@@ -13,8 +13,8 @@
 --   supabase/migrations/202610230006_fees_shop_transport_and_manual_payments.sql
 --   supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql
 --   supabase/migrations/202610240002_staff_continuity_accelerated_progression_and_account_claims.sql
---   supabase/migrations/202610250001_owner_authorised_developer_bootstrap.sql
---   supabase/migrations/202610250002_developer_bootstrap_http_controls.sql
+--   supabase/migrations/20261025000100_owner_authorised_developer_bootstrap.sql
+--   supabase/migrations/20261025000200_developer_bootstrap_http_controls.sql
 --
 -- Keep this mirror aligned whenever a versioned migration changes.
 
@@ -7744,7 +7744,7 @@ comment on table public.portal_account_claim_challenges is 'Service-only hash/en
 commit;
 
 -- ============================================================================
--- BEGIN MIRROR: 202610250001_owner_authorised_developer_bootstrap.sql
+-- BEGIN MIRROR: 20261025000100_owner_authorised_developer_bootstrap.sql
 -- ============================================================================
 
 -- Treasure Academy one-time owner-authorised developer bootstrap.
@@ -8334,7 +8334,7 @@ comment on function public.server_complete_developer_bootstrap(uuid,uuid,uuid,te
 commit;
 
 -- ============================================================================
--- BEGIN MIRROR: 202610250002_developer_bootstrap_http_controls.sql
+-- BEGIN MIRROR: 20261025000200_developer_bootstrap_http_controls.sql
 -- ============================================================================
 
 -- Run 3: privacy-minimised persistent HTTP rate limits and recovery session revocation.

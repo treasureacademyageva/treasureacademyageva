@@ -58,7 +58,7 @@ It does not accept a purpose or capability set from the browser. Purpose, identi
 
 Run 3 adds the dormant additive migration:
 
-`202610250002_developer_bootstrap_http_controls.sql`
+`20261025000200_developer_bootstrap_http_controls.sql`
 
 It creates `developer_bootstrap_http_limits` and the service-only `server_take_developer_bootstrap_rate_limit(...)` RPC.
 

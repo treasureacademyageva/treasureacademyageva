@@ -1,0 +1,164 @@
+{
+  "captured_at": "2026-10-25",
+  "project_ref": "biyizitalhylkwtshrqt",
+  "purpose": "Read-only production migration ledger map for the Run 4 migration-control bridge. Historical entries are already applied and must never execute again.",
+  "remote_history": [
+    {
+      "version": "20260919235852",
+      "name": "create_school_data_table",
+      "statement_count": 1,
+      "sql_chars": 1379,
+      "sql_md5": "6d58dacf26cc85c1f231544c1705e830",
+      "source": "remote_only_legacy",
+      "evidence": "Remote statement and current public.school_data structure/row were read-only verified."
+    },
+    {
+      "version": "20260923025620",
+      "name": "create_core_schema",
+      "statement_count": 1,
+      "sql_chars": 38,
+      "sql_md5": "d617b104665ee603df8e66ca957e45df",
+      "source": "remote_only_legacy",
+      "evidence": "Remote statement is the historical core-schema marker."
+    },
+    {
+      "version": "20260923025659",
+      "name": "core_schema_001",
+      "statement_count": 1,
+      "sql_chars": 15252,
+      "sql_md5": "a4631cece68bba607475e947d7b17a8a",
+      "source": "remote_only_legacy",
+      "evidence": "Remote statement metadata and current legacy structures were read-only verified."
+    },
+    {
+      "version": "20260923025710",
+      "name": "seed_002",
+      "statement_count": 1,
+      "sql_chars": 2943,
+      "sql_md5": "391212bd3d1fd2fc7d73c6e55b5f9f22",
+      "source": "remote_only_legacy",
+      "evidence": "Historical production seed; never include or rerun as a Run 4 seed."
+    },
+    {
+      "version": "20260923161235",
+      "name": "policies_003",
+      "statement_count": 1,
+      "sql_chars": 4450,
+      "sql_md5": "33894b0e5da304571e393ce056931be2",
+      "source": "remote_only_legacy",
+      "evidence": "Remote statement metadata and current RLS state were read-only verified."
+    },
+    {
+      "version": "20260923161256",
+      "name": "school_content_004",
+      "statement_count": 1,
+      "sql_chars": 7846,
+      "sql_md5": "3b4f1ad05fa1a3400d6a0c8d28e1bfee",
+      "source": "remote_only_legacy",
+      "evidence": "Remote statement metadata and current content structures were read-only verified."
+    },
+    {
+      "version": "20260923161314",
+      "name": "shop_005",
+      "statement_count": 1,
+      "sql_chars": 5231,
+      "sql_md5": "aa324f4913afd5fda49b49aa9af025ed",
+      "source": "remote_only_legacy",
+      "evidence": "Remote statement metadata and current shop structures were read-only verified."
+    },
+    {
+      "version": "20261024065359",
+      "name": "202610230001_secure_school_portal",
+      "statement_count": 1,
+      "sql_chars": 25080,
+      "sql_md5": "7e08fd38d5e089296aace8b8ad2b78d7",
+      "source": "supabase/migrations/202610230001_secure_school_portal.sql",
+      "source_sha256": "438e554a726b5643fb2dd9077447a06b310d86f8f5e8562191f0f12907721ef5",
+      "verification": "remote_sql_equals_local_without_final_newline"
+    },
+    {
+      "version": "20261024065523",
+      "name": "202610230002_portal_accounts",
+      "statement_count": 1,
+      "sql_chars": 33420,
+      "sql_md5": "2e49647c2bbbb55d7ed2a92c59441263",
+      "source": "supabase/migrations/202610230002_portal_accounts.sql",
+      "source_sha256": "2efa0374e790734b6a7c14b6c5b6010cb4803afbc2d51ac38e795e7fe9150ef1",
+      "verification": "remote_sql_equals_local_without_final_newline"
+    },
+    {
+      "version": "20261024065753",
+      "name": "202610230003_staff_operations_and_requests",
+      "statement_count": 1,
+      "sql_chars": 62152,
+      "sql_md5": "11aa0b2fd6dbc873386ffbdf590843d3",
+      "source": "supabase/migrations/202610230003_staff_operations_and_requests.sql",
+      "source_sha256": "3f448c4d9f8886a51b1e6a162cf2c6551dda4aadf6f0fc2b85da0bec4d2a6419",
+      "verification": "remote_sql_equals_local_without_final_newline"
+    },
+    {
+      "version": "20261024065911",
+      "name": "202610230004_parent_pupil_linking",
+      "statement_count": 1,
+      "sql_chars": 30033,
+      "sql_md5": "63cab7b5b30b4612b284d0b3fe2bf357",
+      "source": "supabase/migrations/202610230004_parent_pupil_linking.sql",
+      "source_sha256": "1e99d7fdfeea4e3f360ba71c2589944451410bc7a99386a868f8d16625d9e7b6",
+      "verification": "remote_sql_equals_local_without_final_newline"
+    },
+    {
+      "version": "20261024070119",
+      "name": "202610230005_self_registration_enrolment_and_graduates",
+      "statement_count": 1,
+      "sql_chars": 49990,
+      "sql_md5": "48eac7d6a4121afecf4556ba0b6871a3",
+      "source": "supabase/migrations/202610230005_self_registration_enrolment_and_graduates.sql",
+      "source_sha256": "1ed559ec156dc6002f920cd98743ffc56742760c99517140241df2a16d5a0ab9",
+      "verification": "remote_sql_equals_local_without_final_newline"
+    },
+    {
+      "version": "20261024070732",
+      "name": "202610230006_fees_shop_transport_and_manual_payments",
+      "statement_count": 1,
+      "sql_chars": 993,
+      "sql_md5": "c3047a74ac0ef8e8e3dfeb0f70cc71d9",
+      "source": "supabase/migrations/202610230006_fees_shop_transport_and_manual_payments.sql",
+      "source_sha256": "0d3057452b5220980b39ea6d253e708ad301ce66044243400fd35450cee7e1a9",
+      "verification": "remote_loader_pinned_exact_source_sha256_and_115689_bytes"
+    },
+    {
+      "version": "20261024070745",
+      "name": "202610240001_admission_tracking_developer_operations_and_answers",
+      "statement_count": 1,
+      "sql_chars": 991,
+      "sql_md5": "555353eafd2300cfdb6d18a95779ba25",
+      "source": "supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql",
+      "source_sha256": "059c05755655a5b119a5415c1258ea5c5f7f467a4dac0a0efe0681cac4fd1c03",
+      "verification": "remote_loader_pinned_exact_source_sha256_and_18329_bytes"
+    },
+    {
+      "version": "20261024220444",
+      "name": "202610240002_staff_continuity_accelerated_progression_and_account_claims",
+      "statement_count": 1,
+      "sql_chars": 1201,
+      "sql_md5": "172089a549acc3334852fac453c831fb",
+      "source": "supabase/migrations/202610240002_staff_continuity_accelerated_progression_and_account_claims.sql",
+      "source_sha256": "21a89547f87120f305fbb7679152763f995ff27836becfddac7c4e65e60b4f71",
+      "verification": "remote_loader_pinned_exact_source_sha256_and_60635_bytes"
+    }
+  ],
+  "pending": [
+    {
+      "version": "20261025000100",
+      "name": "owner_authorised_developer_bootstrap",
+      "source": "supabase/migrations/20261025000100_owner_authorised_developer_bootstrap.sql",
+      "source_sha256": "b78ec9556b033960f0bb6087ad07b32b7f8393f1183b142b62148e3e4067f571"
+    },
+    {
+      "version": "20261025000200",
+      "name": "developer_bootstrap_http_controls",
+      "source": "supabase/migrations/20261025000200_developer_bootstrap_http_controls.sql",
+      "source_sha256": "64ceb97c3a0b41a4a09c08d40cbae7b82f719fdfab5c62d7906f46fa8755faaf"
+    }
+  ]
+}

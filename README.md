@@ -81,10 +81,10 @@ Apply only in order and only after owner-controlled preservation and isolated st
 6. `202610230006_fees_shop_transport_and_manual_payments.sql`
 7. `202610240001_admission_tracking_developer_operations_and_answers.sql`
 8. `202610240002_staff_continuity_accelerated_progression_and_account_claims.sql`
-9. `202610250001_owner_authorised_developer_bootstrap.sql`
-10. `202610250002_developer_bootstrap_http_controls.sql`
+9. `20261025000100_owner_authorised_developer_bootstrap.sql`
+10. `20261025000200_developer_bootstrap_http_controls.sql`
 
-`supabase-schema.sql` mirrors all ten ordered migrations through `202610250002`. The ninth migration adds the dormant owner-authorised developer-bootstrap data boundary. The tenth adds rotating HMAC-only HTTP rate buckets and revokes former sessions after owner-authorised recovery. Neither migration issues a real authorisation, creates an Auth user, sets a password or activates a gate. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
+`supabase-schema.sql` mirrors all ten ordered migrations through `20261025000200`. The ninth migration adds the dormant owner-authorised developer-bootstrap data boundary. The tenth adds rotating HMAC-only HTTP rate buckets and revokes former sessions after owner-authorised recovery. Neither migration issues a real authorisation, creates an Auth user, sets a password or activates a gate. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
 
 ## Fail-closed feature gates
 
