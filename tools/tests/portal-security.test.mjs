@@ -793,7 +793,7 @@ await asyncTest('only Headmistress endpoint issues a pupil code and stores its h
 });
 restoreParentEnvironment();
 
-const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
+const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
   read('supabase/migrations/202610230002_portal_accounts.sql'),
   read('supabase/migrations/202610230003_staff_operations_and_requests.sql'),
@@ -802,6 +802,7 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('supabase/migrations/202610230006_fees_shop_transport_and_manual_payments.sql'),
   read('supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql'),
   read('supabase/migrations/202610240002_staff_continuity_accelerated_progression_and_account_claims.sql'),
+  read('supabase/migrations/202610250001_owner_authorised_developer_bootstrap.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
@@ -1043,6 +1044,24 @@ test('owner-approved account claims are hash/encryption protected and create no 
   assert.match(portalSource, /Claim your school account/i);
   assert.match(portalSource, /\/api\/account\/claim\/request/);
 });
+test('owner-authorised developer bootstrap is one-use, code-free and independent from school authority', () => {
+  for (const table of ['developer_bootstrap_authorisations', 'developer_bootstrap_events']) {
+    assert.match(bootstrapMigration, new RegExp(`alter table public\\.${table} enable row level security`, 'i'));
+  }
+  assert.match(bootstrapMigration, /authorisation_hash text unique check \(authorisation_hash is null or authorisation_hash ~ '\^\[a-f0-9\]\{64\}\$'\)/i);
+  assert.match(bootstrapMigration, /status in \('active','reserved','consumed','revoked','expired','locked'\)/i);
+  assert.match(bootstrapMigration, /expires_at > issued_at and expires_at <= issued_at \+ interval '30 minutes'/i);
+  assert.match(bootstrapMigration, /revoke all on table public\.developer_bootstrap_authorisations[\s\S]+from public,anon,authenticated,service_role/i);
+  assert.match(bootstrapMigration, /owner_issue_developer_bootstrap[\s\S]+session_user not in \('postgres','supabase_admin'\)[\s\S]+auth\.role\(\)[\s\S]+='service_role'/i);
+  assert.match(bootstrapMigration, /gen_random_bytes\(32\)[\s\S]+digest\(convert_to\(v_raw,'UTF8'\),'sha256'\)/i);
+  assert.match(bootstrapMigration, /server_reserve_developer_bootstrap[\s\S]+for update[\s\S]+status='reserved'/i);
+  assert.match(bootstrapMigration, /server_complete_developer_bootstrap[\s\S]+role='parent'[\s\S]+leadership_scope='none'[\s\S]+phone_verified_at=null/i);
+  assert.match(bootstrapMigration, /owner_authorised_supabase_bootstrap/i);
+  assert.match(bootstrapMigration, /server_complete_developer_password_recovery/i);
+  assert.match(bootstrapMigration, /detail::text !~\* '[^']*password[^']*credential/i);
+  assert.doesNotMatch(bootstrapMigration, /password\s+(?:text|varchar)|readable_password|temporary_password/i);
+  assert.doesNotMatch(bootstrapMigration, /(?:drop|truncate|delete from|update)\s+(?:table\s+)?public\.school_data/i);
+});
 test('teacher continuity and exceptional progression require independent full-authority approval', () => {
   assert.match(continuityMigration, /create table if not exists public\.staff_assignment_changes/i);
   assert.match(continuityMigration, /v_change\.recommended_by=v_actor[\s\S]+Independent recommendation and approval are required/i);
@@ -1121,10 +1140,11 @@ test('baseline preserves the former Supabase portal until a separate verified cu
   assert.match(rootSchema, /202610230006_fees_shop_transport_and_manual_payments\.sql/i);
   assert.match(rootSchema, /202610240001_admission_tracking_developer_operations_and_answers\.sql/i);
   assert.match(rootSchema, /202610240002_staff_continuity_accelerated_progression_and_account_claims\.sql/i);
-  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration]) {
+  assert.match(rootSchema, /202610250001_owner_authorised_developer_bootstrap\.sql/i);
+  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration]) {
     assert.ok(rootSchema.includes(orderedMigration.trim()), 'root schema must contain every migration verbatim');
   }
-  assert.ok(rootSchema.trimEnd().endsWith(continuityMigration.trimEnd()), 'root schema must end with exact migration 008 content');
+  assert.ok(rootSchema.trimEnd().endsWith(bootstrapMigration.trimEnd()), 'root schema must end with exact migration 009 content');
   assert.match(legacyInventory, /begin transaction read only/i);
   assert.match(legacyInventory, /rollback;/i);
   assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);

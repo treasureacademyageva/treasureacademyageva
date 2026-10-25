@@ -81,8 +81,9 @@ Apply only in order and only after owner-controlled preservation and isolated st
 6. `202610230006_fees_shop_transport_and_manual_payments.sql`
 7. `202610240001_admission_tracking_developer_operations_and_answers.sql`
 8. `202610240002_staff_continuity_accelerated_progression_and_account_claims.sql`
+9. `202610250001_owner_authorised_developer_bootstrap.sql`
 
-`supabase-schema.sql` mirrors all eight ordered migrations through `202610240002`. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
+`supabase-schema.sql` mirrors all nine ordered migrations through `202610250001`. The ninth migration adds only the dormant, owner-authorised developer-bootstrap data boundary; it does not issue a real authorisation, create an Auth user, set a password or activate a gate. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
 
 ## Fail-closed feature gates
 
@@ -111,7 +112,7 @@ npm run test:all-current
 npm run test:sql-local   # requires local PostgreSQL 17 access
 ```
 
-The maintained browser runner starts its own local server. SQL parser checks in the Node suite are not a substitute for applying all eight migrations and all four rollback-only policy suites in disposable Supabase staging. The exact external-agent manifest and staging-only prompt are in `supabase/release/20261024_SQL_AGENT_HANDOFF.md`.
+The maintained browser runner starts its own local server. SQL parser checks in the Node suite are not a substitute for applying all nine migrations and all five rollback-only policy suites in a disposable local or isolated Supabase staging database. `supabase/release/20261024_SQL_AGENT_HANDOFF.md` is preserved historical evidence for the earlier seven-migration package and must not be reused for migration 009; prepare a fresh checksum manifest before any separately authorised production application.
 
 ## Deployment safety
 

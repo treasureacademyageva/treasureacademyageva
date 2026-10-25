@@ -1,12 +1,19 @@
 # Treasure Academy — site handover
 
-> **Which doc do I read?** This file is the running changelog: what each batch
-> added and why. For how the site is put together and how to work on it safely
-> — setup, the traps that keep catching people, the version ritual, the data
-> model, what is safe to delete — read `docs/MAINTENANCE.md` first. Owner rules
-> appear in both; `MAINTENANCE.md` has the fuller wording and wins if they ever
-> drift apart.
+> **Which doc do I read?** The owner-approved implementation authority is
+> `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`; its decisions
+> override older batch notes in this historical changelog. The persistent run state is
+> `docs/implementation/IMPLEMENTATION-TRACKER.md`. Use `docs/MAINTENANCE.md` for the
+> existing site's operational mechanics, but never use an older conflict to weaken the
+> master plan.
 
+## 25 October 2026 — dynamic platform Runs 1–2 (local, inactive)
+
+The final first-party Supabase/Vercel plan is committed. Run 1 captured a green complete application baseline, a 9/9-capable local PostgreSQL environment, exact read-only production preservation counts, route/content/media/API inventories and the persistent defect register. The earlier WordPress proposal/prototype is explicitly superseded and must not be deployed or extended.
+
+Run 2 adds `202610250001_owner_authorised_developer_bootstrap.sql`: a dormant owner-dashboard-only, short-lived, one-use authorisation boundary for Jibril's initial private password and future owner-authorised recovery. It stores only a SHA-256 authorisation hash while live, destroys the hash on terminal states, serializes Auth operations, records code-free audit, grants no school leadership authority and records no false OTP verification. Local acceptance passes 9/9 ordered migrations, 5/5 rollback-safe policy suites, the expanded read-only postflight and 85/85 portal/security checks. `supabase-schema.sql` is regenerated from all nine migrations.
+
+Nothing in Run 2 has been applied to production. No owner authorisation, Supabase Auth user, readable password, deployment, provider configuration or feature gate was created or changed. The trusted endpoint/UI remains Run 3 work and must launch with its gate false. The production preservation baseline remains the exact 25 October snapshot in `docs/implementation/RUN-01-PRESERVATION-BASELINE.md`.
 
 ## 24 October 2026 — owner-authorised dynamic maintenance release (local, inactive)
 

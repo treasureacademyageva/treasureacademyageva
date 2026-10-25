@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 25 October 2026 — Run 1
-**Overall status:** Run 1 complete locally; no application behavior, production database, deployment or feature gate changed
+**Last updated:** 25 October 2026 — Run 2
+**Overall status:** Runs 1–2 complete locally; no application behavior, production database, deployment or feature gate changed
 
 ## Status key
 
@@ -19,8 +19,8 @@
 | Run | Scope | Required outcome | Dependencies | Status |
 |---:|---|---|---|---|
 | 1 | Authority, baseline, preservation and inventory | Approved plan committed; complete QA baseline; reproducible source/route/content/API/database inventory; defect register; no behavior change | Owner-approved plan | `DONE` locally at the Run 1 audit commit |
-| 2 | One-time developer bootstrap data boundary | One additive local migration for a one-use owner authorisation, capability binding and code-free audit; preservation and RLS tests | Run 1 | `READY` |
-| 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `BLOCKED` pending Run 2 |
+| 2 | One-time developer bootstrap data boundary | One additive local migration for a one-use owner authorisation, capability binding and code-free audit; preservation and RLS tests | Run 1 | `DONE` locally at the Run 2 migration commit |
+| 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `READY` |
 | 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3 and an owner acceptance window | `BLOCKED` |
 | 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `BLOCKED` |
 | 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `BLOCKED` |
@@ -44,6 +44,20 @@
 | Route/Search/content/media/API inventory | `RUN-01-PRESERVATION-BASELINE.md` and `CONTENT-ROUTE-MIGRATION-INVENTORY.md` | Pass |
 | Defect/gap register | `DEFECT-AND-GAP-REGISTER.md` | Pass |
 | No production behavior change | No application code, SQL migration, live database mutation, deployment, provider setting or feature gate change | Pass |
+
+## Run 2 acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| Additive developer-bootstrap migration | `202610250001_owner_authorised_developer_bootstrap.sql` | Pass locally; not production-applied |
+| Owner-only issuance boundary | Dashboard-only function rejects deployed service role and stores only SHA-256 hash | Pass |
+| Independent capability boundary | Exact developer claim shape; no leadership/class/payment/pupil/publishing authority | Pass |
+| One-use/race controls | Live-purpose uniqueness, reservation, expiry, five-attempt lock and hash destruction | Pass |
+| Code-free audit | Sensitive-key constraints plus distinct bootstrap/recovery reason codes | Pass |
+| Disposable SQL acceptance | 9/9 migrations, 5/5 policy suites and expanded postflight | Pass |
+| Static security acceptance | Portal/security suite 85/85 | Pass |
+| Root schema mirror | Regenerated verbatim from all nine ordered migrations | Pass |
+| Production state | No migration, Auth user, authorisation, password, deployment or gate change | Pass |
 
 ## Permanent preservation rules
 

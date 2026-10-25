@@ -1,5 +1,5 @@
 -- Treasure Academy post-migration verification (READ ONLY).
--- Run only after all eight ordered migrations. This script changes no data and
+-- Run only after all nine ordered migrations. This script changes no data and
 -- activates no feature. Review every result; expected anomaly counts are zero.
 
 begin transaction read only;
@@ -18,7 +18,8 @@ with expected(name) as (values
   ('manual_payments'), ('developer_capabilities'), ('admission_tracking_challenges'),
   ('admission_tracking_continuations'), ('otp_dispatch_events'),
   ('staff_assignment_changes'), ('common_entrance_candidates'),
-  ('portal_account_claims'), ('portal_account_claim_challenges'), ('portal_account_claim_events')
+  ('portal_account_claims'), ('portal_account_claim_challenges'), ('portal_account_claim_events'),
+  ('developer_bootstrap_authorisations'), ('developer_bootstrap_events')
 )
 select name, to_regclass('public.' || name) is not null as present
 from expected order by name;
@@ -37,7 +38,8 @@ where n.nspname='public'
     'manual_payments','developer_capabilities','admission_tracking_challenges',
     'admission_tracking_continuations','otp_dispatch_events',
     'staff_assignment_changes','common_entrance_candidates',
-    'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events'
+    'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events',
+    'developer_bootstrap_authorisations','developer_bootstrap_events'
   )
 order by c.relname;
 
@@ -49,9 +51,19 @@ where table_schema='public'
   and table_name in (
     'developer_capabilities','admission_tracking_challenges',
     'admission_tracking_continuations','otp_dispatch_events',
-    'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events'
+    'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events',
+    'developer_bootstrap_authorisations','developer_bootstrap_events'
   )
   and grantee in ('anon','authenticated')
+order by grantee, table_name, privilege_type;
+
+-- Expected result: zero rows. Bootstrap state is RPC-only even for deployed
+-- service-role code; the owner issue/revoke functions remain dashboard-only.
+select grantee, table_name, privilege_type
+from information_schema.role_table_grants
+where table_schema='public'
+  and table_name in ('developer_bootstrap_authorisations','developer_bootstrap_events')
+  and grantee in ('anon','authenticated','service_role')
 order by grantee, table_name, privilege_type;
 
 -- Expected values: public_execute=false, authenticated_execute=false,
@@ -65,13 +77,29 @@ with expected(signature) as (values
   ('public.server_reveal_portal_claim_otp(uuid,uuid)'),
   ('public.server_mark_portal_claim_otp(uuid,uuid,text)'),
   ('public.server_verify_portal_account_claim(text,text,text)'),
-  ('public.server_complete_portal_account_claim(uuid,uuid,text)')
+  ('public.server_complete_portal_account_claim(uuid,uuid,text)'),
+  ('public.server_reserve_developer_bootstrap(text,text)'),
+  ('public.server_release_developer_bootstrap(uuid,text,text)'),
+  ('public.server_complete_developer_bootstrap(uuid,uuid,uuid,text)'),
+  ('public.server_complete_developer_password_recovery(uuid,uuid,uuid,text)')
 )
 select signature,
        has_function_privilege('anon', signature, 'execute') as public_execute,
        has_function_privilege('authenticated', signature, 'execute') as authenticated_execute,
        has_function_privilege('service_role', signature, 'execute') as service_execute
 from expected order by signature;
+
+-- Expected values are false for all three roles. These functions may be used
+-- only by the database owner in the official Supabase dashboard.
+with owner_only(signature) as (values
+  ('public.owner_issue_developer_bootstrap(uuid,text,integer)'),
+  ('public.owner_revoke_developer_bootstrap(uuid)')
+)
+select signature,
+       has_function_privilege('anon', signature, 'execute') as anon_execute,
+       has_function_privilege('authenticated', signature, 'execute') as authenticated_execute,
+       has_function_privilege('service_role', signature, 'execute') as service_execute
+from owner_only order by signature;
 
 -- Expected anomaly_count=0: one current publication per topic.
 select count(*) as conflicting_published_topic_count
@@ -106,6 +134,22 @@ select count(*) as sensitive_account_claim_audit_detail_count
 from public.portal_account_claim_events
 where detail::text ~* '"(otp|code|phone|message)"[[:space:]]*:';
 
+select count(*) as duplicate_live_developer_authorisation_count
+from (
+  select claim_id,purpose from public.developer_bootstrap_authorisations
+  where status in ('active','reserved')
+  group by claim_id,purpose having count(*) > 1
+) conflicts;
+
+select count(*) as sensitive_developer_bootstrap_audit_detail_count
+from public.developer_bootstrap_events
+where detail::text ~* '"(password|secret|token|authori[sz]ation|otp|code|phone|message|credential)"[[:space:]]*:';
+
+select count(*) as invalid_consumed_developer_authorisation_count
+from public.developer_bootstrap_authorisations
+where status='consumed'
+  and (authorisation_hash is not null or consumed_by is null or consumed_at is null or reserved_at is not null);
+
 -- These release-critical indexes should all report present=true.
 with expected(name) as (values
   ('admission_tracking_one_active_phone_purpose_idx'),
@@ -113,7 +157,8 @@ with expected(name) as (values
   ('portal_claim_setup_token_unique_idx'),
   ('teacher_assignments_one_active_scope_idx'),
   ('teacher_assignments_one_active_class_teacher_idx'),
-  ('verified_public_information_one_published_topic_idx')
+  ('verified_public_information_one_published_topic_idx'),
+  ('developer_bootstrap_one_live_purpose_idx')
 )
 select name, to_regclass('public.' || name) is not null as present
 from expected order by name;
