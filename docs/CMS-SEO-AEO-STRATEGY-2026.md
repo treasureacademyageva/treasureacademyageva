@@ -1,9 +1,14 @@
 # Public Website CMS, SEO and Answer-Engine Strategy
 
+> **Superseded historical proposal — do not implement.** The owner-approved authority is
+> [`TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`](TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md).
+> Treasure Academy will use its first-party Supabase/Vercel CMS and will not integrate WordPress.
+> This file is retained only to preserve the decision history.
+
 **Site:** Treasure Academy, Ageva
 **Primary URL:** https://www.treasureacademyageva.com
 **Prepared:** 21 October 2026
-**Status:** implementation plan; no CMS account or hosting change has been authorised or performed
+**Status:** superseded on 25 October 2026; never authorised for implementation; retained as historical evidence only
 
 ## 1. Decision
 

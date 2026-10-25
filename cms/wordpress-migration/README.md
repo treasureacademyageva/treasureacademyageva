@@ -1,6 +1,12 @@
-# WordPress migration starter — not a production deployment
+# WordPress migration starter — superseded historical prototype
 
-This folder makes the proposed public-content CMS concrete without changing production hosting or DNS.
+> **Do not deploy or extend this prototype.** The owner-approved architecture is the
+> first-party Supabase/Vercel CMS in
+> `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`; WordPress must not be
+> integrated. These files are retained temporarily as decision history until their legacy
+> audit assertions are replaced without reducing test coverage.
+
+This folder records an earlier proposal that never changed production hosting or DNS.
 
 ## Files
 
