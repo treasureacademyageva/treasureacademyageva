@@ -136,6 +136,10 @@
       "destination": "/api/developer-service?action=otp"
     },
     {
+      "source": "/api/developer/bootstrap",
+      "destination": "/api/developer-service?action=bootstrap"
+    },
+    {
       "source": "/api/requests",
       "destination": "/api/website-request-service?action=create"
     },

@@ -18,12 +18,14 @@ async function handle(request) {
   // intentionally never read or returned by this endpoint.
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
+  const developerBootstrapEnabled = process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED === 'true';
   if (!enabled || !url || !publishableKey) {
-    return json(200, { enabled: false });
+    return json(200, { enabled: false, developerBootstrapEnabled });
   }
 
   return json(200, {
     enabled: true,
+    developerBootstrapEnabled,
     url,
     publishableKey,
     registrationEnabled: process.env.PORTAL_REGISTRATION_ENABLED === 'true',

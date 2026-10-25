@@ -7,13 +7,15 @@
 > existing site's operational mechanics, but never use an older conflict to weaken the
 > master plan.
 
-## 25 October 2026 — dynamic platform Runs 1–2 (local, inactive)
+## 25 October 2026 — dynamic platform Runs 1–3 (local, inactive)
 
-The final first-party Supabase/Vercel plan is committed. Run 1 captured a green complete application baseline, a 9/9-capable local PostgreSQL environment, exact read-only production preservation counts, route/content/media/API inventories and the persistent defect register. The earlier WordPress proposal/prototype is explicitly superseded and must not be deployed or extended.
+The final first-party Supabase/Vercel plan is committed. Run 1 captured a green complete application baseline, a disposable PostgreSQL environment, exact read-only production preservation counts, route/content/media/API inventories and the persistent defect register. The earlier WordPress proposal/prototype is explicitly superseded and must not be deployed or extended.
 
-Run 2 adds `202610250001_owner_authorised_developer_bootstrap.sql`: a dormant owner-dashboard-only, short-lived, one-use authorisation boundary for Jibril's initial private password and future owner-authorised recovery. It stores only a SHA-256 authorisation hash while live, destroys the hash on terminal states, serializes Auth operations, records code-free audit, grants no school leadership authority and records no false OTP verification. Local acceptance passes 9/9 ordered migrations, 5/5 rollback-safe policy suites, the expanded read-only postflight and 85/85 portal/security checks. `supabase-schema.sql` is regenerated from all nine migrations.
+Run 2 adds `202610250001_owner_authorised_developer_bootstrap.sql`: a dormant owner-dashboard-only, short-lived, one-use authorisation boundary for Jibril's initial private password and future owner-authorised recovery. It stores only a SHA-256 authorisation hash while live, destroys the hash on terminal states, serializes Auth operations, records code-free audit, grants no school leadership authority and records no false application OTP verification.
 
-Nothing in Run 2 has been applied to production. No owner authorisation, Supabase Auth user, readable password, deployment, provider configuration or feature gate was created or changed. The trusted endpoint/UI remains Run 3 work and must launch with its gate false. The production preservation baseline remains the exact 25 October snapshot in `docs/implementation/RUN-01-PRESERVATION-BASELINE.md`.
+Run 3 adds the gate-off same-origin trusted endpoint through the existing multiplexed Developer Function, the private first-password/recovery UI and `202610250002_developer_bootstrap_http_controls.sql`. Persistent 15-minute rate buckets store only daily-rotating HMAC subjects, recovery revokes former sessions, initial Auth creation has compensating deletion and recovery never releases authority after a password update. Local acceptance passes 10/10 ordered migrations, 5/5 rollback-safe policy suites, the expanded read-only postflight, 87/87 portal/security checks, 12/12 endpoint checks and the complete browser/accessibility suite. `supabase-schema.sql` mirrors all ten migrations.
+
+Nothing in Runs 2–3 has been applied to production. No owner authorisation, Supabase Auth user, readable password, deployment, provider configuration or feature gate was created or changed. Run 4 is the separate private owner-authorised acceptance window and must deploy first with the bootstrap gate false. The production preservation baseline remains the exact 25 October snapshot in `docs/implementation/RUN-01-PRESERVATION-BASELINE.md`.
 
 ## 24 October 2026 — owner-authorised dynamic maintenance release (local, inactive)
 

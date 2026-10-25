@@ -1,5 +1,5 @@
 -- Treasure Academy post-migration verification (READ ONLY).
--- Run only after all nine ordered migrations. This script changes no data and
+-- Run only after all ten ordered migrations. This script changes no data and
 -- activates no feature. Review every result; expected anomaly counts are zero.
 
 begin transaction read only;
@@ -19,7 +19,8 @@ with expected(name) as (values
   ('admission_tracking_continuations'), ('otp_dispatch_events'),
   ('staff_assignment_changes'), ('common_entrance_candidates'),
   ('portal_account_claims'), ('portal_account_claim_challenges'), ('portal_account_claim_events'),
-  ('developer_bootstrap_authorisations'), ('developer_bootstrap_events')
+  ('developer_bootstrap_authorisations'), ('developer_bootstrap_events'),
+  ('developer_bootstrap_http_limits')
 )
 select name, to_regclass('public.' || name) is not null as present
 from expected order by name;
@@ -39,7 +40,8 @@ where n.nspname='public'
     'admission_tracking_continuations','otp_dispatch_events',
     'staff_assignment_changes','common_entrance_candidates',
     'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events',
-    'developer_bootstrap_authorisations','developer_bootstrap_events'
+    'developer_bootstrap_authorisations','developer_bootstrap_events',
+    'developer_bootstrap_http_limits'
   )
 order by c.relname;
 
@@ -52,7 +54,8 @@ where table_schema='public'
     'developer_capabilities','admission_tracking_challenges',
     'admission_tracking_continuations','otp_dispatch_events',
     'portal_account_claims','portal_account_claim_challenges','portal_account_claim_events',
-    'developer_bootstrap_authorisations','developer_bootstrap_events'
+    'developer_bootstrap_authorisations','developer_bootstrap_events',
+    'developer_bootstrap_http_limits'
   )
   and grantee in ('anon','authenticated')
 order by grantee, table_name, privilege_type;
@@ -62,7 +65,7 @@ order by grantee, table_name, privilege_type;
 select grantee, table_name, privilege_type
 from information_schema.role_table_grants
 where table_schema='public'
-  and table_name in ('developer_bootstrap_authorisations','developer_bootstrap_events')
+  and table_name in ('developer_bootstrap_authorisations','developer_bootstrap_events','developer_bootstrap_http_limits')
   and grantee in ('anon','authenticated','service_role')
 order by grantee, table_name, privilege_type;
 
@@ -78,6 +81,7 @@ with expected(signature) as (values
   ('public.server_mark_portal_claim_otp(uuid,uuid,text)'),
   ('public.server_verify_portal_account_claim(text,text,text)'),
   ('public.server_complete_portal_account_claim(uuid,uuid,text)'),
+  ('public.server_take_developer_bootstrap_rate_limit(text,text)'),
   ('public.server_reserve_developer_bootstrap(text,text)'),
   ('public.server_release_developer_bootstrap(uuid,text,text)'),
   ('public.server_complete_developer_bootstrap(uuid,uuid,uuid,text)'),
@@ -150,6 +154,12 @@ from public.developer_bootstrap_authorisations
 where status='consumed'
   and (authorisation_hash is not null or consumed_by is null or consumed_at is null or reserved_at is not null);
 
+select count(*) as invalid_developer_bootstrap_rate_bucket_count
+from public.developer_bootstrap_http_limits
+where subject_hash !~ '^[a-f0-9]{64}$'
+   or attempt_count not between 0 and 10
+   or scope not in ('network','phone');
+
 -- These release-critical indexes should all report present=true.
 with expected(name) as (values
   ('admission_tracking_one_active_phone_purpose_idx'),
@@ -158,7 +168,8 @@ with expected(name) as (values
   ('teacher_assignments_one_active_scope_idx'),
   ('teacher_assignments_one_active_class_teacher_idx'),
   ('verified_public_information_one_published_topic_idx'),
-  ('developer_bootstrap_one_live_purpose_idx')
+  ('developer_bootstrap_one_live_purpose_idx'),
+  ('developer_bootstrap_http_limits_cleanup_idx')
 )
 select name, to_regclass('public.' || name) is not null as present
 from expected order by name;

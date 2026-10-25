@@ -370,6 +370,7 @@ const savedPortalEnv = {
   PORTAL_REGISTRATION_ENABLED: process.env.PORTAL_REGISTRATION_ENABLED,
   PORTAL_ACCOUNT_CLAIM_ENABLED: process.env.PORTAL_ACCOUNT_CLAIM_ENABLED,
   PORTAL_OFFICE_ENABLED: process.env.PORTAL_OFFICE_ENABLED,
+  DEVELOPER_MANUAL_BOOTSTRAP_ENABLED: process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED,
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
   SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY
@@ -381,11 +382,21 @@ function restorePortalEnvironment() {
 }
 await asyncTest('portal config endpoint fails closed when the activation switch is off', async () => {
   process.env.PORTAL_ENABLED = 'false';
+  process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED = 'false';
   process.env.SUPABASE_URL = 'https://must-not-be-returned.supabase.co';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'must-not-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { enabled: false });
+  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: false });
+  restorePortalEnvironment();
+});
+await asyncTest('portal config can expose only the temporary bootstrap gate while normal sign-in stays closed', async () => {
+  process.env.PORTAL_ENABLED = 'false';
+  process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED = 'true';
+  process.env.SUPABASE_URL = 'https://must-not-be-returned.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'must-not-be-returned';
+  const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
+  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: true });
   restorePortalEnvironment();
 });
 await asyncTest('enabled portal config returns only public keys and gate booleans', async () => {
@@ -393,12 +404,13 @@ await asyncTest('enabled portal config returns only public keys and gate boolean
   process.env.PORTAL_REGISTRATION_ENABLED = 'false';
   process.env.PORTAL_ACCOUNT_CLAIM_ENABLED = 'false';
   process.env.PORTAL_OFFICE_ENABLED = 'false';
+  process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED = 'false';
   process.env.SUPABASE_URL = 'https://fictional-project.supabase.co';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fictional';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional_must-never-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   const body = await response.json();
-  assert.deepEqual(body, { enabled: true, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false });
+  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false });
   assert.doesNotMatch(JSON.stringify(body), /secret/i);
   restorePortalEnvironment();
 });
@@ -793,7 +805,7 @@ await asyncTest('only Headmistress endpoint issues a pupil code and stores its h
 });
 restoreParentEnvironment();
 
-const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
+const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
   read('supabase/migrations/202610230002_portal_accounts.sql'),
   read('supabase/migrations/202610230003_staff_operations_and_requests.sql'),
@@ -803,6 +815,7 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('supabase/migrations/202610240001_admission_tracking_developer_operations_and_answers.sql'),
   read('supabase/migrations/202610240002_staff_continuity_accelerated_progression_and_account_claims.sql'),
   read('supabase/migrations/202610250001_owner_authorised_developer_bootstrap.sql'),
+  read('supabase/migrations/202610250002_developer_bootstrap_http_controls.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
@@ -836,6 +849,11 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('sw.js'),
   read('vercel.json'),
   read('package.json')
+]);
+const [developerBootstrapServer, developerServiceApi, envExample] = await Promise.all([
+  read('server/developer-bootstrap.mjs'),
+  read('api/developer-service.mjs'),
+  read('.env.example')
 ]);
 
 test('all eight portal/audit tables explicitly enable RLS', () => {
@@ -1057,8 +1075,12 @@ test('owner-authorised developer bootstrap is one-use, code-free and independent
   assert.match(bootstrapMigration, /server_reserve_developer_bootstrap[\s\S]+for update[\s\S]+status='reserved'/i);
   assert.match(bootstrapMigration, /server_complete_developer_bootstrap[\s\S]+role='parent'[\s\S]+leadership_scope='none'[\s\S]+phone_verified_at=null/i);
   assert.match(bootstrapMigration, /owner_authorised_supabase_bootstrap/i);
-  assert.match(bootstrapMigration, /server_complete_developer_password_recovery/i);
   assert.match(bootstrapMigration, /detail::text !~\* '[^']*password[^']*credential/i);
+  assert.match(bootstrapHttpMigration, /alter table public\.developer_bootstrap_http_limits enable row level security/i);
+  assert.match(bootstrapHttpMigration, /revoke all on table public\.developer_bootstrap_http_limits[\s\S]+from public,anon,authenticated,service_role/i);
+  assert.match(bootstrapHttpMigration, /v_limit := case when p_scope='network' then 10 else 5 end/i);
+  assert.match(bootstrapHttpMigration, /last_attempt_at < now\(\)-interval '2 days'/i);
+  assert.match(bootstrapHttpMigration, /server_complete_developer_password_recovery[\s\S]+delete from auth\.sessions where user_id=p_user_id/i);
   assert.doesNotMatch(bootstrapMigration, /password\s+(?:text|varchar)|readable_password|temporary_password/i);
   assert.doesNotMatch(bootstrapMigration, /(?:drop|truncate|delete from|update)\s+(?:table\s+)?public\.school_data/i);
 });
@@ -1113,6 +1135,34 @@ test('developer capability is independent and operations page is retired without
   assert.match(developerOperationsHtml, /developer\.html#overview/);
   assert.doesNotMatch(developerHtml, /review-gateway\.enc\.json|review passphrase|forgot/i);
 });
+test('owner-authorised developer password setup is gated, same-origin and trusted-server-only', () => {
+  assert.match(envExample, /^DEVELOPER_MANUAL_BOOTSTRAP_ENABLED=false$/m);
+  assert.match(envExample, /^DEVELOPER_BOOTSTRAP_RATE_LIMIT_PEPPER=$/m);
+  assert.match(developerBootstrapServer, /DEVELOPER_MANUAL_BOOTSTRAP_ENABLED === 'true'/);
+  assert.match(developerBootstrapServer, /DEVELOPER_BOOTSTRAP_RATE_LIMIT_PEPPER/);
+  assert.match(developerBootstrapServer, /createHmac\('sha256', pepper\)/);
+  assert.match(developerBootstrapServer, /server_take_developer_bootstrap_rate_limit/);
+  assert.match(developerBootstrapServer, /x-vercel-forwarded-for/);
+  assert.match(developerBootstrapServer, /new URL\(origin\)\.origin === new URL\(request\.url\)\.origin/);
+  assert.match(developerBootstrapServer, /MAX_BODY_BYTES = 8 \* 1024/);
+  assert.match(developerBootstrapServer, /mediaType !== 'application\/json'/);
+  assert.match(developerBootstrapServer, /const allowed = \['authorisation', 'confirmPassword', 'password', 'phone'\]/);
+  assert.match(developerBootstrapServer, /passwordProblem\(password\)/);
+  assert.match(developerBootstrapServer, /createHash\('sha256'\)/);
+  assert.match(developerBootstrapServer, /admin\.auth\.admin\.createUser/);
+  assert.match(developerBootstrapServer, /phone_confirm: true/);
+  assert.match(developerBootstrapServer, /admin\.auth\.admin\.deleteUser/);
+  assert.match(developerBootstrapServer, /server_release_developer_bootstrap/);
+  assert.match(developerBootstrapServer, /never release it for reuse after an Auth update/i);
+  assert.doesNotMatch(developerBootstrapServer, /signInWithPassword|sendOtp|verifyOtp/);
+  assert.match(developerServiceApi, /action === 'bootstrap'/);
+  assert.match(vercel, /"source": "\/api\/developer\/bootstrap"[\s\S]+action=bootstrap/);
+  assert.match(configApi, /developerBootstrapEnabled/);
+  assert.match(developerSource, /\/api\/developer\/bootstrap/);
+  assert.match(developerSource, /autocomplete="new-password"/);
+  assert.match(developerSource, /does not send an OTP/);
+  assert.match(pkg, /developer-bootstrap\.test\.mjs/);
+});
 test('structured Information Needed and verified-answer-first Search remain safe', () => {
   assert.match(requestServer, /'information_update'/);
   assert.match(requestPage, /value="information_update"/);
@@ -1141,10 +1191,11 @@ test('baseline preserves the former Supabase portal until a separate verified cu
   assert.match(rootSchema, /202610240001_admission_tracking_developer_operations_and_answers\.sql/i);
   assert.match(rootSchema, /202610240002_staff_continuity_accelerated_progression_and_account_claims\.sql/i);
   assert.match(rootSchema, /202610250001_owner_authorised_developer_bootstrap\.sql/i);
-  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration]) {
+  assert.match(rootSchema, /202610250002_developer_bootstrap_http_controls\.sql/i);
+  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration]) {
     assert.ok(rootSchema.includes(orderedMigration.trim()), 'root schema must contain every migration verbatim');
   }
-  assert.ok(rootSchema.trimEnd().endsWith(bootstrapMigration.trimEnd()), 'root schema must end with exact migration 009 content');
+  assert.ok(rootSchema.trimEnd().endsWith(bootstrapHttpMigration.trimEnd()), 'root schema must end with exact migration 010 content');
   assert.match(legacyInventory, /begin transaction read only/i);
   assert.match(legacyInventory, /rollback;/i);
   assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);
@@ -1289,7 +1340,7 @@ test('service worker never caches protected portal or developer assets', () => {
     assert.match(serviceWorker, new RegExp(asset.replace('.', '\\.')));
   }
   assert.match(portalHtml, /portal-app\.js\?v=20261024-secure1/);
-  assert.match(developerHtml, /developer-console\.js\?v=20261024-2/);
+  assert.match(developerHtml, /developer-console\.js\?v=20261025-1/);
 });
 test('Vercel policy keeps portal/API private and consolidates gated routes within the Hobby Function limit', () => {
   const settings = JSON.parse(vercel);
@@ -1322,6 +1373,7 @@ test('Vercel policy keeps portal/API private and consolidates gated routes withi
     '/api/portal/admission-continuation': '/api/admission-service?action=continuation',
     '/api/developer/console': '/api/developer-service?action=console',
     '/api/developer/otp': '/api/developer-service?action=otp',
+    '/api/developer/bootstrap': '/api/developer-service?action=bootstrap',
     '/api/requests': '/api/website-request-service?action=create',
     '/api/requests/status': '/api/website-request-service?action=status'
   };

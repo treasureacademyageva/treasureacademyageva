@@ -6,7 +6,15 @@ const themeButton = document.getElementById('developerTheme');
 const signOutButton = document.getElementById('developerSignOut');
 const identityNode = document.getElementById('developerIdentity');
 const shell = document.getElementById('developerShell');
-const state = { supabase: null, session: null, dashboard: null, reveal: null, revealTimer: null };
+const state = {
+  supabase: null,
+  session: null,
+  dashboard: null,
+  reveal: null,
+  revealTimer: null,
+  portalEnabled: false,
+  bootstrapEnabled: false
+};
 
 function esc(value) {
   return String(value == null ? '' : value).replace(/[&<>"']/g, (character) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
@@ -55,13 +63,54 @@ async function api(url, options = {}) {
   if (!response.ok) throw Object.assign(new Error(result.error || 'Request failed.'), { status: response.status });
   return result;
 }
+function bootstrapMarkup() {
+  if (!state.bootstrapEnabled) return '';
+  return '<details class="bootstrap-panel" open><summary>First password or owner-authorised recovery</summary><p class="bootstrap-help">Use the one-time authorisation received privately from the owner. Create your own password here; do not send it to the owner, school staff or support.</p><form class="bootstrap-form" id="developerBootstrap" novalidate><label class="field">Approved developer phone<input name="phone" type="tel" inputmode="tel" autocomplete="username" required></label><label class="field">One-time owner authorisation<input name="authorisation" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="40" maxlength="100" required></label><label class="field">Create private password<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><label class="field">Confirm private password<input name="confirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><button class="primary-button" type="submit">Create private password</button><p class="bootstrap-note">This path does not send an OTP. It accepts only a short-lived, one-use owner authorisation.</p><p class="console-status" id="developerBootstrapMessage" role="status"></p></form></details>';
+}
+function bindBootstrapForm() {
+  const form = document.getElementById('developerBootstrap');
+  if (!form) return;
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    const messageNode = document.getElementById('developerBootstrapMessage');
+    const button = form.querySelector('button');
+    const data = new FormData(form);
+    const phone = normalizePhone(data.get('phone'));
+    const password = String(data.get('password') || '');
+    const confirmPassword = String(data.get('confirmPassword') || '');
+    if (!phone) { messageNode.textContent = 'Enter a valid Nigerian phone number.'; messageNode.className = 'console-status is-error'; return; }
+    if (password !== confirmPassword) { messageNode.textContent = 'The two password entries do not match.'; messageNode.className = 'console-status is-error'; return; }
+    button.disabled = true;
+    messageNode.className = 'console-status';
+    messageNode.textContent = 'Checking the owner authorisation securely…';
+    try {
+      const response = await fetch('/api/developer/bootstrap', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ phone, authorisation: String(data.get('authorisation') || ''), password, confirmPassword })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Private account setup is unavailable.');
+      form.reset();
+      messageNode.textContent = result.message || 'Your private password is ready.';
+      messageNode.className = 'console-status is-success';
+      document.querySelector('#developerLogin input[name="phone"]')?.focus();
+    } catch (error) {
+      messageNode.textContent = error.message || 'Private account setup failed.';
+      messageNode.className = 'console-status is-error';
+    } finally { button.disabled = false; }
+  });
+}
 function renderLogin(message = '') {
   shell.hidden = true;
   signOutButton.hidden = true;
   identityNode.innerHTML = '<strong>Protected console</strong><span>Authorised accounts only</span>';
-  app.innerHTML = '<div class="auth-shell"><section class="auth-copy"><p class="eyebrow" style="color:#d7ffe7">Capability-scoped access</p><h1>Developer Console</h1><p>Operational metrics, the manual OTP dispatcher and release readiness share one protected workspace. Administrator status alone does not grant access.</p><ul class="check-list"><li>Browser-session-only sign-in</li><li>Separate OTP dispatch capability</li><li>Encrypted Review remains separate</li></ul></section><form class="auth-form" id="developerLogin" novalidate><p class="eyebrow">Authorised developer</p><h2>Sign in securely</h2><label class="field">Nigerian phone number<input name="phone" type="tel" inputmode="tel" autocomplete="username" required></label><label class="field">Password<input name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></label><p class="console-status' + (message ? ' is-error' : '') + '" id="developerLoginMessage" role="status">' + esc(message) + '</p><button class="primary-button" type="submit">Sign in</button><a href="/portal/login.html">Open the school portal instead</a></form></div>';
+  const signIn = state.portalEnabled ? '<form class="auth-form" id="developerLogin" novalidate><p class="eyebrow">Authorised developer</p><h2>Sign in securely</h2><label class="field">Nigerian phone number<input name="phone" type="tel" inputmode="tel" autocomplete="username" required></label><label class="field">Password<input name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></label><p class="console-status' + (message ? ' is-error' : '') + '" id="developerLoginMessage" role="status">' + esc(message) + '</p><button class="primary-button" type="submit">Sign in</button><a href="/portal/login.html">Open the school portal instead</a></form>' : '<section class="auth-form"><p class="eyebrow">Controlled activation</p><h2>Normal sign-in is closed</h2><p>The protected developer console remains disabled. Private password setup can be opened separately for one approved action.</p></section>';
+  const bootstrap = bootstrapMarkup();
+  app.innerHTML = '<div class="auth-shell' + (bootstrap ? ' auth-shell--setup' : '') + '"><section class="auth-copy"><p class="eyebrow" style="color:#d7ffe7">Capability-scoped access</p><h1>Developer Console</h1><p>Normal access uses your approved developer phone and private password. Sessions remain in this browser tab only.</p><ul class="check-list"><li>Browser-session-only sign-in</li><li>Separate OTP dispatch capability</li><li>Encrypted Review remains separate</li></ul>' + (state.bootstrapEnabled ? '<p><strong>Owner-authorised setup is temporarily open.</strong> The school never needs to know your password.</p>' : '') + '</section><div class="auth-actions">' + signIn + bootstrap + '</div></div>';
   const form = document.getElementById('developerLogin');
-  form.addEventListener('submit', async (event) => {
+  if (form) form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!form.reportValidity()) return;
     const messageNode = document.getElementById('developerLoginMessage');
@@ -79,6 +128,7 @@ function renderLogin(message = '') {
       messageNode.textContent = error.status === 403 ? 'This account does not have developer console access.' : 'Sign-in was not accepted. Check the account or contact the owner.';
     } finally { button.disabled = false; }
   });
+  bindBootstrapForm();
 }
 function metric(label, value, detail) {
   return '<article class="metric"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong><small>' + esc(detail) + '</small></article>';
@@ -256,7 +306,13 @@ async function start() {
   try {
     const response = await fetch('/api/portal-config', { cache: 'no-store', headers: { Accept: 'application/json' } });
     const config = await response.json();
-    if (!response.ok || !config.enabled || !config.url || !config.publishableKey) throw new Error('Portal configuration unavailable');
+    if (!response.ok) throw new Error('Portal configuration unavailable');
+    state.bootstrapEnabled = config.developerBootstrapEnabled === true;
+    state.portalEnabled = config.enabled === true && Boolean(config.url) && Boolean(config.publishableKey);
+    if (!state.portalEnabled) {
+      renderLogin(state.bootstrapEnabled ? '' : 'Secure sign-in configuration is not available.');
+      return;
+    }
     state.supabase = createClient(config.url, config.publishableKey, {
       auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
       global: { headers: { 'X-Client-Info': 'treasure-academy-developer/1.0' } }
@@ -268,6 +324,8 @@ async function start() {
       if (event === 'SIGNED_OUT') renderLogin();
     });
   } catch {
+    state.portalEnabled = false;
+    state.bootstrapEnabled = false;
     renderLogin('Secure sign-in configuration is not available.');
   }
 }

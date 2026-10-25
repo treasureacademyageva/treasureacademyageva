@@ -43,4 +43,4 @@ done
 echo "verify 20261024_post_migration_read_only_verification.sql"
 "${PSQL[@]}" -f supabase/release/20261024_post_migration_read_only_verification.sql >/dev/null
 
-echo "SQL MIGRATION QA: 9/9 migrations, 5/5 rollback-safe policy suites and the read-only postflight passed."
+echo "SQL MIGRATION QA: 10/10 migrations, 5/5 rollback-safe policy suites and the read-only postflight passed."

@@ -2,6 +2,7 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
+const { AxeBuilder } = require('@axe-core/playwright');
 const BASE = process.env.TA_TEST_BASE || 'http://127.0.0.1:4173/';
 function token(payload) {
   const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -63,6 +64,32 @@ function token(payload) {
   assert.doesNotMatch(search.url(), /resumption|When/);
   passed += 1;
   await searchContext.close();
+
+  const bootstrapContext = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'dark' });
+  const bootstrapPage = await bootstrapContext.newPage();
+  let bootstrapPayload;
+  await bootstrapPage.route('**/api/portal-config', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ enabled: false, developerBootstrapEnabled: true }) }));
+  await bootstrapPage.route('**/api/developer/bootstrap', async (route) => {
+    bootstrapPayload = JSON.parse(route.request().postData() || '{}');
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ completed: true, purpose: 'initial_password', message: 'Your private developer password is ready.' }) });
+  });
+  await bootstrapPage.goto(new URL('developer.html', BASE).href, { waitUntil: 'networkidle' });
+  assert.equal(await bootstrapPage.getByRole('heading', { name: 'Normal sign-in is closed' }).count(), 1);
+  assert.equal(await bootstrapPage.locator('#developerLogin').count(), 0);
+  assert.equal(await bootstrapPage.locator('#developerBootstrap').count(), 1);
+  const bootstrapA11y = await new AxeBuilder({ page: bootstrapPage }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  assert.deepEqual(bootstrapA11y.violations.filter((item) => ['serious', 'critical'].includes(item.impact)), []);
+  await bootstrapPage.getByLabel('Approved developer phone').fill('0800 000 0301');
+  await bootstrapPage.getByLabel('One-time owner authorisation').fill('A'.repeat(43));
+  await bootstrapPage.getByLabel('Create private password').fill('Fictional!Private9');
+  await bootstrapPage.getByLabel('Confirm private password').fill('Fictional!Private9');
+  await bootstrapPage.getByRole('button', { name: 'Create private password' }).click();
+  await bootstrapPage.getByText('Your private developer password is ready.').waitFor();
+  assert.deepEqual(bootstrapPayload, { phone: '+2348000000301', authorisation: 'A'.repeat(43), password: 'Fictional!Private9', confirmPassword: 'Fictional!Private9' });
+  assert.equal(await bootstrapPage.inputValue('[name="password"]'), '');
+  assert.equal(await bootstrapPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
+  passed += 1;
+  await bootstrapContext.close();
 
   const developerContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const developer = await developerContext.newPage();

@@ -56,7 +56,7 @@ select pg_temp.assert_true(
   not exists(
     select 1 from information_schema.columns
      where table_schema='public'
-       and table_name in ('developer_bootstrap_authorisations','developer_bootstrap_events')
+       and table_name in ('developer_bootstrap_authorisations','developer_bootstrap_events','developer_bootstrap_http_limits')
        and column_name ~* '(password|plaintext|raw_token|otp|credential)'
   ),
   'Bootstrap tables must have no password, OTP, credential or raw-token column'
@@ -75,6 +75,10 @@ select pg_temp.assert_throws(
   'select * from public.developer_bootstrap_events',
   'Authenticated users must not read bootstrap audit events'
 );
+select pg_temp.assert_throws(
+  'select * from public.developer_bootstrap_http_limits',
+  'Authenticated users must not read bootstrap rate-limit buckets'
+);
 reset role;
 set local role service_role;
 select set_config('request.jwt.claim.role','service_role',true);
@@ -82,16 +86,34 @@ select pg_temp.assert_throws(
   'select * from public.developer_bootstrap_authorisations',
   'Service role must use RPCs instead of direct table reads'
 );
+select pg_temp.assert_throws(
+  'select * from public.developer_bootstrap_http_limits',
+  'Service role must use the rate-limit RPC instead of direct reads'
+);
 
 -- Grant read access only inside this rolled-back test after the production
 -- denial has been proved, so assertions can inspect state transitions.
 reset role;
 reset session authorization;
 select set_config('request.jwt.claim.role','',true);
-grant select on public.developer_bootstrap_authorisations,public.developer_bootstrap_events to service_role;
+grant select on public.developer_bootstrap_authorisations,public.developer_bootstrap_events,public.developer_bootstrap_http_limits to service_role;
 set session authorization authenticator;
 set local role service_role;
 select set_config('request.jwt.claim.role','service_role',true);
+
+-- The persistent phone bucket accepts only five requests per 15-minute window,
+-- stores a rotating HMAC only and blocks before any authorisation lookup.
+select pg_temp.assert_true(public.server_take_developer_bootstrap_rate_limit('phone',repeat('b',64)),'Rate request 1 must pass');
+select pg_temp.assert_true(public.server_take_developer_bootstrap_rate_limit('phone',repeat('b',64)),'Rate request 2 must pass');
+select pg_temp.assert_true(public.server_take_developer_bootstrap_rate_limit('phone',repeat('b',64)),'Rate request 3 must pass');
+select pg_temp.assert_true(public.server_take_developer_bootstrap_rate_limit('phone',repeat('b',64)),'Rate request 4 must pass');
+select pg_temp.assert_true(public.server_take_developer_bootstrap_rate_limit('phone',repeat('b',64)),'Rate request 5 must pass');
+select pg_temp.assert_true(not public.server_take_developer_bootstrap_rate_limit('phone',repeat('b',64)),'Rate request 6 must be blocked');
+select pg_temp.assert_true(
+  (select attempt_count=5 and blocked_until>now() and subject_hash=repeat('b',64)
+     from public.developer_bootstrap_http_limits where scope='phone'),
+  'Rate bucket must persist only the HMAC, bounded count and temporary block'
+);
 
 -- A correct bearer value with the wrong phone increments only a code-free
 -- attempt count, then the exact owner-approved claim may reserve once.
@@ -186,8 +208,11 @@ select pg_temp.assert_throws(
 
 -- Password recovery uses a distinct owner-issued one-time authorisation and
 -- the same already-claimed developer identity. Auth Admin changes the password
--- before this completion acknowledgement; SQL stores no password.
+-- before this completion acknowledgement; SQL stores no password. A fictional
+-- former browser session proves recovery revokes every existing session.
 reset role;
+insert into auth.sessions(id,user_id)
+values('94000000-0000-4000-8000-000000000001','14000000-0000-4000-8000-000000000001');
 reset session authorization;
 select set_config('request.jwt.claim.role','',true);
 create temporary table issued_recovery as
@@ -217,6 +242,10 @@ select pg_temp.assert_true(
     (select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_recovery)
   ),
   'Recovery completion must consume the reserved owner authorisation'
+);
+select pg_temp.assert_true(
+  not exists(select 1 from auth.sessions where user_id='14000000-0000-4000-8000-000000000001'),
+  'Owner-authorised recovery must revoke every former browser session'
 );
 select pg_temp.assert_true(
   (select count(*)=1 from public.developer_bootstrap_events

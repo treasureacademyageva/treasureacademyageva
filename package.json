@@ -13,7 +13,7 @@
     "test:header-browser": "node tools/tests/header-browser.e2e.js",
     "test:a11y": "node tools/tests/accessibility-components-qa.js",
     "build:portal": "esbuild assets/js/portal-source.js --bundle --minify --target=es2020 --format=iife --supported:template-literal=false --outfile=assets/js/portal-app.js --legal-comments=none",
-    "test:portal": "node tools/tests/portal-security.test.mjs",
+    "test:portal": "node tools/tests/portal-security.test.mjs && node tools/tests/developer-bootstrap.test.mjs",
     "test:portal-browser": "node tools/tests/portal-browser.e2e.js",
     "test:operations-browser": "node tools/tests/operations-browser.e2e.js",
     "test:secure-browser": "node tools/tests/secure-workflows-browser.e2e.js",

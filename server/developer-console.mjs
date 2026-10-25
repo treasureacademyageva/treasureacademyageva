@@ -81,6 +81,7 @@ export async function handleDeveloperConsole(request) {
       paragonOtpRelay: enabled('PARAGON_OTP_RELAY_ENABLED'),
       admissionTracking: enabled('ADMISSION_TRACKING_ENABLED'),
       developerConsole: enabled('DEVELOPER_CONSOLE_ENABLED'),
+      developerManualBootstrap: enabled('DEVELOPER_MANUAL_BOOTSTRAP_ENABLED'),
       publicInformation: enabled('PUBLIC_INFORMATION_ENABLED'),
       websiteRequests: enabled('WEBSITE_REQUESTS_ENABLED'),
       monnifyWebhook: enabled('MONNIFY_WEBHOOK_ENABLED') && enabled('MONNIFY_OWNER_VERIFIED')

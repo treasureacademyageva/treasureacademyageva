@@ -1,4 +1,5 @@
 import { handleDeveloperOtp } from '../server/admission-tracking.mjs';
+import { handleDeveloperBootstrap } from '../server/developer-bootstrap.mjs';
 import { handleDeveloperConsole } from '../server/developer-console.mjs';
 
 function notFound() {
@@ -16,6 +17,7 @@ async function handle(request) {
   const action = new URL(request.url, 'https://internal.invalid').searchParams.get('action') || '';
   if (action === 'console') return handleDeveloperConsole(request);
   if (action === 'otp') return handleDeveloperOtp(request);
+  if (action === 'bootstrap') return handleDeveloperBootstrap(request);
   return notFound();
 }
 

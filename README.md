@@ -31,7 +31,7 @@ assets/js/portal-source.js   source for parent/staff/admin workspaces
 assets/js/portal-app.js      generated portal bundle
 server/                      same-origin trusted account/registration services
 api/                         fail-closed Vercel Function entry points
-supabase/migrations/         versioned secure schema, all seven ordered migrations
+supabase/migrations/         versioned secure schema, all ten ordered migrations
 supabase/tests/              rollback-only staging RLS/session matrix
 supabase/manual/             read-only inventory and separately prohibited retirement SQL
 tools/                       content builders, audits and automated tests
@@ -82,8 +82,9 @@ Apply only in order and only after owner-controlled preservation and isolated st
 7. `202610240001_admission_tracking_developer_operations_and_answers.sql`
 8. `202610240002_staff_continuity_accelerated_progression_and_account_claims.sql`
 9. `202610250001_owner_authorised_developer_bootstrap.sql`
+10. `202610250002_developer_bootstrap_http_controls.sql`
 
-`supabase-schema.sql` mirrors all nine ordered migrations through `202610250001`. The ninth migration adds only the dormant, owner-authorised developer-bootstrap data boundary; it does not issue a real authorisation, create an Auth user, set a password or activate a gate. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
+`supabase-schema.sql` mirrors all ten ordered migrations through `202610250002`. The ninth migration adds the dormant owner-authorised developer-bootstrap data boundary. The tenth adds rotating HMAC-only HTTP rate buckets and revokes former sessions after owner-authorised recovery. Neither migration issues a real authorisation, creates an Auth user, sets a password or activates a gate. No migration retires `public.school_data`. The retirement file is intentionally outside the migration directory and remains prohibited before verified cutover and separate owner approval.
 
 ## Fail-closed feature gates
 
@@ -100,8 +101,9 @@ Copy `.env.example` only as a names/reference file; never commit real secrets. N
 - `PUBLIC_GRADUATE_WALL_ENABLED`
 - `ADMISSION_TRACKING_ENABLED`
 - `DEVELOPER_CONSOLE_ENABLED`
+- `DEVELOPER_MANUAL_BOOTSTRAP_ENABLED` (temporary; false by default)
 
-`PORTAL_REGISTRATION_PEPPER` is server-only and must be a new private random value of at least 24 characters. Account claiming additionally requires independent `PORTAL_CLAIM_HASH_PEPPER` and `PORTAL_CLAIM_OTP_ENCRYPTION_KEY` secrets of at least 32 characters. The Paragon relay stays disabled unless its separate HMAC/replay/tenant acceptance checks pass.
+`PORTAL_REGISTRATION_PEPPER` is server-only and must be a new private random value of at least 24 characters. Account claiming additionally requires independent `PORTAL_CLAIM_HASH_PEPPER` and `PORTAL_CLAIM_OTP_ENCRYPTION_KEY` secrets of at least 32 characters. Temporary developer bootstrap requires its own server-only `DEVELOPER_BOOTSTRAP_RATE_LIMIT_PEPPER` of at least 32 characters. The Paragon relay stays disabled unless its separate HMAC/replay/tenant acceptance checks pass.
 
 ## Build and tests
 
@@ -112,7 +114,7 @@ npm run test:all-current
 npm run test:sql-local   # requires local PostgreSQL 17 access
 ```
 
-The maintained browser runner starts its own local server. SQL parser checks in the Node suite are not a substitute for applying all nine migrations and all five rollback-only policy suites in a disposable local or isolated Supabase staging database. `supabase/release/20261024_SQL_AGENT_HANDOFF.md` is preserved historical evidence for the earlier seven-migration package and must not be reused for migration 009; prepare a fresh checksum manifest before any separately authorised production application.
+The maintained browser runner starts its own local server. SQL parser checks in the Node suite are not a substitute for applying all ten migrations and all five rollback-only policy suites in a disposable local or isolated Supabase staging database. `supabase/release/20261024_SQL_AGENT_HANDOFF.md` is preserved historical evidence for the earlier seven-migration package and must not be reused for migration 009; prepare a fresh checksum manifest before any separately authorised production application.
 
 ## Deployment safety
 

@@ -86,7 +86,7 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
  ok('journey diagnostics mark an incomplete form without retaining its value',abandonedJourney&&abandonedJourney.events.some(e=>e.t==='form_abandon'&&e.form==='contact')&&!JSON.stringify(abandonedJourney).includes('Not retained'));await abandoned.close();
  const dev=await context.newPage();await dev.goto(new URL('developer-operations.html',BASE).href,{waitUntil:'domcontentloaded'});await dev.waitForTimeout(150);
  ok('retired Developer Operations redirects to the unified console',/developer\.html#overview$/.test(dev.url()));
- ok('developer console presents capability-scoped sign-in instead of public operational data',await dev.locator('h1',{hasText:'Developer Console'}).count()===1&&await dev.locator('#developerLogin').count()===1&&await dev.locator('#otpQueue').count()===0);
+ ok('developer console presents a controlled access boundary instead of public operational data',await dev.locator('h1',{hasText:'Developer Console'}).count()===1&&await dev.locator('h2',{hasText:/Sign in securely|Normal sign-in is closed/}).count()===1&&await dev.locator('#otpQueue').count()===0);
  ok('developer console keeps encrypted Review separate and lists the consolidated work areas',await dev.locator('a[href="/developer-review.html"]').count()===1&&await dev.locator('a[href="#information"]').count()===1&&await dev.locator('a[href="#release"]').count()===1);
  await dev.close();await help.close();await search.close();await context.close();
  const dark=await browser.newContext({viewport:{width:390,height:844},colorScheme:'dark'});

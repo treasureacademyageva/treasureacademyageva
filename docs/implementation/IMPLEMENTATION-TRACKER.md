@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 25 October 2026 — Run 2
-**Overall status:** Runs 1–2 complete locally; no application behavior, production database, deployment or feature gate changed
+**Last updated:** 25 October 2026 — Run 3
+**Overall status:** Runs 1–3 complete locally; no production database, deployment, real identity/password/authorisation or feature gate changed
 
 ## Status key
 
@@ -20,7 +20,7 @@
 |---:|---|---|---|---|
 | 1 | Authority, baseline, preservation and inventory | Approved plan committed; complete QA baseline; reproducible source/route/content/API/database inventory; defect register; no behavior change | Owner-approved plan | `DONE` locally at the Run 1 audit commit |
 | 2 | One-time developer bootstrap data boundary | One additive local migration for a one-use owner authorisation, capability binding and code-free audit; preservation and RLS tests | Run 1 | `DONE` locally at the Run 2 migration commit |
-| 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `READY` |
+| 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `DONE` locally at the Run 3 endpoint/UI commit |
 | 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3 and an owner acceptance window | `BLOCKED` |
 | 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `BLOCKED` |
 | 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `BLOCKED` |
@@ -59,6 +59,21 @@
 | Root schema mirror | Regenerated verbatim from all nine ordered migrations | Pass |
 | Production state | No migration, Auth user, authorisation, password, deployment or gate change | Pass |
 
+## Run 3 acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| Multiplexed trusted endpoint | `/api/developer/bootstrap` uses existing `developer-service` Function | Pass; no Function-count increase |
+| Gate and request boundary | Gate defaults false; exact same-origin JSON, 8 KiB limit and strong-password schema | Pass |
+| Persistent privacy-safe rate limit | Migration `202610250002`; rotating HMAC-only network and network+phone buckets | Pass locally; not production-applied |
+| Auth Admin and compensation | Create/update only on trusted server; new user deleted on completion failure; unsafe release prohibited | Pass |
+| Recovery session safety | Additive migration revokes all former `auth.sessions` after recovery | Pass |
+| Private accessible UI | Labelled first-password/recovery fields, day/dark mobile reflow, no-OTP/share-password warnings | Pass |
+| Endpoint/security acceptance | Portal/security 87/87 and dedicated endpoint 12/12 | Pass |
+| Disposable SQL acceptance | 10/10 migrations, 5/5 policy suites and expanded postflight | Pass |
+| Complete application regression | Visitor 1447/1447; accessibility 59 light + 5 dark; all secure/operations/portal/header browsers | Pass |
+| Production state | No SQL, deployment, provider call, Auth user, password, authorisation or gate change | Pass |
+
 ## Permanent preservation rules
 
 1. Never rerun the first seven production migrations. Future database work is additive.
@@ -79,7 +94,7 @@
 | Gate/capability | Required state now | Opening condition |
 |---|---|---|
 | Portal and portal accounts | Off unless an already-approved release explicitly says otherwise | Complete authenticated acceptance and production rollback evidence |
-| Developer bootstrap | Absent/off | Runs 2–3 pass; one private owner authorisation; immediately disable after one success |
+| Developer bootstrap | Implemented locally; environment gate remains off/undeployed | Run 4 private acceptance; one owner authorisation; immediately disable after one success |
 | School account claims | Off | Manual dispatcher operational and Run 4 account-claim acceptance passes |
 | Admission-tracking OTP | Off | Separate later acceptance after account claims |
 | Public CMS publication | Absent/off | CMS RLS, audit, preview and published-only projections pass |
@@ -107,8 +122,7 @@ No password, OTP or provider secret is requested in chat.
 The working tree contains only these pre-existing, zero-content mode changes outside the implementation commits:
 
 - `tools/build-supabase-schema.py` — `100755 → 100644`;
-- `tools/run-current-tests.sh` — `100755 → 100644`;
-- `tools/test-sql-migrations.sh` — `100755 → 100644`.
+- `tools/run-current-tests.sh` — `100755 → 100644`.
 
 They must stay unstaged and must not be folded into implementation commits unless their owner explicitly authorises a separate mode-only commit.
 
