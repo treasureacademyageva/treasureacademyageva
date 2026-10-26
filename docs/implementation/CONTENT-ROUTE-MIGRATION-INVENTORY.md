@@ -1,10 +1,10 @@
 # Content, Route and Dependency Migration Inventory
 
-**Captured:** 25 October 2026
+**Captured:** 25 October 2026; Run 5 boundary updated 26 October 2026
 **Authority:** owner-approved Dynamic Platform Master Plan
 **Rule:** inventory → owner/source verification → additive import → revision preservation → database rendering → parity proof → coded-authority retirement
 
-This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable.
+This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Run 5 added only a locally accepted schema/policy source migration; it imported no content/media and changed no current route authority.
 
 ## 1. Current deployable route inventory
 
@@ -347,12 +347,38 @@ registrations.mjs
 
 ## 11. Database inventory boundary
 
-Production contains 102 RLS-enabled public tables from two eras:
+The read-only pre/post-Run-5 Production baseline contains 105 public tables, all 105 RLS-enabled:
 
 - earlier tables such as `school_data`, `news_posts`, `news_images`, `calendar_events`, `shop_items`, `fee_structure`, `transport_routes`, `uniform_items`, `staff` and related operational tables;
-- eight additive-migration families for the secure portal, accounts, operations, family linking, enrolment, finance/inventory, admission tracking/developer capabilities and continuity/account claims.
+- additive secure-portal families for accounts, operations, family linking, enrolment, finance/inventory, admission tracking/developer capabilities, continuity/account claims and the accepted Run 4 bootstrap boundary.
 
-The approved CMS must use one new additive migration with purpose-built, separately governed content/revision/block/media/slug/approval/slot/search/engagement/bootstrap structures. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+Production still contains zero of the 20 planned CMS foundation tables. `school_data` remains present with its preserved row; Auth users/identities remain `2/2`; storage remains empty; pending/claimed account claims remain `2/2`; live claim challenges and bootstrap authorisations remain zero.
+
+Run 5 now has exactly one purpose-built source migration, `20261026060000_public_cms_foundation.sql`, with:
+
+- stable entries and immutable revisions/blocks;
+- tags, controlled search terms and media relationships;
+- media consent/provenance metadata;
+- aliases, approvals, publication audit and quality findings;
+- slots and navigation;
+- separate CMS capabilities;
+- dormant privacy-safe views, signed-in likes and premoderated comments;
+- six published-only security-invoker projections.
+
+The migration remains unapplied to Production and contains no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+
+### Run 5 authority status
+
+| Surface | Run 5 result | Current public authority |
+|---|---|---|
+| News/Event/Page/Announcement identities | Schema and lifecycle accepted locally; zero records | Existing static site remains authoritative |
+| Structured body blocks | Allowlist and validation accepted locally; zero blocks | Existing reviewed HTML remains authoritative |
+| Media metadata/relationships | Consent/provenance boundary accepted locally; zero media | Existing approved deployment assets only; historical child media held |
+| Slug aliases | Stable alias model accepted locally; zero aliases | Existing `.html` routes remain unchanged |
+| Search vocabulary | Controlled per-revision terms accepted locally; zero terms; no raw queries | Existing static Search remains authoritative |
+| Homepage slots/navigation | Foundation accepted locally; zero rows | Existing coded layout/navigation remains authoritative |
+| Engagement | Tables fail closed with no public/authenticated grants | No CMS views/likes/comments feature is active |
+| Public projections | RLS and published-only behavior proven locally | No dynamic public route consumes them yet |
 
 ## 12. Parity and retirement checklist for each migrated item
 

@@ -14,6 +14,12 @@ grant usage on schema public to anon, authenticated, service_role;
 alter default privileges for role postgres in schema public grant all on tables to service_role;
 alter default privileges for role postgres in schema public grant all on sequences to service_role;
 
+-- Supabase installs extension-owned functions outside `public`. Mirror that
+-- layout so explicit `extensions.pgcrypto_function(...)` references are tested.
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
+grant usage on schema extensions to anon, authenticated, service_role, authenticator;
+
 create schema if not exists auth;
 create table if not exists auth.users (
   id uuid primary key,

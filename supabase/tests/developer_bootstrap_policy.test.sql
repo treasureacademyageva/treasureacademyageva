@@ -47,7 +47,7 @@ select pg_temp.assert_true(
   'Owner issue must return one high-entropy URL-safe value'
 );
 select pg_temp.assert_true(
-  (select a.authorisation_hash = encode(public.digest(convert_to(i.one_time_authorisation,'UTF8'),'sha256'),'hex')
+  (select a.authorisation_hash = encode(extensions.digest(convert_to(i.one_time_authorisation,'UTF8'),'sha256'),'hex')
      from public.developer_bootstrap_authorisations a cross join issued_initial i
     where a.id=i.authorisation_id),
   'Only the SHA-256 authorisation hash must be stored'
@@ -118,7 +118,7 @@ select pg_temp.assert_true(
 -- A correct bearer value with the wrong phone increments only a code-free
 -- attempt count, then the exact owner-approved claim may reserve once.
 select * from public.server_reserve_developer_bootstrap(
-  (select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial),
+  (select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial),
   '+2348000000399'
 );
 select pg_temp.assert_true(
@@ -129,7 +129,7 @@ select pg_temp.assert_true(
 );
 create temporary table reserved_initial as
   select * from public.server_reserve_developer_bootstrap(
-    (select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial),
+    (select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial),
     '+2348000000301'
   );
 select pg_temp.assert_true(
@@ -142,7 +142,7 @@ select pg_temp.assert_true(
 select pg_temp.assert_true(
   not exists(
     select 1 from public.server_reserve_developer_bootstrap(
-      (select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial),
+      (select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial),
       '+2348000000301'
     )
   ),
@@ -164,7 +164,7 @@ select public.server_complete_developer_bootstrap(
   (select authorisation_id from issued_initial),
   '64000000-0000-4000-8000-000000000001',
   '14000000-0000-4000-8000-000000000001',
-  (select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial)
+  (select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_initial)
 );
 select pg_temp.assert_true(
   (select role='parent' and leadership_scope='none' and account_status='active'
@@ -225,7 +225,7 @@ set local role service_role;
 select set_config('request.jwt.claim.role','service_role',true);
 create temporary table reserved_recovery as
   select * from public.server_reserve_developer_bootstrap(
-    (select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_recovery),
+    (select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_recovery),
     '+2348000000301'
   );
 select pg_temp.assert_true(
@@ -239,7 +239,7 @@ select pg_temp.assert_true(
     (select authorisation_id from issued_recovery),
     '64000000-0000-4000-8000-000000000001',
     '14000000-0000-4000-8000-000000000001',
-    (select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_recovery)
+    (select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_recovery)
   ),
   'Recovery completion must consume the reserved owner authorisation'
 );
@@ -267,11 +267,11 @@ grant select on issued_lock_test to service_role;
 set session authorization authenticator;
 set local role service_role;
 select set_config('request.jwt.claim.role','service_role',true);
-select * from public.server_reserve_developer_bootstrap((select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
-select * from public.server_reserve_developer_bootstrap((select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
-select * from public.server_reserve_developer_bootstrap((select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
-select * from public.server_reserve_developer_bootstrap((select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
-select * from public.server_reserve_developer_bootstrap((select encode(public.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
+select * from public.server_reserve_developer_bootstrap((select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
+select * from public.server_reserve_developer_bootstrap((select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
+select * from public.server_reserve_developer_bootstrap((select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
+select * from public.server_reserve_developer_bootstrap((select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
+select * from public.server_reserve_developer_bootstrap((select encode(extensions.digest(convert_to(one_time_authorisation,'UTF8'),'sha256'),'hex') from issued_lock_test),'+2348000000399');
 select pg_temp.assert_true(
   (select status='locked' and attempt_count=5 and authorisation_hash is null
      from public.developer_bootstrap_authorisations

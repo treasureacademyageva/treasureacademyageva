@@ -19,21 +19,23 @@ if ! pg_isready -q; then
   exit 1
 fi
 
+migrations=(supabase/migrations/*.sql)
+suites=(supabase/tests/*.test.sql)
+
+if [[ ! -e "${migrations[0]}" || ! -e "${suites[0]}" ]]; then
+  echo "Expected at least one migration and one rollback-safe policy suite." >&2
+  exit 1
+fi
+
 sudo -u postgres createdb "$DB"
 "${PSQL[@]}" -f supabase/tests/local_supabase_harness.sql >/dev/null
 
-for migration in supabase/migrations/*.sql; do
+for migration in "${migrations[@]}"; do
   echo "apply  $(basename "$migration")"
   "${PSQL[@]}" -f "$migration" >/dev/null
 done
 
-for suite in \
-  supabase/tests/rls_portal_policy.test.sql \
-  supabase/tests/programme_finance_inventory_policy.test.sql \
-  supabase/tests/admission_tracking_developer_policy.test.sql \
-  supabase/tests/continuity_claims_policy.test.sql \
-  supabase/tests/developer_bootstrap_policy.test.sql
-do
+for suite in "${suites[@]}"; do
   echo "test   $(basename "$suite")"
   escaped=${suite//\'/\'\'}
   printf "set session authorization authenticator;\n\\i '%s'\n" "$escaped" \
@@ -43,4 +45,4 @@ done
 echo "verify 20261024_post_migration_read_only_verification.sql"
 "${PSQL[@]}" -f supabase/release/20261024_post_migration_read_only_verification.sql >/dev/null
 
-echo "SQL MIGRATION QA: 10/10 migrations, 5/5 rollback-safe policy suites and the read-only postflight passed."
+echo "SQL MIGRATION QA: ${#migrations[@]}/${#migrations[@]} migrations, ${#suites[@]}/${#suites[@]} rollback-safe policy suites and the read-only postflight passed."
