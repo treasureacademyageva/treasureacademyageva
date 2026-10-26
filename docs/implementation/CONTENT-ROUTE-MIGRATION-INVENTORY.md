@@ -1,10 +1,10 @@
 # Content, Route and Dependency Migration Inventory
 
-**Captured:** 25 October 2026; Run 5 boundary updated 26 October 2026
+**Captured:** 25 October 2026; Runs 5–6 boundaries updated 26 October 2026
 **Authority:** owner-approved Dynamic Platform Master Plan
 **Rule:** inventory → owner/source verification → additive import → revision preservation → database rendering → parity proof → coded-authority retirement
 
-This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Run 5 added only a locally accepted schema/policy source migration; it imported no content/media and changed no current route authority.
+This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–6 added only locally accepted schema/policy and fail-closed media-service source; they imported no content/media, entered no provider secret and changed no current public route authority.
 
 ## 1. Current deployable route inventory
 
@@ -302,7 +302,7 @@ The preserved 108-file inventory is authoritative for file hashes and current tr
 | 3 excursion source photos | Static News currently references them | Hold from CMS publication pending consent/provenance review |
 | 3 Facebook archive links | Public external links | Reverify school control and continued publication authority before creating relationships |
 
-Cloudinary will own approved media binaries/derivatives; Supabase will own metadata, consent, provenance, relationships and permissions. No original/bulk child-media download is public by default.
+Cloudinary will own approved media binaries/derivatives; Supabase will own metadata, consent, provenance, relationships and permissions. Run 6 now implements that fail-closed boundary locally against school environment `ecbad9xj`, but no asset or credential has been imported and no route is live. No original/bulk child-media download is public by default.
 
 ## 10. API/dependency inventory
 
@@ -311,6 +311,7 @@ Cloudinary will own approved media binaries/derivatives; Supabase will own metad
 ```text
 account-service.mjs
 admission-service.mjs
+cms-media.mjs
 developer-service.mjs
 monnify-webhook.mjs
 parent-service.mjs
@@ -321,12 +322,15 @@ public-information.mjs
 website-request-service.mjs
 ```
 
+The gate-off `cms-media.mjs` dispatcher owns exactly `/api/cms/media/sign`, `/complete`, `/delivery`, `/manifest` and `/usage`; no public content route consumes it in Run 6.
+
 ### Server modules
 
 ```text
 account-claims.mjs
 accounts.mjs
 admission-tracking.mjs
+cms-media.mjs
 developer-console.mjs
 monnify.mjs
 otp-relay.mjs
@@ -341,18 +345,18 @@ registrations.mjs
 - Vercel routing/serverless runtime;
 - Paragon signed relay code path, disabled;
 - WhatsApp and Facebook outbound links;
-- no Cloudinary SDK/configuration;
+- direct Cloudinary Upload/Admin/Usage REST integration in the trusted server, with no added SDK dependency and `CMS_MEDIA_ENABLED=false`;
 - no production AI backend;
 - dormant Monnify files/gates, out of approved scope.
 
 ## 11. Database inventory boundary
 
-The read-only pre/post-Run-5 Production baseline contains 105 public tables, all 105 RLS-enabled:
+The accepted pre/post-Run-5 Production baseline, preserved unchanged through local Run 6, contains 105 public tables, all 105 RLS-enabled:
 
 - earlier tables such as `school_data`, `news_posts`, `news_images`, `calendar_events`, `shop_items`, `fee_structure`, `transport_routes`, `uniform_items`, `staff` and related operational tables;
 - additive secure-portal families for accounts, operations, family linking, enrolment, finance/inventory, admission tracking/developer capabilities, continuity/account claims and the accepted Run 4 bootstrap boundary.
 
-Production still contains zero of the 20 planned CMS foundation tables. `school_data` remains present with its preserved row; Auth users/identities remain `2/2`; storage remains empty; pending/claimed account claims remain `2/2`; live claim challenges and bootstrap authorisations remain zero.
+Production still contains zero of the 22 planned Run 5/6 CMS and media-governance tables. `school_data` remains present with its preserved row; Auth users/identities remain `2/2`; storage remains empty; pending/claimed account claims remain `2/2`; live claim challenges and bootstrap authorisations remain zero.
 
 Run 5 now has exactly one purpose-built source migration, `20261026060000_public_cms_foundation.sql`, with:
 
@@ -365,15 +369,17 @@ Run 5 now has exactly one purpose-built source migration, `20261026060000_public
 - dormant privacy-safe views, signed-in likes and premoderated comments;
 - eight fixed-column published-only projections with no anonymous base-table grants.
 
-The migration remains unapplied to Production and contains no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+Run 6 adds `20261026070000_cloudinary_media_governance.sql`, two RLS relations, nine protected media functions, immutable events and provider metadata on the existing media manifest. The trusted service exposes one consolidated five-action Function for upload signing/completion, bounded private derivatives, owner manifest/orphan export and sanitised quota usage. It adds no SDK dependency, row or secret and stays gate-off.
 
-### Run 5 authority status
+Both migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
 
-| Surface | Run 5 result | Current public authority |
+### Runs 5–6 authority status
+
+| Surface | Local result | Current public authority |
 |---|---|---|
 | News/Event/Page/Announcement identities | Schema and lifecycle accepted locally; zero records | Existing static site remains authoritative |
 | Structured body blocks | Allowlist and validation accepted locally; zero blocks | Existing reviewed HTML remains authoritative |
-| Media metadata/relationships | Consent/provenance boundary accepted locally; zero media | Existing approved deployment assets only; historical child media held |
+| Media metadata/relationships | Governed signed-upload, provider confirmation, consent/provenance/safeguarding, placement/download, manifest/orphan and quota boundary accepted locally; zero media | Existing approved deployment assets only; historical child media held |
 | Slug aliases | Stable alias model accepted locally; zero aliases | Existing `.html` routes remain unchanged |
 | Search vocabulary | Controlled per-revision terms accepted locally; zero terms; no raw queries | Existing static Search remains authoritative |
 | Homepage slots/navigation | Foundation accepted locally; zero rows | Existing coded layout/navigation remains authoritative |

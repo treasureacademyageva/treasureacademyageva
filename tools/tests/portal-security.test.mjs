@@ -805,7 +805,7 @@ await asyncTest('only Headmistress endpoint issues a pupil code and stores its h
 });
 restoreParentEnvironment();
 
-const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
+const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
   read('supabase/migrations/202610230002_portal_accounts.sql'),
   read('supabase/migrations/202610230003_staff_operations_and_requests.sql'),
@@ -818,6 +818,7 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('supabase/migrations/20261025000200_developer_bootstrap_http_controls.sql'),
   read('supabase/migrations/20261026040507_fix_owner_bootstrap_pgcrypto_schema.sql'),
   read('supabase/migrations/20261026060000_public_cms_foundation.sql'),
+  read('supabase/migrations/20261026070000_cloudinary_media_governance.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
@@ -1196,10 +1197,11 @@ test('baseline preserves the former Supabase portal until a separate verified cu
   assert.match(rootSchema, /20261025000200_developer_bootstrap_http_controls\.sql/i);
   assert.match(rootSchema, /20261026040507_fix_owner_bootstrap_pgcrypto_schema\.sql/i);
   assert.match(rootSchema, /20261026060000_public_cms_foundation\.sql/i);
-  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration]) {
+  assert.match(rootSchema, /20261026070000_cloudinary_media_governance\.sql/i);
+  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration]) {
     assert.ok(rootSchema.includes(orderedMigration.trim()), 'root schema must contain every migration verbatim');
   }
-  assert.ok(rootSchema.trimEnd().endsWith(cmsFoundationMigration.trimEnd()), 'root schema must end with the exact current CMS foundation migration');
+  assert.ok(rootSchema.trimEnd().endsWith(cloudinaryMediaMigration.trimEnd()), 'root schema must end with the exact current Cloudinary media-governance migration');
   assert.match(legacyInventory, /begin transaction read only/i);
   assert.match(legacyInventory, /rollback;/i);
   assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);
@@ -1379,7 +1381,12 @@ test('Vercel policy keeps portal/API private and consolidates gated routes withi
     '/api/developer/otp': '/api/developer-service?action=otp',
     '/api/developer/bootstrap': '/api/developer-service?action=bootstrap',
     '/api/requests': '/api/website-request-service?action=create',
-    '/api/requests/status': '/api/website-request-service?action=status'
+    '/api/requests/status': '/api/website-request-service?action=status',
+    '/api/cms/media/sign': '/api/cms-media?action=sign',
+    '/api/cms/media/complete': '/api/cms-media?action=complete',
+    '/api/cms/media/delivery': '/api/cms-media?action=delivery',
+    '/api/cms/media/manifest': '/api/cms-media?action=manifest',
+    '/api/cms/media/usage': '/api/cms-media?action=usage'
   };
   for (const [source, destination] of Object.entries(expectedRoutes)) {
     assert.equal(rewriteDestinations.get(source), destination, `incorrect Vercel rewrite ${source}`);

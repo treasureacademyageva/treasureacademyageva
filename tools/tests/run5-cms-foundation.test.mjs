@@ -35,12 +35,12 @@ const cmsTables = [
   'public_comment_moderation_events'
 ];
 
-test('Run 5 has exactly one ordered additive CMS source migration', () => {
+test('Run 5 retains exactly one ordered additive CMS source migration', () => {
   const migrations = readdirSync(join(root, 'supabase/migrations'))
     .filter((name) => name.endsWith('.sql'))
     .sort();
-  assert.equal(migrations.length, 12);
-  assert.equal(migrations.at(-1), '20261026060000_public_cms_foundation.sql');
+  assert.ok(migrations.length >= 12);
+  assert.ok(migrations.includes('20261026060000_public_cms_foundation.sql'));
   assert.equal(migrations.filter((name) => name.startsWith('20261026060000_')).length, 1);
   assert.match(migration, /begin;[\s\S]+commit;\s*$/i);
   assert.doesNotMatch(migration, /(?:drop|truncate|delete\s+from|update)\s+(?:table\s+)?public\.school_data/i);
@@ -144,7 +144,6 @@ test('anonymous access is constrained to effective published-only projections', 
 
 test('schema mirror and local SQL runner track migrations and suites dynamically', () => {
   assert.ok(schema.includes(migration.trim()), 'generated root schema must include the exact CMS migration');
-  assert.ok(schema.trimEnd().endsWith(migration.trimEnd()), 'generated root schema must end with the current migration');
   assert.match(runner, /migrations=\(supabase\/migrations\/\*\.sql\)/);
   assert.match(runner, /suites=\(supabase\/tests\/\*\.test\.sql\)/);
   assert.match(runner, /\$\{#migrations\[@\]\}/);

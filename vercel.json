@@ -146,6 +146,26 @@
     {
       "source": "/api/requests/status",
       "destination": "/api/website-request-service?action=status"
+    },
+    {
+      "source": "/api/cms/media/sign",
+      "destination": "/api/cms-media?action=sign"
+    },
+    {
+      "source": "/api/cms/media/complete",
+      "destination": "/api/cms-media?action=complete"
+    },
+    {
+      "source": "/api/cms/media/delivery",
+      "destination": "/api/cms-media?action=delivery"
+    },
+    {
+      "source": "/api/cms/media/manifest",
+      "destination": "/api/cms-media?action=manifest"
+    },
+    {
+      "source": "/api/cms/media/usage",
+      "destination": "/api/cms-media?action=usage"
     }
   ],
   "headers": [
@@ -174,7 +194,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' blob:; upgrade-insecure-requests"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: blob: https://res.cloudinary.com/ecbad9xj/; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cloudinary.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' blob: https://res.cloudinary.com/ecbad9xj/; upgrade-insecure-requests"
         },
         {
           "key": "Cross-Origin-Opener-Policy",

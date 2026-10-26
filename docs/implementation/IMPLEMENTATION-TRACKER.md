@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 26 October 2026 — Run 5 local acceptance plus pre-Run-6 adversarial audit
-**Overall status:** Runs 1–5 are complete at their accepted boundaries. A separate pre-Run-6 source, privilege, lifecycle and catalog audit reproduced and corrected four Run 5 security/integrity defect classes before Production, expanded the rollback-safe regressions and regenerated the schema mirror. Production remains on the accepted Run 4 deployment and database state: the Run 5 migration has not been applied, no content/media was imported and no public CMS route or gate was activated. Stage 9 remains unauthorised, so production account claims, admission tracking and the Paragon relay remain false.
+**Last updated:** 26 October 2026 — Run 6 local Cloudinary/media-governance acceptance
+**Overall status:** Runs 1–6 are complete at their accepted repository/disposable-local boundaries. Run 6 pins the school-owned Cloudinary environment and signed authenticated preset, adds governed upload/provider-confirmation/review/manifest/quota controls, keeps manual-only retention and remains fail-closed. Production remains on the accepted Run 4 deployment and database state: Runs 5–6 have not been applied, no credential was entered, no provider upload/content/media import occurred and no public CMS/media route or gate was activated. A dedicated private Cloudinary key, Vercel Secret entry and neutral provider smoke test remain controlled pre-release holds. Stage 9 remains unauthorised, so production account claims, admission tracking and the Paragon relay remain false.
 
 ## Status key
 
@@ -23,8 +23,8 @@
 | 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `DONE` locally at the Run 3 endpoint/UI commit |
 | 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3, the prepared migration-ledger bridge and an owner acceptance window | `DONE` — Stages 1–8 accepted and closed; Stage 8 carries a documented final `Mark sent` audit exception accepted by the owner; Stage 9 not authorised and production claims remain false |
 | 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `DONE` locally — pre-Run-6 adversarial findings corrected; 12/12 migrations, 6/6 SQL suites, dedicated static security and complete regression passed; Production application and public activation remain separate and did not occur |
-| 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `BLOCKED` |
-| 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `BLOCKED` |
+| 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `DONE` locally — provider environment/preset and owner controls fixed; 13/13 migrations, 7/7 SQL suites, 14/14 focused tests and complete regression passed; private key entry, live provider smoke and Production application remain separate |
+| 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `READY` locally; do not start before the Run 6 commit and provider-key handoff boundary are closed |
 | 8 | Dynamic public News, Events and Gallery | Server-rendered listing/detail routes, lifecycle/countdowns, read time, media relationships, Gallery source links, safe downloads, feeds and structured data | Run 7 | `BLOCKED` |
 | 9 | Engagement and shared placements | Privacy-safe views, signed-in likes, gated premoderated comments, homepage placements and related content; popularity isolated from operations | Run 8 | `BLOCKED` |
 | 10 | Verified content migration and Search cutover | Verified text/core sections/repeated facts/search projections migrated; sensitive historical media held; parity proven before coded authority is retired | Runs 8–9 | `BLOCKED` |
@@ -137,6 +137,26 @@
 | Production/application state | No migration, import, provider call, deployment, public route, feature gate or Auth/storage mutation | Preserved |
 | Evidence and rollback | `RUN-05-CMS-FOUNDATION-ACCEPTANCE-EVIDENCE.md`; `RUN-05-CMS-FOUNDATION-ROLLBACK-PLAN.md` | Recorded |
 
+## Run 6 local acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| School-owned provider boundary | Cloud `ecbad9xj`; signed preset `treasure_academy_cms_signed`; authenticated delivery; exact pending folder | Pass; no credential stored |
+| Additive media governance | `20261026070000_cloudinary_media_governance.sql`; five-minute reservations, authoritative completion, immutable events and manual retention | Pass locally; not Production-applied |
+| Upload controls | Same-origin POST, active session/capability, random ID, SHA-256 signature, fixed tags/folder/type/preset, no overwrite/filename identity | Pass |
+| Type and size controls | Detected image/video allowlists; 10 MiB image and 50 MiB video limits; exact byte/provider-format confirmation | Pass |
+| Safeguarding | Supabase provenance/consent/safeguarding/publication state; both approved leadership scopes; identifiable-child creator cannot self-review | Pass |
+| Private delivery | No original route; bounded version-bound transformed image/video variants; explicit current `download` placement required | Pass |
+| Manifest/orphan retention | Proprietress-only paginated export; orphan reason retained; no provider/database automatic-delete function | Pass |
+| Quota control | Proprietress-only sanitised usage projection with 70 percent warning threshold | Pass |
+| Exact CSP | Exact upload host and school delivery path only; no Cloudinary wildcard | Pass locally; not deployed |
+| Data-neutral boundary | No media, authorisation, event, capability, consent or placement row seeded | Pass |
+| Disposable SQL acceptance | 13/13 ordered migrations, 7/7 rollback-safe policy suites and postflight | Pass |
+| Focused security acceptance | Run 6 Node/API 14/14; disposable catalog 2/2 RLS tables, 9/9 definer functions with empty path, zero pseudo-role execute | Pass |
+| Complete application regression | Visitor 1447/1447; accessibility 59 light + 5 dark; all answer, review, secure, operations, portal and header suites passed | Pass |
+| Provider/live boundary | No dedicated key/secret entry, provider upload, Vercel change, push, deployment, Production SQL or gate activation | Preserved |
+| Evidence and rollback | `RUN-06-CLOUDINARY-MEDIA-FOUNDATION-ACCEPTANCE-EVIDENCE.md`; `RUN-06-CLOUDINARY-MEDIA-FOUNDATION-ROLLBACK-PLAN.md` | Recorded |
+
 ## Permanent preservation rules
 
 1. Never rerun the first seven production migrations. Future database work is additive.
@@ -161,6 +181,7 @@
 | School account claims | Off in production; Stage 8 accepted and closed | A separately authorised Stage 9 environment change, new Production deployment and verification are still required before opening |
 | Admission-tracking OTP | Off | Separate later acceptance after account claims |
 | Public CMS publication | Absent/off; foundation accepted locally but not Production-applied | Separate Production migration acceptance, protected portal preview, content verification and published-route activation acceptance |
+| Governed CMS media | `CMS_MEDIA_ENABLED=false`; Run 6 source accepted locally; no private credential or provider upload | Dedicated private key entry, Runs 5–6 Production acceptance, gate-off deployment and neutral generated-fixture smoke test |
 | Comments | Off | Signed-in identity, premoderation, abuse controls, audit and kill switch pass |
 | Media downloads | Off by default | Asset-level permission and metadata-safe derivative proven |
 | External/generative AI | Off | Separate privacy review and explicit owner approval; retrieval-first remains default |
@@ -169,11 +190,10 @@
 
 ## External/owner decision holds
 
-The following are not defects and do not block Runs 2–5 unless their capability is reached:
+The school-owned Cloudinary account, manual-only indefinite retention and two accepted leadership reviewers are resolved in Run 6. The remaining external holds are not local source defects:
 
-- school-owned Cloudinary account;
-- orphan/unpublished media retention period;
-- second safeguarding/consent reviewer for identifiable child media;
+- a dedicated Cloudinary API key and private secret entry through the owner/provider and Vercel dashboards;
+- a neutral generated non-child provider smoke test after an authorised gate-off deployment and Runs 5–6 database acceptance;
 - separate manual admission-tracking acceptance window;
 - a future private receiving number for Jibril if the owner later supplies one;
 - private Meta and Render dashboard completion.
