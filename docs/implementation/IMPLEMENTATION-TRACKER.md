@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 25 October 2026 — Run 4 requirements preflight
-**Overall status:** Runs 1–3 complete locally; the Run 4 migration-ledger bridge is prepared and fully tested locally. Live Run 4 remains blocked on private provider readiness and an explicit owner-authorised production acceptance window. No Run 4 production mutation has occurred.
+**Last updated:** 26 October 2026 — Run 4 developer-bootstrap acceptance closure
+**Overall status:** Runs 1–3 are complete. Run 4 Stages 1–7 passed in production: the owner-authorised developer identity was accepted, normal phone/password login passed, the bootstrap gate was closed, and all temporary preview resources were deleted. Run 4 remains active at the separate Stage 8 manual Proprietress account-claim acceptance boundary; production account claims, admission tracking and the Paragon relay remain false.
 
 ## Status key
 
@@ -21,7 +21,7 @@
 | 1 | Authority, baseline, preservation and inventory | Approved plan committed; complete QA baseline; reproducible source/route/content/API/database inventory; defect register; no behavior change | Owner-approved plan | `DONE` locally at the Run 1 audit commit |
 | 2 | One-time developer bootstrap data boundary | One additive local migration for a one-use owner authorisation, capability binding and code-free audit; preservation and RLS tests | Run 1 | `DONE` locally at the Run 2 migration commit |
 | 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `DONE` locally at the Run 3 endpoint/UI commit |
-| 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3, the prepared migration-ledger bridge and an owner acceptance window | `BLOCKED` — source reconciliation passed; awaiting private provider readiness and live-window approval |
+| 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3, the prepared migration-ledger bridge and an owner acceptance window | `ACTIVE` — Stages 1–7 accepted and closed; Stage 8 protected Proprietress manual-claim acceptance is next; production claims remain false |
 | 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `BLOCKED` |
 | 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `BLOCKED` |
 | 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `BLOCKED` |
@@ -74,6 +74,26 @@
 | Complete application regression | Visitor 1447/1447; accessibility 59 light + 5 dark; all secure/operations/portal/header browsers | Pass |
 | Production state | No SQL, deployment, provider call, Auth user, password, authorisation or gate change | Pass |
 
+## Run 4 live acceptance ledger — Stages 1–7
+
+| Item | Evidence | Result |
+|---|---|---|
+| Preservation and exact migrations | Production retained former records; migrations 009/010 applied under reviewed versions and original checksums | Pass |
+| Phone Auth boundary | Phone Auth enabled; public signup and SMS auto-confirm disabled | Pass |
+| Initial issuer failure | First owner SQL action failed transactionally on the pgcrypto schema reference; immediate counts remained zero | Safely contained |
+| Additive correction | `20261026040507_fix_owner_bootstrap_pgcrypto_schema.sql`; only `gen_random_bytes` and `digest` moved from `public` to `extensions` | Pass |
+| Corrective source commit | `6668b848a51edd2bc502e12851925bf1521b6808`; migration/test only | Pass |
+| Protected preview | Dedicated branch, four branch-scoped variables and Vercel Authentication; anonymous requests redirected to SSO | Pass |
+| Exactly one owner authority | One ten-minute `initial_password` authorisation issued in the official SQL Editor; no raw value recorded | Pass |
+| Bootstrap completion | One Auth identity/profile; claim consumed once; authorisation consumed with hash destroyed; no OTP | Pass |
+| Exact authority | `parent` + leadership `none`; four developer capabilities only; no class, pupil, guardian or applicant relationship | Pass |
+| No false OTP verification | Application phone verification fields null; Auth phone confirmation recorded only as owner attestation | Pass |
+| Normal login | Production Developer Console phone/password sign-in succeeded privately | Pass |
+| Immediate closure | Gate reset false, gate-enabled deployment deleted, replacement verified, every acceptance deployment/variable/key/branch deleted | Pass |
+| Production isolation | Current production `READY/PROMOTED`; homepage 200; bootstrap application 404; account claims false | Pass |
+| Sanitised evidence | `RUN-04-DEVELOPER-BOOTSTRAP-ACCEPTANCE-EVIDENCE.md` | Recorded |
+| Next boundary | Fresh protected Stage 8 manual Proprietress claim acceptance; admission tracking and relay stay false | Pending |
+
 ## Permanent preservation rules
 
 1. Never rerun the first seven production migrations. Future database work is additive.
@@ -93,9 +113,9 @@
 
 | Gate/capability | Required state now | Opening condition |
 |---|---|---|
-| Portal and portal accounts | Off unless an already-approved release explicitly says otherwise | Complete authenticated acceptance and production rollback evidence |
-| Developer bootstrap | Implemented locally; environment gate remains off/undeployed | Run 4 private acceptance; one owner authorisation; immediately disable after one success |
-| School account claims | Off | Manual dispatcher operational and Run 4 account-claim acceptance passes |
+| Portal and portal accounts | Portal enabled under the previously approved production configuration; unrelated account/office gates preserved | Change only through their approved acceptance controls |
+| Developer bootstrap | Accepted once and closed; production gate false; temporary preview/key/branch deleted | Reopen only through a new owner-authorised recovery window |
+| School account claims | Off in production | Stage 8 protected manual Proprietress claim acceptance must pass before any production opening |
 | Admission-tracking OTP | Off | Separate later acceptance after account claims |
 | Public CMS publication | Absent/off | CMS RLS, audit, preview and published-only projections pass |
 | Comments | Off | Signed-in identity, premoderation, abuse controls, audit and kill switch pass |
@@ -117,15 +137,17 @@ The following are not defects and do not block Runs 2–5 unless their capabilit
 
 No password, OTP or provider secret is requested in chat.
 
-## Run 4 preparation state
+## Run 4 migration bridge and live state
 
 The three mode-only tool drifts observed after Run 3 were reconciled on 25 October 2026 by restoring their already-committed `100755` modes. No tool content changed.
 
-Current official Supabase CLI guidance confirms that migration history is matched by timestamp version, not migration name. Read-only production inspection mapped all 15 existing remote versions. A fail-closed production bridge now represents those versions without replaying them and carries byte-for-byte copies of only pending migrations 009 and 010. Both pending filenames use current 14-digit versions; their SQL and reviewed hashes are unchanged.
+Official Supabase CLI guidance confirmed that migration history is matched by timestamp version, not migration name. Read-only production inspection mapped all 15 pre-Run-4 remote versions. The fail-closed bridge represented those versions without replaying them and carried byte-for-byte copies of only migrations 009 and 010. Both reviewed files retained their exact hashes.
 
-The bridge generator/test, disposable 10-migration rebuild, five policy suites, postflight and complete application/browser regression passed. Production remains untouched. The live window must still prove that `migration list` aligns and the dry run proposes only migrations 009 and 010; history repair, `--include-all`, former-migration replay and migration-control bypass remain prohibited.
+The bridge generator/test, disposable 10-migration rebuild, five policy suites, postflight and complete application/browser regression passed. The live window then aligned the ledger, applied only migrations 009/010, and preserved the prohibition on history repair, `--include-all`, former-migration replay and migration-control bypass.
 
-Evidence is in `RUN-04-MIGRATION-LEDGER-RECONCILIATION.md`; the full owner/agent boundary, stop conditions and execution order are in `RUN-04-PRODUCTION-ACCEPTANCE-REQUIREMENTS.md`.
+A separately tracked additive migration, `20261026040507_fix_owner_bootstrap_pgcrypto_schema.sql`, corrected two pgcrypto schema qualifiers after the first owner issuance attempt failed transactionally. The developer bootstrap then passed and was closed. Stage 8 has not started; production account claims remain false.
+
+Migration reconciliation evidence is in `RUN-04-MIGRATION-LEDGER-RECONCILIATION.md`; developer acceptance evidence is in `RUN-04-DEVELOPER-BOOTSTRAP-ACCEPTANCE-EVIDENCE.md`; the full owner/agent boundary, stop conditions and execution order are in `RUN-04-PRODUCTION-ACCEPTANCE-REQUIREMENTS.md`.
 
 ## Tracker update protocol
 
