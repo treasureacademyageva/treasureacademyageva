@@ -41,3 +41,26 @@ test('Run 4 bridge maps the complete production ledger and only exact migrations
   assert.match(readme, /dry run must list exactly migrations 009 and 010/i);
   assert.match(readme, /Never use this workspace[\s\S]*`db reset`/);
 });
+
+test('owner bootstrap pgcrypto correction is additive and extension-qualified', () => {
+  const original = readFileSync(
+    join(root, 'supabase/migrations/20261025000100_owner_authorised_developer_bootstrap.sql'),
+    'utf8'
+  );
+  const correction = readFileSync(
+    join(root, 'supabase/migrations/20261026040507_fix_owner_bootstrap_pgcrypto_schema.sql'),
+    'utf8'
+  );
+
+  assert.equal(
+    createHash('sha256').update(original).digest('hex'),
+    'b78ec9556b033960f0bb6087ad07b32b7f8393f1183b142b62148e3e4067f571'
+  );
+  assert.match(correction, /create or replace function public\.owner_issue_developer_bootstrap/);
+  assert.match(correction, /extensions\.gen_random_bytes\(32\)/);
+  assert.match(correction, /extensions\.digest\(convert_to\(v_raw,'UTF8'\),'sha256'\)/);
+  assert.doesNotMatch(correction, /public\.gen_random_bytes|public\.digest/);
+  assert.match(correction, /set search_path=''/);
+  assert.match(correction, /Official owner dashboard action required/);
+  assert.match(correction, /revoke all on function public\.owner_issue_developer_bootstrap/);
+});
