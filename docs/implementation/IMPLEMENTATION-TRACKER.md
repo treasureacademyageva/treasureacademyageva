@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 26 October 2026 — Run 4 developer-bootstrap acceptance closure
-**Overall status:** Runs 1–3 are complete. Run 4 Stages 1–7 passed in production: the owner-authorised developer identity was accepted, normal phone/password login passed, the bootstrap gate was closed, and all temporary preview resources were deleted. Run 4 remains active at the separate Stage 8 manual Proprietress account-claim acceptance boundary; production account claims, admission tracking and the Paragon relay remain false.
+**Last updated:** 26 October 2026 — Run 4 manual account-claim acceptance closure
+**Overall status:** Runs 1–4 are complete. The owner-authorised developer bootstrap and protected manual Proprietress account claim were accepted and closed, all temporary resources were deleted, and ordinary phone/password login passed for both accepted accounts. Stage 8 was accepted on aggregated evidence with the omitted final `Mark sent` audit click documented explicitly; no audit was fabricated. Stage 9 was not authorised, so production account claims, admission tracking and the Paragon relay remain false. Run 5 is ready for a separate start decision.
 
 ## Status key
 
@@ -21,8 +21,8 @@
 | 1 | Authority, baseline, preservation and inventory | Approved plan committed; complete QA baseline; reproducible source/route/content/API/database inventory; defect register; no behavior change | Owner-approved plan | `DONE` locally at the Run 1 audit commit |
 | 2 | One-time developer bootstrap data boundary | One additive local migration for a one-use owner authorisation, capability binding and code-free audit; preservation and RLS tests | Run 1 | `DONE` locally at the Run 2 migration commit |
 | 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `DONE` locally at the Run 3 endpoint/UI commit |
-| 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3, the prepared migration-ledger bridge and an owner acceptance window | `ACTIVE` — Stages 1–7 accepted and closed; Stage 8 protected Proprietress manual-claim acceptance is next; production claims remain false |
-| 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `BLOCKED` |
+| 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3, the prepared migration-ledger bridge and an owner acceptance window | `DONE` — Stages 1–8 accepted and closed; Stage 8 carries a documented final `Mark sent` audit exception accepted by the owner; Stage 9 not authorised and production claims remain false |
+| 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `READY` — prerequisite accepted; requires a separate start decision |
 | 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `BLOCKED` |
 | 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `BLOCKED` |
 | 8 | Dynamic public News, Events and Gallery | Server-rendered listing/detail routes, lifecycle/countdowns, read time, media relationships, Gallery source links, safe downloads, feeds and structured data | Run 7 | `BLOCKED` |
@@ -92,7 +92,27 @@
 | Immediate closure | Gate reset false, gate-enabled deployment deleted, replacement verified, every acceptance deployment/variable/key/branch deleted | Pass |
 | Production isolation | Current production `READY/PROMOTED`; homepage 200; bootstrap application 404; account claims false | Pass |
 | Sanitised evidence | `RUN-04-DEVELOPER-BOOTSTRAP-ACCEPTANCE-EVIDENCE.md` | Recorded |
-| Next boundary | Fresh protected Stage 8 manual Proprietress claim acceptance; admission tracking and relay stay false | Pending |
+| Next boundary | Fresh protected Stage 8 manual Proprietress claim acceptance; admission tracking and relay stay false | Completed separately below |
+
+## Run 4 live acceptance ledger — Stage 8
+
+| Item | Evidence | Result |
+|---|---|---|
+| Isolated protected preview | Dedicated branch; eight Preview Config and five Preview Secret values; anonymous requests redirected to Vercel SSO | Pass |
+| Production isolation | Production claims/bootstrap remained false; admission tracking and relay remained false | Pass |
+| Exact approved claimant | Existing Proprietress claim at the registered phone ending `3478`; no dummy person or public-line claimant | Pass |
+| Generic request boundary | Public response remained generic; queue exposed only purpose/channel/time/last four before reveal | Pass |
+| One-active-challenge replacement | Three sequential short-window challenges; former challenges safely cancelled/replaced; never duplicate live challenges | Pass |
+| Encrypted reveal boundary | Every server delivery payload destroyed after reveal/terminal processing; setup hashes destroyed after completion | Pass |
+| WhatsApp delivery | Exact unchanged payload delivered to the registered destination; no OTP/test to `6650` | Pass by private operator confirmation |
+| Dispatch audit | Earlier replaced challenge recorded `marked_sent`; final successful challenge omitted the `Mark sent` click and therefore has no such event | Owner-accepted documented exception; no backfill |
+| OTP and private password | Final challenge verified with zero failed attempts; Proprietress privately created her own compliant password | Pass |
+| Exact authority | `admin` + `headmistress` + `Proprietress`; no class, pupil, guardian, applicant or developer link/capability | Pass |
+| Ordinary login and session closure | Proprietress administrator portal login succeeded; both operators signed out; no active target session/refresh token remained | Pass |
+| Sanitised audit | Forbidden OTP/code/phone/password/message detail keys absent; no secrets recorded | Pass |
+| Immediate closure | Claim gate reset false; three deployments, thirteen variables, temporary Supabase key and branch deleted; former URLs/alias 404 | Pass |
+| Sanitised evidence | `RUN-04-MANUAL-ACCOUNT-CLAIM-ACCEPTANCE-EVIDENCE.md` | Recorded |
+| Stage 9 boundary | Not authorised; production account claims remain false | Hold |
 
 ## Permanent preservation rules
 
@@ -115,7 +135,7 @@
 |---|---|---|
 | Portal and portal accounts | Portal enabled under the previously approved production configuration; unrelated account/office gates preserved | Change only through their approved acceptance controls |
 | Developer bootstrap | Accepted once and closed; production gate false; temporary preview/key/branch deleted | Reopen only through a new owner-authorised recovery window |
-| School account claims | Off in production | Stage 8 protected manual Proprietress claim acceptance must pass before any production opening |
+| School account claims | Off in production; Stage 8 accepted and closed | A separately authorised Stage 9 environment change, new Production deployment and verification are still required before opening |
 | Admission-tracking OTP | Off | Separate later acceptance after account claims |
 | Public CMS publication | Absent/off | CMS RLS, audit, preview and published-only projections pass |
 | Comments | Off | Signed-in identity, premoderation, abuse controls, audit and kill switch pass |
@@ -145,9 +165,9 @@ Official Supabase CLI guidance confirmed that migration history is matched by ti
 
 The bridge generator/test, disposable 10-migration rebuild, five policy suites, postflight and complete application/browser regression passed. The live window then aligned the ledger, applied only migrations 009/010, and preserved the prohibition on history repair, `--include-all`, former-migration replay and migration-control bypass.
 
-A separately tracked additive migration, `20261026040507_fix_owner_bootstrap_pgcrypto_schema.sql`, corrected two pgcrypto schema qualifiers after the first owner issuance attempt failed transactionally. The developer bootstrap then passed and was closed. Stage 8 has not started; production account claims remain false.
+A separately tracked additive migration, `20261026040507_fix_owner_bootstrap_pgcrypto_schema.sql`, corrected two pgcrypto schema qualifiers after the first owner issuance attempt failed transactionally. The developer bootstrap then passed and was closed. Stage 8 subsequently proved the protected manual account-claim flow, one-active-challenge replacement, encrypted reveal destruction, exact Proprietress authority and ordinary login. The owner accepted the aggregated evidence with the final `Mark sent` audit omission documented explicitly. All temporary resources were deleted. Stage 9 was not authorised, so production account claims remain false.
 
-Migration reconciliation evidence is in `RUN-04-MIGRATION-LEDGER-RECONCILIATION.md`; developer acceptance evidence is in `RUN-04-DEVELOPER-BOOTSTRAP-ACCEPTANCE-EVIDENCE.md`; the full owner/agent boundary, stop conditions and execution order are in `RUN-04-PRODUCTION-ACCEPTANCE-REQUIREMENTS.md`.
+Migration reconciliation evidence is in `RUN-04-MIGRATION-LEDGER-RECONCILIATION.md`; developer acceptance evidence is in `RUN-04-DEVELOPER-BOOTSTRAP-ACCEPTANCE-EVIDENCE.md`; manual account-claim evidence is in `RUN-04-MANUAL-ACCOUNT-CLAIM-ACCEPTANCE-EVIDENCE.md`; the full owner/agent boundary, stop conditions and execution order are in `RUN-04-PRODUCTION-ACCEPTANCE-REQUIREMENTS.md`.
 
 ## Tracker update protocol
 
