@@ -47,7 +47,7 @@ Required response:
 If the migration later commits but postflight fails while every CMS table is still empty:
 
 - keep all public CMS routes and features off;
-- revoke or contain only newly introduced CMS execution/read exposure through a reviewed additive correction if necessary;
+- revoke or contain only newly introduced CMS execution/read exposure through a reviewed additive correction if necessary; anonymous and ordinary-account reads must remain limited to the 8 fixed-column published projections, with zero anonymous CMS base-table privileges;
 - do not drop any former table, policy, function, Auth identity, claim or audit record;
 - preserve the applied migration record and use a new forward correction rather than editing or replaying the accepted file;
 - compare the full preservation baseline and investigate every unexplained delta.
@@ -89,12 +89,14 @@ Stop and investigate if any future Production window shows:
 - any former public table losing RLS;
 - any of the 20 new CMS tables lacking RLS;
 - a CMS table count other than exactly 20;
+- any anonymous CMS base-table privilege, any unapproved public projection grant, or any security-definer CMS function without an empty `search_path`;
+- any duplicate non-null SEO title across a published or scheduled revision;
 - any seeded CMS content/media/capability/engagement row;
 - any unexpected storage object;
 - any live claim challenge or bootstrap authorisation;
 - a public CMS route becoming active;
 - a developer receiving draft, review, publication, safeguarding or emergency authority;
-- identifiable-child media visible without approved consent and required review;
+- identifiable-child media visible without approved consent and required review, or formerly public media remaining projected after consent/provenance/lifecycle withdrawal;
 - a draft/private/expired/archived/cancelled revision appearing in an anonymous projection;
 - any account-claim, admission-tracking, relay, Monnify or card-payment gate changing.
 

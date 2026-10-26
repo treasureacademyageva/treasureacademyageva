@@ -23,12 +23,12 @@ Production application and public activation remain separate controlled boundari
 
 `supabase/migrations/20261026060000_public_cms_foundation.sql`
 
-- SHA-256: `85661bceb4328f9a0c0454217ab8768859cac27804bc743b0ea937a6b860044d`
+- SHA-256: `1b018df41ef2f6d85d7b946b09eec2932e7e8f804abaf194fc0184038174f288`
 - one transaction: `begin` → additive objects and grants → `commit`;
 - 8 CMS enum types;
 - 20 new RLS-enabled tables;
-- 21 CMS functions;
-- 6 security-invoker, security-barrier published-only views;
+- 22 CMS functions;
+- 8 fixed-column, security-barrier published-only views;
 - 27 RLS policies;
 - 13 immutable/validation/no-hard-delete triggers;
 - 13 supporting indexes;
@@ -53,7 +53,9 @@ The migration provides:
 - scheduling, due-time revalidation, publication, archive and revision restore;
 - homepage/site slots and navigation foundations;
 - dormant privacy-safe view, signed-in like and premoderated-comment structures;
-- published-only projections for entries, blocks, media, slots, navigation and redirects.
+- published-only projections for entries, blocks, tags, controlled search terms, media, slots, navigation and redirects.
+
+Anonymous accounts receive no CMS base-table privilege. Fixed-column public views execute the reviewed published-only predicates without exposing creator IDs, internal provenance, consent references, alias reasons or audit fields. Signed-in ordinary accounts likewise use the safe views; only capability-approved CMS actors pass private base-table RLS policies.
 
 A new draft does not replace the former accepted published revision. Restoring an archived revision creates a new private draft and clears the former published pointer rather than silently resurrecting content.
 
@@ -80,7 +82,7 @@ CMS authority is independent from school-record authority:
 - Assistant Headmistress: draft/review/publication;
 - approved editors/reviewers: only explicitly granted CMS capabilities;
 - developer information-review capability: private CMS visibility only, never draft/review/publish authority;
-- emergency publication cannot be delegated away from the Proprietress.
+- emergency publication cannot be delegated away from the Proprietress and is limited to time-bounded announcements.
 
 CMS capability grants do not change a profile’s pupil, payment, results, admission or other school-record role.
 
@@ -128,16 +130,26 @@ The runner now discovers migration and `*.test.sql` suite totals dynamically. Th
 - draft isolation from anonymous and ordinary accounts;
 - unsafe HTML/XSS, private material and unmanaged-media rejection;
 - factual/publication approval and published-only projection behavior;
+- anonymous CMS base-table denial and fixed-column projection access for anonymous and ordinary signed-in accounts;
 - immutable history and no hard deletion;
 - stable aliases;
 - old published revision stability while a new draft is reviewed;
 - archive removal and private restore;
-- scheduled visibility and due-time publication;
+- owner-only, forced-expiry emergency announcement publication and denial for non-announcement types;
+- typed Event publication fields and canonical route projection;
+- scheduled visibility, due-time revalidation and publication;
+- collision rejection across already-published and already-scheduled SEO titles;
+- rejection of unknown document/block fields, non-Event Event payloads, non-object metadata and nested/invalid table cells;
 - identifiable-child consent and independent safeguarding review;
-- consent-withdrawal blocking;
+- immediate suppression of public media relationships, featured/social pointers and media blocks when consent/provenance/lifecycle state ceases to qualify;
+- denial of related-content blocks whose targets are not currently public;
 - dormant engagement denial.
 
-## 5. Static and complete repository acceptance
+## 5. Pre-Run-6 adversarial audit and complete repository acceptance
+
+A separate pre-Run-6 source, privilege, lifecycle and catalog review did not rely on the original green tests. It reproduced four release-blocking classes of defect in the original local Run 5 commit: public-view access depended on anonymous base-table grants, scheduled revisions were absent from SEO-title collision checks, published media was not revalidated after consent/provenance/lifecycle changes, and structured-document validation accepted several unrecognised or nested shapes. The audit also narrowed emergency override publication to time-bounded announcements.
+
+All defects were corrected before any Production application. Regression fixtures now prove the negative paths, and disposable catalog inspection proves 20/20 CMS tables use RLS, anonymous has zero CMS base-table privileges, all 8 published projections are granted, pseudo-role `PUBLIC` can execute zero CMS functions, and all 16 security-definer CMS functions use an empty `search_path`. The complete finding-by-finding record is `RUN-05-PRE-RUN-06-DEBUG-AUDIT.md`.
 
 Dedicated static suite:
 
@@ -171,7 +183,7 @@ Result: passed, including:
 - portal browser `7/7`;
 - header browser `7/7`.
 
-`supabase-schema.sql` was regenerated from all 12 ordered migrations and ends with the exact Run 5 migration.
+`supabase-schema.sql` was regenerated from all 12 ordered migrations, ends with the exact Run 5 migration and has SHA-256 `506925518d227b78bc048e8271d0d272da05a50d230aa2d7bc3d478d60bfb181`.
 
 ## 6. Production preservation comparison
 
@@ -201,7 +213,7 @@ If a later owner-authorised Production migration window is opened, the expected 
 
 - public tables: `105 → 125`, all `125` RLS-enabled;
 - public policies: `136 → 163`;
-- public functions: `143 → 164`;
+- public functions: `143 → 165`;
 - exactly 20 planned CMS tables;
 - unchanged Auth users/identities, storage objects, `school_data`, claims, challenges and bootstrap state;
 - zero rows in all new CMS content/media/engagement structures immediately after migration.

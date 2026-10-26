@@ -579,12 +579,18 @@ begin
       and coalesce(p_payload->>'source_path','') !~ '(^|/)\.\.(/|$)';
   elsif p_type='table' then
     if exists(select 1 from jsonb_object_keys(p_payload) k where k not in ('headers','rows')) then return false; end if;
-    return jsonb_typeof(p_payload->'headers')='array' and jsonb_array_length(p_payload->'headers') between 1 and 12
-      and jsonb_typeof(p_payload->'rows')='array' and jsonb_array_length(p_payload->'rows') between 1 and 100
-      and not exists(select 1 from jsonb_array_elements(p_payload->'headers') h
-        where jsonb_typeof(h)<>'string' or char_length(trim(h#>>'{}')) not between 1 and 120)
-      and not exists(select 1 from jsonb_array_elements(p_payload->'rows') r
-        where jsonb_typeof(r)<>'array' or jsonb_array_length(r)<>jsonb_array_length(p_payload->'headers'));
+    if jsonb_typeof(p_payload->'headers')<>'array' or jsonb_array_length(p_payload->'headers') not between 1 and 12
+       or jsonb_typeof(p_payload->'rows')<>'array' or jsonb_array_length(p_payload->'rows') not between 1 and 100 then return false; end if;
+    if exists(select 1 from jsonb_array_elements(p_payload->'headers') h
+         where jsonb_typeof(h)<>'string' or char_length(trim(h#>>'{}')) not between 1 and 120)
+       or exists(select 1 from jsonb_array_elements(p_payload->'rows') r
+         where jsonb_typeof(r)<>'array' or jsonb_array_length(r)<>jsonb_array_length(p_payload->'headers')) then return false; end if;
+    return not exists(
+      select 1 from jsonb_array_elements(p_payload->'rows') r
+      cross join lateral jsonb_array_elements(r) cell
+      where jsonb_typeof(cell) not in ('string','number','boolean','null')
+        or char_length(coalesce(cell#>>'{}',''))>500
+    );
   elsif p_type='button' then
     if exists(select 1 from jsonb_object_keys(p_payload) k where k not in ('label','path')) then return false; end if;
     return char_length(trim(coalesce(p_payload->>'label',''))) between 2 and 80
@@ -703,7 +709,10 @@ begin
   ) then raise exception 'Invalid verified search terms' using errcode='22023'; end if;
   if jsonb_typeof(p_document->'blocks')<>'array' or jsonb_array_length(p_document->'blocks') not between 1 and 100 then raise exception 'One to one hundred structured blocks are required' using errcode='22023'; end if;
   for v_block in select value from jsonb_array_elements(p_document->'blocks') loop
-    if jsonb_typeof(v_block)<>'object' or not (v_block ? 'type') or not (v_block ? 'payload') then raise exception 'Malformed CMS block' using errcode='22023'; end if;
+    if jsonb_typeof(v_block)<>'object' or not (v_block ? 'type') or not (v_block ? 'payload')
+       or exists(select 1 from jsonb_object_keys(v_block) k where k not in ('type','payload')) then
+      raise exception 'Malformed CMS block' using errcode='22023';
+    end if;
     if coalesce(v_block->>'type','') not in ('paragraph','heading','ordered_list','unordered_list','quote','callout','image','video','gallery','verified_fact','table','button','related_content') then raise exception 'Unsupported CMS block type' using errcode='22023'; end if;
     if not public.cms_block_payload_valid((v_block->>'type')::public.cms_block_type,v_block->'payload') then raise exception 'Malformed or unsafe CMS block payload' using errcode='22023'; end if;
   end loop;
@@ -745,8 +754,14 @@ begin
   v_effective:=nullif(p_document->>'effective_from','')::timestamptz;
   v_expiry:=nullif(p_document->>'expires_at','')::timestamptz;
   if v_expiry is not null and v_effective is not null and v_expiry<=v_effective then raise exception 'CMS expiry must follow its effective time' using errcode='22023'; end if;
+  if p_document ? 'metadata' and jsonb_typeof(p_document->'metadata')<>'object' then raise exception 'CMS metadata must be an object' using errcode='22023'; end if;
+  if p_type<>'event' and p_document ? 'event' then raise exception 'Event data is allowed only for Event content' using errcode='22023'; end if;
   if p_type='event' and p_document ? 'event' then
-    if jsonb_typeof(p_document->'event')<>'object' then raise exception 'Event data must be an object' using errcode='22023'; end if;
+    if jsonb_typeof(p_document->'event')<>'object' or exists(
+      select 1 from jsonb_object_keys(p_document->'event') k where k not in (
+        'starts_at','ends_at','venue','public_address','status','attendance_mode','action_label','action_path'
+      )
+    ) then raise exception 'Event data must be a supported object' using errcode='22023'; end if;
     v_start:=nullif(p_document#>>'{event,starts_at}','')::timestamptz;
     v_end:=nullif(p_document#>>'{event,ends_at}','')::timestamptz;
     if v_end is not null and v_start is not null and v_end<v_start then raise exception 'Event end must not precede its start' using errcode='22023'; end if;
@@ -976,6 +991,13 @@ begin
     where cm.revision_id=p_revision_id and m.child_identifiable
   ) into v_has_child;
   if v_has_child and not p_emergency and not public.cms_revision_has_approval(p_revision_id,'safeguarding') then return false; end if;
+  if v_revision.seo_title is not null and exists(
+    select 1 from public.public_content_entries e
+    join public.public_content_revisions r
+      on r.id=e.published_revision_id or r.id=e.scheduled_revision_id
+    where e.id<>v_revision.entry_id and e.archived_at is null and e.cancelled_at is null
+      and r.seo_title is not null and lower(r.seo_title)=lower(v_revision.seo_title)
+  ) then return false; end if;
   if not p_emergency and (
     not public.cms_revision_has_approval(p_revision_id,'factual')
     or not public.cms_revision_has_approval(p_revision_id,'publication')
@@ -999,17 +1021,23 @@ begin
   select * into v_entry from public.public_content_entries where id=p_entry_id for update;
   if not found or v_entry.current_revision_id is null then raise exception 'CMS entry not found' using errcode='P0002'; end if;
   select * into strict v_revision from public.public_content_revisions where id=v_entry.current_revision_id;
+  if v_revision.seo_title is not null then
+    perform pg_advisory_xact_lock(hashtextextended('public-cms-seo:'||lower(v_revision.seo_title),0));
+  end if;
   if p_emergency then
+    if v_entry.content_type<>'announcement' then raise exception 'Emergency publication is limited to time-bounded announcements' using errcode='22023'; end if;
     if not public.cms_current_actor_can('emergency_publish') or char_length(trim(p_reason))<12 then raise exception 'Proprietress emergency publication and a detailed reason are required' using errcode='42501'; end if;
     if v_revision.expires_at is null or v_revision.expires_at>now()+interval '7 days' then raise exception 'Emergency publication must expire within seven days' using errcode='22023'; end if;
   elsif v_entry.workflow_status<>'approved' then raise exception 'Approved CMS revision required' using errcode='22023'; end if;
-  if not public.cms_revision_is_publishable(v_entry.current_revision_id,p_emergency) then raise exception 'CMS revision has unresolved publication blockers' using errcode='22023'; end if;
   if exists(
     select 1 from public.public_content_entries e
-    join public.public_content_revisions r on r.id=e.published_revision_id
-    where e.id<>p_entry_id and e.archived_at is null and r.seo_title is not null
+    join public.public_content_revisions r
+      on r.id=e.published_revision_id or r.id=e.scheduled_revision_id
+    where e.id<>p_entry_id and e.archived_at is null and e.cancelled_at is null
+      and r.seo_title is not null and v_revision.seo_title is not null
       and lower(r.seo_title)=lower(v_revision.seo_title)
-  ) then raise exception 'Published SEO title must be unique' using errcode='23505'; end if;
+  ) then raise exception 'Published or scheduled SEO title must be unique' using errcode='23505'; end if;
+  if not public.cms_revision_is_publishable(v_entry.current_revision_id,p_emergency) then raise exception 'CMS revision has unresolved publication blockers' using errcode='22023'; end if;
   if p_scheduled_for is not null and p_scheduled_for>now()+interval '1 minute' then
     if (v_revision.expires_at is not null and p_scheduled_for>=v_revision.expires_at)
        or p_scheduled_for::date>v_revision.next_review_date then
@@ -1039,7 +1067,7 @@ language plpgsql
 security definer
 set search_path=''
 as $$
-declare v_count integer:=0; v_entry record;
+declare v_count integer:=0; v_entry record; v_seo_title text;
 begin
   if coalesce((select auth.role()),'')<>'service_role' and session_user not in ('postgres','supabase_admin') then raise exception 'Service scheduler required' using errcode='42501'; end if;
   for v_entry in
@@ -1047,6 +1075,10 @@ begin
     where workflow_status='scheduled' and scheduled_revision_id is not null and scheduled_for<=now() and archived_at is null
     for update skip locked
   loop
+    select seo_title into v_seo_title from public.public_content_revisions where id=v_entry.scheduled_revision_id;
+    if v_seo_title is not null then
+      perform pg_advisory_xact_lock(hashtextextended('public-cms-seo:'||lower(v_seo_title),0));
+    end if;
     if not public.cms_revision_is_publishable(v_entry.scheduled_revision_id,false) then
       update public.public_content_entries set workflow_status='changes_requested',
         scheduled_revision_id=null,scheduled_for=null,updated_at=now() where id=v_entry.id;
@@ -1178,15 +1210,38 @@ $$;
 revoke all on function public.cms_revision_is_public(uuid) from public;
 grant execute on function public.cms_revision_is_public(uuid) to anon,authenticated,service_role;
 
+create or replace function public.cms_media_is_publicly_usable(p_media_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path=''
+as $$
+  select exists(
+    select 1 from public.public_media_assets m
+    where m.id=p_media_id and m.lifecycle_state='approved' and m.archived_at is null
+      and m.provenance_status='verified'
+      and (m.consent_status='approved' or (not m.child_identifiable and m.consent_status='not_required'))
+      and exists(
+        select 1 from public.public_content_media cm
+        where cm.media_id=m.id and public.cms_revision_is_public(cm.revision_id)
+      )
+  )
+$$;
+revoke all on function public.cms_media_is_publicly_usable(uuid) from public;
+grant execute on function public.cms_media_is_publicly_usable(uuid) to anon,authenticated,service_role;
+
 create or replace view public.public_cms_published_entries
-with (security_invoker=true,security_barrier=true)
+with (security_invoker=false,security_barrier=true)
 as
 select e.id,e.content_type,e.slug,e.canonical_path,e.published_at,
   r.id as revision_id,r.revision_number,r.title,r.summary,r.category,r.search_keywords,
-  r.content_language,r.locale,r.source_note,r.next_review_date,r.seo_title,r.seo_description,
-  r.featured_media_id,r.social_media_id,r.effective_from,r.expires_at,
+  r.content_language,r.locale,r.next_review_date,r.seo_title,r.seo_description,
+  case when public.cms_media_is_publicly_usable(r.featured_media_id) then r.featured_media_id end as featured_media_id,
+  case when public.cms_media_is_publicly_usable(r.social_media_id) then r.social_media_id end as social_media_id,
+  r.effective_from,r.expires_at,
   r.event_starts_at,r.event_ends_at,r.event_timezone,r.event_venue,r.event_public_address,
-  r.event_status,r.attendance_mode,r.public_action_label,r.public_action_path,r.metadata
+  r.event_status,r.attendance_mode,r.public_action_label,r.public_action_path
 from public.public_content_entries e
 join public.public_content_revisions r on r.id=e.published_revision_id
 where e.archived_at is null and e.cancelled_at is null
@@ -1195,14 +1250,45 @@ where e.archived_at is null and e.cancelled_at is null
   and (r.expires_at is null or r.expires_at>now());
 
 create or replace view public.public_cms_published_blocks
-with (security_invoker=true,security_barrier=true)
+with (security_invoker=false,security_barrier=true)
 as
 select b.id,b.revision_id,b.block_position,b.block_type,b.payload
 from public.public_content_blocks b
-where public.cms_revision_is_public(b.revision_id);
+where public.cms_revision_is_public(b.revision_id)
+  and (
+    b.block_type not in ('image','video','gallery','related_content')
+    or (b.block_type in ('image','video') and public.cms_media_is_publicly_usable((b.payload->>'asset_id')::uuid))
+    or (b.block_type='gallery' and not exists(
+      select 1 from jsonb_array_elements(b.payload->'asset_ids') v
+      where not public.cms_media_is_publicly_usable((v#>>'{}')::uuid)
+    ))
+    or (b.block_type='related_content' and not exists(
+      select 1 from jsonb_array_elements(b.payload->'slugs') s
+      where not exists(
+        select 1 from public.public_content_entries target
+        where target.slug=(s#>>'{}')
+          and public.cms_revision_is_public(target.published_revision_id)
+      )
+    ))
+  );
+
+create or replace view public.public_cms_published_tags
+with (security_invoker=false,security_barrier=true)
+as
+select l.revision_id,t.id as tag_id,t.slug,t.name
+from public.public_content_tag_links l
+join public.public_content_tags t on t.id=l.tag_id
+where public.cms_revision_is_public(l.revision_id);
+
+create or replace view public.public_cms_published_search_terms
+with (security_invoker=false,security_barrier=true)
+as
+select s.revision_id,s.term,s.source
+from public.public_content_search_terms s
+where public.cms_revision_is_public(s.revision_id);
 
 create or replace view public.public_cms_published_media
-with (security_invoker=true,security_barrier=true)
+with (security_invoker=false,security_barrier=true)
 as
 select cm.revision_id,cm.placement,cm.placement_position,cm.caption,
   m.id as media_id,m.provider,m.provider_asset_id,m.media_type,m.title,m.alt_text,m.attribution,
@@ -1215,7 +1301,7 @@ where public.cms_revision_is_public(cm.revision_id)
   and (m.consent_status='approved' or (not m.child_identifiable and m.consent_status='not_required'));
 
 create or replace view public.public_cms_published_slots
-with (security_invoker=true,security_barrier=true)
+with (security_invoker=false,security_barrier=true)
 as
 select s.id,s.slot_key,s.slot_position,s.entry_id,e.canonical_path,e.content_type,r.title,r.summary
 from public.public_site_content_slots s
@@ -1226,7 +1312,7 @@ where s.active and (s.effective_from is null or s.effective_from<=now())
   and public.cms_revision_is_public(r.id);
 
 create or replace view public.public_cms_published_navigation
-with (security_invoker=true,security_barrier=true)
+with (security_invoker=false,security_barrier=true)
 as
 select n.id,n.navigation_key,n.label,n.href,n.entry_id,n.item_position
 from public.public_site_navigation_items n
@@ -1235,7 +1321,7 @@ where n.active and (n.entry_id is null or exists(
 ));
 
 create or replace view public.public_cms_slug_redirects
-with (security_invoker=true,security_barrier=true)
+with (security_invoker=false,security_barrier=true)
 as
 select a.alias_path,e.canonical_path as destination_path
 from public.public_content_slug_aliases a
@@ -1267,51 +1353,49 @@ alter table public.public_content_reactions enable row level security;
 alter table public.public_content_comments enable row level security;
 alter table public.public_comment_moderation_events enable row level security;
 
-create policy public_content_entries_published_select on public.public_content_entries for select to anon,authenticated
+create policy public_content_entries_published_select on public.public_content_entries for select to anon
 using (published_revision_id is not null and archived_at is null and cancelled_at is null
   and public.cms_revision_is_public(published_revision_id));
 create policy public_content_entries_private_select on public.public_content_entries for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_content_revisions_published_select on public.public_content_revisions for select to anon,authenticated
+create policy public_content_revisions_published_select on public.public_content_revisions for select to anon
 using (public.cms_revision_is_public(id));
 create policy public_content_revisions_private_select on public.public_content_revisions for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_content_blocks_published_select on public.public_content_blocks for select to anon,authenticated
+create policy public_content_blocks_published_select on public.public_content_blocks for select to anon
 using (public.cms_revision_is_public(revision_id));
 create policy public_content_blocks_private_select on public.public_content_blocks for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_content_tags_published_select on public.public_content_tags for select to anon,authenticated
+create policy public_content_tags_published_select on public.public_content_tags for select to anon
 using (exists(select 1 from public.public_content_tag_links l where l.tag_id=id and public.cms_revision_is_public(l.revision_id)));
 create policy public_content_tags_private_select on public.public_content_tags for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_content_tag_links_published_select on public.public_content_tag_links for select to anon,authenticated
+create policy public_content_tag_links_published_select on public.public_content_tag_links for select to anon
 using (public.cms_revision_is_public(revision_id));
 create policy public_content_tag_links_private_select on public.public_content_tag_links for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_media_assets_published_select on public.public_media_assets for select to anon,authenticated
-using (lifecycle_state='approved' and archived_at is null and provenance_status='verified'
-  and (consent_status='approved' or (not child_identifiable and consent_status='not_required'))
-  and exists(select 1 from public.public_content_media cm where cm.media_id=id and public.cms_revision_is_public(cm.revision_id)));
+create policy public_media_assets_published_select on public.public_media_assets for select to anon
+using (public.cms_media_is_publicly_usable(id));
 create policy public_media_assets_private_select on public.public_media_assets for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_content_media_published_select on public.public_content_media for select to anon,authenticated
-using (public.cms_revision_is_public(revision_id));
+create policy public_content_media_published_select on public.public_content_media for select to anon
+using (public.cms_revision_is_public(revision_id) and public.cms_media_is_publicly_usable(media_id));
 create policy public_content_media_private_select on public.public_content_media for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_content_aliases_published_select on public.public_content_slug_aliases for select to anon,authenticated
+create policy public_content_aliases_published_select on public.public_content_slug_aliases for select to anon
 using (exists(select 1 from public.public_content_entries e where e.id=entry_id and public.cms_revision_is_public(e.published_revision_id)));
 create policy public_content_aliases_private_select on public.public_content_slug_aliases for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_site_slots_published_select on public.public_site_content_slots for select to anon,authenticated
+create policy public_site_slots_published_select on public.public_site_content_slots for select to anon
 using (active and (effective_from is null or effective_from<=now()) and (expires_at is null or expires_at>now())
   and exists(select 1 from public.public_content_entries e where e.id=entry_id and public.cms_revision_is_public(e.published_revision_id)));
 create policy public_site_slots_private_select on public.public_site_content_slots for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_search_terms_published_select on public.public_content_search_terms for select to anon,authenticated
+create policy public_search_terms_published_select on public.public_content_search_terms for select to anon
 using (public.cms_revision_is_public(revision_id));
 create policy public_search_terms_private_select on public.public_content_search_terms for select to authenticated
 using (public.cms_current_actor_can('view_private'));
-create policy public_navigation_published_select on public.public_site_navigation_items for select to anon,authenticated
+create policy public_navigation_published_select on public.public_site_navigation_items for select to anon
 using (active and (entry_id is null or exists(select 1 from public.public_content_entries e where e.id=entry_id and public.cms_revision_is_public(e.published_revision_id))));
 create policy public_navigation_private_select on public.public_site_navigation_items for select to authenticated
 using (public.cms_current_actor_can('view_private'));
@@ -1348,7 +1432,7 @@ grant select on table
   public.public_content_blocks,public.public_content_tags,public.public_content_tag_links,
   public.public_content_media,public.public_content_slug_aliases,public.public_site_content_slots,
   public.public_content_search_terms,public.public_site_navigation_items
-  to anon,authenticated;
+  to authenticated;
 grant select on table
   public.public_cms_capabilities,public.public_cms_capability_events,
   public.public_publication_events,public.public_content_approvals,public.public_content_quality_findings
@@ -1364,7 +1448,8 @@ grant select on table
   to service_role;
 
 grant select on table
-  public.public_cms_published_entries,public.public_cms_published_blocks,public.public_cms_published_media,
+  public.public_cms_published_entries,public.public_cms_published_blocks,public.public_cms_published_tags,
+  public.public_cms_published_search_terms,public.public_cms_published_media,
   public.public_cms_published_slots,public.public_cms_published_navigation,public.public_cms_slug_redirects
   to anon,authenticated,service_role;
 
@@ -1377,6 +1462,6 @@ comment on table public.public_content_search_terms is 'Controlled editor vocabu
 comment on table public.public_content_views_daily is 'Privacy-safe aggregate foundation; feature remains dormant until Run 9.';
 comment on table public.public_content_reactions is 'Signed-in like foundation; feature remains dormant until Run 9.';
 comment on table public.public_content_comments is 'Signed-in premoderated comment foundation; feature remains dormant until Run 9.';
-comment on view public.public_cms_published_entries is 'Current effective, unexpired, public-classified published revisions only.';
+comment on view public.public_cms_published_entries is 'Current effective, unexpired, public-classified published revisions only; internal provenance and actor fields are excluded.';
 
 commit;

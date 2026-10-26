@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 26 October 2026 — Run 5 local CMS foundation acceptance
-**Overall status:** Runs 1–5 are complete at their accepted boundaries. Run 5 produced one additive first-party CMS migration, a rollback-safe lifecycle/RLS suite, stronger static security coverage, a regenerated schema mirror and unchanged read-only Production preservation counts. The migration has not been applied to Production; no content/media was imported and no public CMS route or gate was activated. Stage 9 remains unauthorised, so production account claims, admission tracking and the Paragon relay remain false.
+**Last updated:** 26 October 2026 — Run 5 local acceptance plus pre-Run-6 adversarial audit
+**Overall status:** Runs 1–5 are complete at their accepted boundaries. A separate pre-Run-6 source, privilege, lifecycle and catalog audit reproduced and corrected four Run 5 security/integrity defect classes before Production, expanded the rollback-safe regressions and regenerated the schema mirror. Production remains on the accepted Run 4 deployment and database state: the Run 5 migration has not been applied, no content/media was imported and no public CMS route or gate was activated. Stage 9 remains unauthorised, so production account claims, admission tracking and the Paragon relay remain false.
 
 ## Status key
 
@@ -22,7 +22,7 @@
 | 2 | One-time developer bootstrap data boundary | One additive local migration for a one-use owner authorisation, capability binding and code-free audit; preservation and RLS tests | Run 1 | `DONE` locally at the Run 2 migration commit |
 | 3 | Developer bootstrap trusted endpoint and private UI | Gate-off endpoint and Developer Console first-password flow; no readable password storage/logging; replay, expiry, recovery and normal-login tests | Run 2 | `DONE` locally at the Run 3 endpoint/UI commit |
 | 4 | Owner-authorised developer acceptance and manual account-claim OTP | Private one-use bootstrap acceptance; gate disabled afterward; encrypted manual claim queue proven before claims open; no OTP to the sender number | Runs 2–3, the prepared migration-ledger bridge and an owner acceptance window | `DONE` — Stages 1–8 accepted and closed; Stage 8 carries a documented final `Mark sent` audit exception accepted by the owner; Stage 9 not authorised and production claims remain false |
-| 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `DONE` locally — 12/12 migrations, 6/6 SQL suites, dedicated static security and complete regression passed; Production application and public activation remain separate and did not occur |
+| 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `DONE` locally — pre-Run-6 adversarial findings corrected; 12/12 migrations, 6/6 SQL suites, dedicated static security and complete regression passed; Production application and public activation remain separate and did not occur |
 | 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `BLOCKED` |
 | 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `BLOCKED` |
 | 8 | Dynamic public News, Events and Gallery | Server-rendered listing/detail routes, lifecycle/countdowns, read time, media relationships, Gallery source links, safe downloads, feeds and structured data | Run 7 | `BLOCKED` |
@@ -119,14 +119,15 @@
 | Item | Evidence | Result |
 |---|---|---|
 | Single additive source migration | `20261026060000_public_cms_foundation.sql`; SHA-256 recorded in Run 5 evidence | Pass |
-| CMS catalog | 8 types, 20 RLS tables, 21 functions, 6 published-only views, 27 policies, 13 triggers and 13 indexes | Pass |
+| CMS catalog | 8 types, 20 RLS tables, 22 functions, 8 fixed-column published-only views, 27 policies, 13 triggers and 13 indexes | Pass |
 | Data-neutral boundary | No content, media, capabilities, slots, navigation, views, reactions or comments seeded | Pass |
-| Content safety | Allowlisted structured blocks; HTML/script/private-key/unmanaged-media rejection; bounded documents | Pass |
+| Content safety | Closed document/type/block keysets; HTML/script/private-key/unmanaged-media rejection; bounded documents; scalar table cells only | Pass |
 | Immutable lifecycle | Revision/block/media-link/alias/approval/audit history append-only; archive instead of hard delete | Pass |
 | Authority separation | Leadership publication retained; capability administration and emergency publication Proprietress-only; developer review visibility never grants publication | Pass |
 | Child-media controls | Approved consent, verified provenance, derivative-only treatment and independent safeguarding approval; due-time withdrawal fails closed | Pass |
-| Published-only access | Draft/private/future/expired/archived/cancelled records excluded from anonymous projections | Pass |
-| Lifecycle acceptance | Draft, review, approval, publish, schedule, due-time revalidation, alias, archive and private restore proven | Pass |
+| Published-only access | Zero anonymous CMS base-table privileges; 8 fixed-column projections exclude drafts, private/future/expired/archived/cancelled records and currently ineligible media | Pass |
+| Lifecycle acceptance | Draft, review, approval, ordinary/emergency announcement publish, typed Event publish, schedule, due-time revalidation, alias, archive and private restore proven | Pass |
+| Pre-Run-6 adversarial audit | Public base-column exposure, scheduled duplicate SEO titles, stale media eligibility and permissive JSON shapes reproduced and fixed; catalog invariants independently inspected | Pass |
 | Dormant engagement | Foundation tables have RLS with no anonymous/authenticated policies or grants before Run 9 | Pass |
 | Disposable SQL acceptance | 12/12 ordered migrations, 6/6 rollback-safe policy suites and postflight | Pass |
 | Static security acceptance | Dedicated Run 5 suite 7/7; portal/security 87/87; Run 4 + Run 5 Node tests 9/9 | Pass |

@@ -101,16 +101,55 @@ insert into cms_documents(name,document) values (
     )
   )
 );
+insert into cms_documents(name,document) values (
+  'emergency_announcement',
+  jsonb_build_object(
+    'title','Fictional Emergency Notice',
+    'summary','A time-bounded fictional emergency announcement used only in local tests.',
+    'classification','public',
+    'source_note','Verified fictional emergency fixture source.',
+    'next_review_date','2099-12-31',
+    'seo_title','Fictional Emergency Notice',
+    'seo_description','A fictional urgent announcement used to test owner-only emergency publication.',
+    'expires_at',(now()+interval '2 days')::text,
+    'blocks',jsonb_build_array(
+      jsonb_build_object('type','callout','payload',jsonb_build_object('text','Fictional emergency information.','style','warning'))
+    )
+  )
+),(
+  'event_notice',
+  jsonb_build_object(
+    'title','Fictional Open Morning',
+    'summary','A verified fictional Event record used only by rollback-safe local tests.',
+    'classification','public',
+    'source_note','Verified fictional Event fixture source.',
+    'next_review_date','2099-12-31',
+    'seo_title','Fictional Open Morning',
+    'seo_description','A fictional Event used to verify typed Event fields and routes.',
+    'event',jsonb_build_object(
+      'starts_at','2099-06-01T09:00:00+01:00','ends_at','2099-06-01T11:00:00+01:00',
+      'venue','Fictional Hall','status','scheduled','attendance_mode','in_person',
+      'action_label','View admissions','action_path','/admissions'
+    ),
+    'blocks',jsonb_build_array(
+      jsonb_build_object('type','paragraph','payload',jsonb_build_object('text','Fictional Event details for local testing.'))
+    )
+  )
+);
 grant select on cms_documents to anon,authenticated,service_role;
 
 -- The migration is data-neutral and every CMS table is RLS protected.
-set local role anon;
-select set_config('request.jwt.claim.sub','',true);
-select set_config('request.jwt.claim.role','anon',true);
+reset role;
+reset session authorization;
 select pg_temp.assert_true(
   (select count(*)=0 from public.public_content_entries),
   'Run 5 must seed no content entry'
 );
+set session authorization authenticator;
+set local role anon;
+select set_config('request.jwt.claim.sub','',true);
+select set_config('request.jwt.claim.role','anon',true);
+select pg_temp.assert_throws('select * from public.public_content_entries','Anonymous users must have no CMS base-table grant');
 select pg_temp.assert_true(
   (select count(*)=20 from pg_class c join pg_namespace n on n.oid=c.relnamespace
     where n.nspname='public' and c.relname in (
@@ -194,6 +233,18 @@ select pg_temp.assert_throws(
   $$select public.cms_create_entry('news','unlinked-media',jsonb_set((select document from cms_documents where name='revision_one'),'{blocks,1}',jsonb_build_object('type','image','payload',jsonb_build_object('asset_id','25000000-0000-4000-8000-000000000099','alt','Unlinked fictional media'))),'Unlinked media fixture')$$,
   'Block media without a governed relationship must be rejected'
 );
+select pg_temp.assert_throws(
+  $$select public.cms_create_entry('news','ignored-block-field',jsonb_set((select document from cms_documents where name='revision_one'),'{blocks,1,debug}',to_jsonb('ignored'::text),true),'Ignored field fixture')$$,
+  'Unknown block wrapper fields must be rejected rather than silently ignored'
+);
+select pg_temp.assert_throws(
+  $$select public.cms_create_entry('news','nested-table-cell',jsonb_set((select document from cms_documents where name='revision_one'),'{blocks,1}',jsonb_build_object('type','table','payload',jsonb_build_object('headers',jsonb_build_array('Heading'),'rows',jsonb_build_array(jsonb_build_array(jsonb_build_object('html','ignored')))))),'Nested table fixture')$$,
+  'Table cells must be bounded scalar values'
+);
+select pg_temp.assert_throws(
+  $$select public.cms_create_entry('news','ignored-event-field',jsonb_set((select document from cms_documents where name='revision_one'),'{event}',jsonb_build_object('starts_at','2099-01-01T09:00:00+01:00'),true),'Non-event fixture')$$,
+  'Non-event content must reject ignored Event fields'
+);
 create temporary table cms_primary_entry as
  select public.cms_create_entry(
   'news','fictional-term-one-update',(select document from cms_documents where name='revision_one'),'Initial fictional draft'
@@ -205,7 +256,7 @@ reset role;
 set local role anon;
 select set_config('request.jwt.claim.sub','',true);
 select set_config('request.jwt.claim.role','anon',true);
-select pg_temp.assert_true((select count(*)=0 from public.public_content_entries),'Anonymous user must not read a draft identity');
+select pg_temp.assert_throws('select * from public.public_content_entries','Anonymous users must never query CMS base tables directly');
 select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_entries),'Published projection must exclude drafts');
 reset role;
 set local role authenticated;
@@ -257,7 +308,19 @@ select pg_temp.assert_true(
   'Anonymous projection must expose exactly the accepted published revision'
 );
 select pg_temp.assert_true((select count(*)=2 from public.public_cms_published_blocks),'Published blocks must expose only the accepted revision');
-select pg_temp.assert_true((select count(*)=1 from public.public_content_tags where slug='school-update'),'Only a tag attached to published content may be public');
+select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_tags where slug='school-update'),'Only a tag attached to published content may be public');
+select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_search_terms where term='fictional term update'),'Only controlled terms attached to published content may be public');
+select pg_temp.assert_throws('select * from public.public_content_revisions','Anonymous users must not bypass fixed projections to read revision audit columns');
+select pg_temp.assert_true(
+  not exists(select 1 from information_schema.columns where table_schema='public' and table_name='public_cms_published_entries' and column_name in ('source_note','created_by','change_note')),
+  'Published entry projection must exclude internal provenance and actor fields'
+);
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000007',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select pg_temp.assert_true((select count(*)=0 from public.public_content_revisions),'Ordinary signed-in accounts must not read CMS base revisions');
+select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_entries where slug='fictional-term-one-update'),'Signed-in accounts must still receive the safe public projection');
 
 -- History and stable aliases are immutable even to database-owner test code.
 reset role;
@@ -354,6 +417,84 @@ select set_config('request.jwt.claim.sub','',true);
 select set_config('request.jwt.claim.role','anon',true);
 select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_entries where slug='fictional-term-one-update-final'),'Restored archived draft must remain anonymous-invisible');
 
+-- Emergency publication is a Proprietress-only, forced-expiry path for
+-- announcements. It never becomes a generic review bypass for other types.
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000004',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+create temporary table cms_emergency_entry as
+ select public.cms_create_entry(
+   'announcement','fictional-emergency-notice',
+   (select document || jsonb_build_object(
+      'blocks',(document->'blocks') || jsonb_build_array(jsonb_build_object(
+        'type','related_content','payload',jsonb_build_object('slugs',jsonb_build_array('fictional-term-one-update-final'))
+      ))
+    ) from cms_documents where name='emergency_announcement'),
+   'Create emergency fixture'
+ ) as id;
+grant select on cms_emergency_entry to anon,authenticated,service_role;
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select pg_temp.assert_throws(
+  $$select public.cms_publish((select id from cms_emergency_entry),'Assistant emergency bypass attempt',null,true)$$,
+  'Assistant Headmistress must not use the Proprietress emergency override'
+);
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select pg_temp.assert_throws(
+  $$select public.cms_publish((select id from cms_primary_entry),'Owner emergency bypass on ordinary news',null,true)$$,
+  'Emergency override must be limited to announcements'
+);
+select public.cms_publish((select id from cms_emergency_entry),'Owner-authorised fictional emergency publication',null,true);
+reset role;
+set local role anon;
+select set_config('request.jwt.claim.sub','',true);
+select set_config('request.jwt.claim.role','anon',true);
+select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_entries where slug='fictional-emergency-notice'),'Valid owner emergency announcement must be public without ordinary approvals');
+select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_blocks where block_type='related_content'),'A public revision must not expose a related-content pointer to an unpublished target');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_archive((select id from cms_emergency_entry),'Archive fictional emergency fixture');
+
+-- Event publication exercises the same review controls while preserving typed
+-- timing, attendance and safe action fields in the public projection.
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000004',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+create temporary table cms_event_entry as
+ select public.cms_create_entry('event','fictional-open-morning',(select document from cms_documents where name='event_notice'),'Create typed Event fixture') as id;
+grant select on cms_event_entry to anon,authenticated,service_role;
+select public.cms_submit_for_review((select id from cms_event_entry),'Submit Event fixture');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_record_approval((select id from cms_event_entry),'factual','approved','Factual Event approval');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_record_approval((select id from cms_event_entry),'publication','approved','Publication Event approval');
+select public.cms_publish((select id from cms_event_entry),'Publish typed Event fixture');
+reset role;
+set local role anon;
+select set_config('request.jwt.claim.sub','',true);
+select set_config('request.jwt.claim.role','anon',true);
+select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_entries where slug='fictional-open-morning' and canonical_path='/events/fictional-open-morning' and event_starts_at is not null and attendance_mode='in_person'),'Published Event projection must preserve typed fields and route');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_archive((select id from cms_event_entry),'Archive fictional Event fixture');
+
 -- Scheduling is public only when due and is revalidated by the service task.
 reset role;
 set local role authenticated;
@@ -374,6 +515,38 @@ select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000003'
 select set_config('request.jwt.claim.role','authenticated',true);
 select public.cms_record_approval((select id from cms_scheduled_entry),'publication','approved','Scheduled publication approved');
 select public.cms_publish((select id from cms_scheduled_entry),'Schedule accepted fictional notice',now()+interval '10 minutes');
+
+-- A second accepted entry cannot reserve the same public SEO title while the
+-- first is scheduled. The title lock and due-time check prevent races.
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000004',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+create temporary table cms_duplicate_seo_entry as
+ select public.cms_create_entry(
+  'news','fictional-duplicate-seo',
+  jsonb_set(
+    jsonb_set((select document from cms_documents where name='scheduled_news'),'{title}',to_jsonb('Different Fictional Notice'::text)),
+    '{summary}',to_jsonb('A distinct fictional summary that intentionally reuses one SEO title.'::text)
+  ),
+  'Create duplicate SEO fixture'
+ ) as id;
+grant select on cms_duplicate_seo_entry to authenticated,service_role;
+select public.cms_submit_for_review((select id from cms_duplicate_seo_entry),'Duplicate SEO fixture review');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000005',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_record_approval((select id from cms_duplicate_seo_entry),'factual','approved','Duplicate SEO facts reviewed');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_record_approval((select id from cms_duplicate_seo_entry),'publication','approved','Duplicate SEO publication reviewed');
+select pg_temp.assert_throws(
+  $$select public.cms_publish((select id from cms_duplicate_seo_entry),'Reject duplicate scheduled SEO title',now()+interval '12 minutes')$$,
+  'Published and scheduled SEO titles must be unique'
+);
 reset role;
 set local role anon;
 select set_config('request.jwt.claim.sub','',true);
@@ -391,6 +564,34 @@ reset role;
 set local role anon;
 select set_config('request.jwt.claim.role','anon',true);
 select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_entries where slug='fictional-scheduled-notice'),'Due valid content must enter the published projection');
+
+-- Public media is available only through the fixed safe projection. Withdrawing
+-- consent removes it immediately without exposing base metadata or audit fields.
+reset role;
+reset session authorization;
+insert into public.public_media_assets(
+  id,media_type,lifecycle_state,title,alt_text,source_note,child_identifiable,
+  provenance_status,consent_status,public_derivative_only,created_by
+) values (
+  '25000000-0000-4000-8000-000000000002','image','approved','Fictional public-media fixture',
+  'Fictional public fixture','Internal fictional provenance note',false,'verified','not_required',true,
+  '15000000-0000-4000-8000-000000000004'
+);
+insert into public.public_content_media(revision_id,media_id,placement,placement_position,caption)
+select published_revision_id,'25000000-0000-4000-8000-000000000002','body',0,'Safe public caption'
+from public.public_content_entries where id=(select id from cms_scheduled_entry);
+set session authorization authenticator;
+set local role anon;
+select set_config('request.jwt.claim.role','anon',true);
+select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_media where media_id='25000000-0000-4000-8000-000000000002'),'Approved non-child media must appear through the safe projection');
+select pg_temp.assert_throws('select * from public.public_media_assets','Anonymous users must not read media consent, provenance or actor columns directly');
+reset role;
+reset session authorization;
+update public.public_media_assets set consent_status='denied' where id='25000000-0000-4000-8000-000000000002';
+set session authorization authenticator;
+set local role anon;
+select set_config('request.jwt.claim.role','anon',true);
+select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_media where media_id='25000000-0000-4000-8000-000000000002'),'Consent withdrawal must remove media from the public projection immediately');
 
 -- Identifiable child media requires approved consent, an independent
 -- safeguarding approval and due-time consent revalidation.
@@ -496,6 +697,58 @@ set local role anon;
 select set_config('request.jwt.claim.role','anon',true);
 select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_entries where slug='fictional-safeguarded-story'),'Consent-withdrawn child content must remain unpublished');
 select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_media where media_id='25000000-0000-4000-8000-000000000001'),'Consent-withdrawn child media must never enter public media projection');
+
+-- After a later approved publication, withdrawal keeps the textual record but
+-- removes every current media projection, including featured/social pointers.
+reset role;
+reset session authorization;
+update public.public_media_assets set consent_status='approved',consent_reviewed_by='15000000-0000-4000-8000-000000000005',consent_reviewed_at=now()
+ where id='25000000-0000-4000-8000-000000000001';
+set session authorization authenticator;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000004',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_submit_for_review((select id from cms_child_entry),'Resubmit child fixture after consent approval');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000005',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_record_approval((select id from cms_child_entry),'factual','approved','Reconfirm child fixture facts');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','15000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claim.role','authenticated',true);
+select public.cms_record_approval((select id from cms_child_entry),'publication','approved','Reconfirm child fixture publication');
+select public.cms_publish((select id from cms_child_entry),'Publish consented child fixture');
+reset role;
+set local role anon;
+select set_config('request.jwt.claim.sub','',true);
+select set_config('request.jwt.claim.role','anon',true);
+select pg_temp.assert_true(
+  (select featured_media_id='25000000-0000-4000-8000-000000000001'::uuid from public.public_cms_published_entries where slug='fictional-safeguarded-story'),
+  'Current approved consent must expose the accepted featured-media pointer'
+);
+select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_media where media_id='25000000-0000-4000-8000-000000000001'),'Current approved consent must expose the accepted child-media relationship');
+select pg_temp.assert_true(
+  (select count(*)=1 from public.public_cms_published_blocks where block_type='image' and payload->>'asset_id'='25000000-0000-4000-8000-000000000001'),
+  'Current approved consent must expose the accepted child-media block'
+);
+reset role;
+reset session authorization;
+update public.public_media_assets set consent_status='denied',consent_reviewed_by='15000000-0000-4000-8000-000000000005',consent_reviewed_at=now()
+ where id='25000000-0000-4000-8000-000000000001';
+set session authorization authenticator;
+set local role anon;
+select set_config('request.jwt.claim.role','anon',true);
+select pg_temp.assert_true(
+  (select featured_media_id is null and social_media_id is null from public.public_cms_published_entries where slug='fictional-safeguarded-story'),
+  'Consent withdrawal must suppress featured and social media pointers without deleting the text record'
+);
+select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_media where media_id='25000000-0000-4000-8000-000000000001'),'Consent withdrawal must immediately remove a formerly published child-media relationship');
+select pg_temp.assert_true(
+  (select count(*)=0 from public.public_cms_published_blocks where block_type='image' and payload->>'asset_id'='25000000-0000-4000-8000-000000000001'),
+  'Consent withdrawal must immediately remove a formerly published child-media block'
+);
 select pg_temp.assert_throws('select * from public.public_content_reactions','Dormant engagement foundations must have no anonymous grants');
 
 reset role;

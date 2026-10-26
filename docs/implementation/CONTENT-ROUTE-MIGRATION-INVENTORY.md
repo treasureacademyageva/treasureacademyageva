@@ -363,7 +363,7 @@ Run 5 now has exactly one purpose-built source migration, `20261026060000_public
 - slots and navigation;
 - separate CMS capabilities;
 - dormant privacy-safe views, signed-in likes and premoderated comments;
-- six published-only security-invoker projections.
+- eight fixed-column published-only projections with no anonymous base-table grants.
 
 The migration remains unapplied to Production and contains no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
 
