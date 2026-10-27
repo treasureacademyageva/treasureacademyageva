@@ -6,9 +6,9 @@
 
 ## 1. Current rollback boundary
 
-Run 6 has not been pushed, deployed, Production-applied or provider-smoke-tested. No dedicated API key/secret has been entered and no media record or asset was created. At this boundary, rollback means abandoning the local Run 6 commit and returning the working branch to the accepted pre-Run-6 commit `c42167f8b2dcb44c5ac27ed26060931ab179aa3b`.
+Run 6 has not been pushed, deployed, Production-applied or provider-smoke-tested. A dedicated Active/Master Admin API key now exists and its key/secret are privately stored as Production-only Vercel Sensitive values; no value was disclosed or read. No provider call, media record or asset was created. Saving the credentials triggered a redeployment of unchanged Run 4 source `a552618e40791a592cb9e586b2963d61ed46ad2c`; that deployment is `READY/PROMOTED`, the homepage returns 200, and absent Run 6 media paths return 404 with the gate false. At this boundary, source rollback means abandoning local Run 6 commit `1be79902305c9183eab257d50da9e3aa94f23a14` and returning the working branch to the accepted pre-Run-6 commit `c42167f8b2dcb44c5ac27ed26060931ab179aa3b`.
 
-`origin/main` and promoted Production remain `a552618e40791a592cb9e586b2963d61ed46ad2c`, so they require no rollback.
+`origin/main` and promoted Production source remain `a552618e40791a592cb9e586b2963d61ed46ad2c`, so no source rollback is required. Do not redeploy merely to reverse the already-contained same-source redeploy. If credential containment is ever required, keep the gate false and disable the dedicated Cloudinary key first.
 
 ## 2. Universal containment order
 

@@ -1,9 +1,9 @@
 # Run 6 Cloudinary Media Foundation Acceptance Evidence
 
-**Date:** 26 October 2026
+**Date:** 26 October 2026; provider handoff updated 27 October 2026
 **Authority:** owner-approved Dynamic Platform Master Plan, accepted Run 5 schema and the Run 6 provider/reviewer decisions
-**Acceptance boundary:** repository source, disposable-local PostgreSQL, mocked provider API boundaries and complete local regression
-**Mutation boundary:** no push, deployment, Production SQL, content/media import, real provider upload, public CMS activation or secret entry
+**Acceptance boundary:** repository source, disposable-local PostgreSQL, mocked provider API boundaries, complete local regression and gate-off provider credential handoff
+**Mutation boundary:** dedicated Cloudinary key plus eight Production-only Vercel variables recorded; the dashboard triggered a same-source Run 4 redeploy; no push, Run 6 deployment, Production SQL, content/media import, real provider upload or public CMS activation
 
 ## 1. Decision
 
@@ -11,7 +11,9 @@ Run 6 is accepted at the repository and disposable-local boundary. The implement
 
 The provider boundary is pinned to school environment `ecbad9xj`, signed preset `treasure_academy_cms_signed`, authenticated delivery and asset folder `treasure-academy/cms/pending`. The owner-selected indefinite/manual-only retention policy is enforced in Supabase. No source or database function automatically deletes a Cloudinary asset or governed manifest record.
 
-This evidence does **not** authorise a push, deployment, Production migration, Vercel environment change, public route activation or real upload. A dedicated Cloudinary API key and its secret have not been created/entered for this application and no live provider smoke test has occurred. Non-destructive containment and forward-repair procedures are recorded in `RUN-06-CLOUDINARY-MEDIA-FOUNDATION-ROLLBACK-PLAN.md`.
+The dedicated Cloudinary key now exists as `Active / Master Admin`, and its API key/secret were entered privately into write-only Vercel Sensitive variables without entering chat, source or evidence. Six fixed Production-only variables were created by the agent and the owner replaced only the two credential placeholders. `CMS_MEDIA_ENABLED` remains exactly false.
+
+Saving the private values triggered a Production redeploy of the already accepted Run 4 source `a552618e40791a592cb9e586b2963d61ed46ad2c`. The redeployment reached `READY/PROMOTED`; it did not contain Run 5/6 code. The homepage returned `200`, and gate-off media usage/delivery paths returned `404`. No push, Production SQL, provider API smoke call or real upload occurred. Non-destructive containment and forward-repair procedures are recorded in `RUN-06-CLOUDINARY-MEDIA-FOUNDATION-ROLLBACK-PLAN.md`.
 
 ## 2. Implemented boundary
 
@@ -64,7 +66,13 @@ The source CSP permits only:
 - `https://api.cloudinary.com` in `connect-src` for signed direct upload;
 - `https://res.cloudinary.com/ecbad9xj/` in `img-src` and `media-src` for this exact school environment.
 
-No `*.cloudinary.com` wildcard was added. These source changes are not live because no deployment occurred.
+No `*.cloudinary.com` wildcard was added. These Run 6 source changes are not live because the promoted same-source redeployment remains the accepted Run 4 commit.
+
+### 2.5 Private provider handoff
+
+The owner created the dedicated `Treasure Academy CMS - Vercel` key in environment `ecbad9xj` and confirmed it is Active with the Master Admin role. Vercel now holds eight Production-only media variables: `CMS_MEDIA_ENABLED=false`, `CLOUDINARY_CLOUD_NAME=ecbad9xj`, Sensitive `CLOUDINARY_API_KEY`, Sensitive `CLOUDINARY_API_SECRET`, `CLOUDINARY_UPLOAD_PRESET=treasure_academy_cms_signed`, `CLOUDINARY_ASSET_FOLDER=treasure-academy/cms/pending`, `CLOUDINARY_DELIVERY_TYPE=authenticated` and `CLOUDINARY_USAGE_WARNING_PERCENT=70`. The owner submitted both private values; neither was read back or decrypted by the agent.
+
+The gate is false, the deployed source has no Run 6 dispatcher, and no Preview/Development value was added. The key remains broader than the eventual application path because the self-service provider role is broad; risk is contained by the dedicated key, server-only storage, fail-closed gate, fixed server parameters, absence of any delete code and manual-only cleanup policy.
 
 ## 3. Adversarial coverage
 
@@ -161,19 +169,18 @@ adc937ac65b6459e16e53d0c6c029dc44d8ff99b6a91e0dcbbbeebb16ffc65ab  supabase/tests
 4b4d98cdb3d2153f61c8bb5630861d974b69b8b13bcdd5eda957796ae4f4f837  tools/tests/run6-cloudinary-media.test.mjs
 ```
 
-The pre-Run-6 local `HEAD` remains `c42167f8b2dcb44c5ac27ed26060931ab179aa3b` until the local Run 6 acceptance commit. `origin/main` and promoted Production remain `a552618e40791a592cb9e586b2963d61ed46ad2c`.
+The local Run 6 acceptance commit is `1be79902305c9183eab257d50da9e3aa94f23a14`. `origin/main` and promoted Production remain `a552618e40791a592cb9e586b2963d61ed46ad2c`. The same-source redeployment is `dpl_DLjZRSt67DAxHhsBYprfhYeJV2h2`, `READY/PROMOTED`, with no alias error.
 
 ## 7. Holds before any live provider test or release
 
-1. In the Cloudinary dashboard, the owner must create a dedicated API key for this application; the secret must remain private and must not be pasted into chat or source.
-2. The public key and secret must be entered through Vercel’s private environment-variable screen, with `CMS_MEDIA_ENABLED` still false.
-3. Runs 5 and 6 Production SQL need a separately authorised preservation window before any endpoint can operate against Production.
-4. The exact committed source then needs an authorised deployment with the media gate still false.
-5. A neutral, generated, non-child fixture must pass signed upload, authoritative completion, transformed delivery, manifest and quota checks before any real asset or public activation.
-6. Any provider orphan cleanup remains a manual, separately authorised dashboard action. No automatic deletion is permitted.
+1. Runs 5 and 6 Production SQL need a separately authorised preservation window before any endpoint can operate against Production.
+2. The exact committed Run 6 source needs an authorised push and deployment with the media gate still false.
+3. A neutral, generated, non-child fixture must pass signed upload, authoritative completion, transformed delivery, manifest and quota checks before any real asset or public activation.
+4. Public activation requires a separate decision after smoke-test evidence; `CMS_MEDIA_ENABLED` must not be enabled as part of the initial source release.
+5. Any provider orphan cleanup remains a manual, separately authorised dashboard action. No automatic deletion is permitted.
 
 ## 8. Boundary conclusion
 
-Run 6 satisfies its local foundation acceptance: school-owned configuration is pinned; credentials are server-only; upload authorisation is short-lived, same-origin and capability-scoped; media validation is bounded; Supabase owns governance and audit; creator self-review is prohibited for identifiable-child media; transformed delivery and exact CSP are controlled; and manifest/quota/orphan handling retains records without deletion.
+Run 6 satisfies its local foundation acceptance and private provider-handoff boundary: school-owned configuration is pinned; credentials are server-only; upload authorisation is short-lived, same-origin and capability-scoped; media validation is bounded; Supabase owns governance and audit; creator self-review is prohibited for identifiable-child media; transformed delivery and exact CSP are controlled; and manifest/quota/orphan handling retains records without deletion.
 
-Run 6 is **not** Production-applied, provider-smoke-tested or publicly active. Those boundaries remain closed until the owner completes the private dashboard action and separately authorises each release step.
+Run 6 is **not** pushed, Production-applied, provider-smoke-tested or publicly active. The same-source Run 4 redeploy is healthy and contains no Run 6 route. The remaining boundaries stay closed until separately authorised.
