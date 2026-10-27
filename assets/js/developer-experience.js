@@ -212,7 +212,7 @@
   }
 
   function runHealth(){
-    var items=[{label:"Homepage",url:"/",expect:200},{label:"Search",url:"/search.html",expect:200},{label:"Website Help",url:"/website-help.html",expect:200},{label:"Sitemap",url:"/sitemap.xml",expect:200},{label:"Speed Insights",url:"/_vercel/speed-insights/script.js",expect:200},{label:"Web Analytics",url:"/_vercel/insights/script.js",expect:200,optional:true}],box=byId("healthList");box.innerHTML="<p>Checking…</p>";
+    var items=[{label:"Homepage",url:"/",expect:200},{label:"Search",url:"/search",expect:200},{label:"Website Help",url:"/website-help",expect:200},{label:"Sitemap",url:"/sitemap.xml",expect:200},{label:"Speed Insights",url:"/_vercel/speed-insights/script.js",expect:200},{label:"Web Analytics",url:"/_vercel/insights/script.js",expect:200,optional:true}],box=byId("healthList");box.innerHTML="<p>Checking…</p>";
     Promise.all(items.map(function(item){return fetch(item.url,{cache:"no-store"}).then(function(response){return{item:item,status:response.status,ok:response.status===item.expect};}).catch(function(){return{item:item,status:"offline",ok:false};});})).then(function(rows){box.innerHTML=rows.map(function(row){var label=row.ok?"Ready":row.item.optional?"Not enabled":"Needs attention";return '<div class="health-item"><b>'+esc(row.item.label)+'</b><span class="status-chip '+(row.ok?"good":row.item.optional?"warn":"bad")+'">'+label+' · '+esc(row.status)+'</span></div>';}).join("");});
   }
 

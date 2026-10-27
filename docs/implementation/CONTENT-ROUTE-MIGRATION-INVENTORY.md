@@ -1,10 +1,10 @@
 # Content, Route and Dependency Migration Inventory
 
-**Captured:** 25 October 2026; Runs 5–9 boundaries updated 27 October 2026
+**Captured:** 25 October 2026; Runs 5–10 boundaries updated 27 October 2026
 **Authority:** owner-approved Dynamic Platform Master Plan
 **Rule:** inventory → owner/source verification → additive import → revision preservation → database rendering → parity proof → coded-authority retirement
 
-This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–9 added locally accepted schema/policy, fail-closed media-service source, a capability-gated protected CMS bundle and one consolidated server-rendered public-content dispatcher. The dedicated provider credentials remain private. The three Run 8 public/media/download gates and three Run 9 engagement/comment/placement gates now exist in Vercel Production encrypted as exact `false`, but no content/media/engagement row, Production SQL, Runs 5–9 source or public route authority was imported, deployed or activated.
+This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–10 added locally accepted schema/policy, fail-closed media-service source, a capability-gated protected CMS bundle and one consolidated public-content dispatcher. Run 10 adds a deterministic 14-candidate held manifest, current reviewed projections, safe core slots, source-backed Search and coarse inventory. Dedicated provider secrets remain private. The Run 8, Run 9 and Run 10 public gates now exist in Vercel Production encrypted as exact `false`, but no content/media/engagement/candidate/slot/inventory row, Production SQL, Runs 5–10 source or public route authority was imported, deployed or activated.
 
 ## 1. Current deployable route inventory
 
@@ -218,14 +218,14 @@ Run 8 intentionally leaves `sitemap.xml` and `robots.txt` unchanged while no ver
 | News archive records | `assets/js/store.js` (`PUBLIC_NEWS`, 6 records) | `news.html`, six article files, homepage, Search index | Run 8 renderer is ready for one current published CMS revision, but no import/cutover occurred |
 | Current admission campaign | `index.html`, `news.html`, admission article, metadata, `store.js`, Search answers/index | Multiple cards/badges/descriptions | One verified published CMS article/announcement plus placements; Run 8 can render it only after Run 10 import/parity |
 | Event/calendar facts | legacy `calendar_events` rows plus static guidance pages | Search/chat fallbacks, homepage guidance | Verified CMS Event records rendered by the accepted Run 8 Lagos lifecycle without duplicating authority |
-| Homepage news | browser render from `DB.load().newsEvents` | `store.js` fallback | Published CMS placement projection remains Run 9/10; Run 8 does not alter homepage authority |
+| Homepage news | browser render from `DB.load().newsEvents` | `store.js` fallback | Run 9 published placement projection after verified Run 10 import; coded fallback remains authority while gates are false |
 | Homepage gallery | four hardcoded illustration cards | links to `news.html#gallery` | Run 8 relationship-generated Gallery is accepted locally; homepage placement cutover remains later |
 | News gallery | three hardcoded excursion images | media inventory and `store.js` references | Run 8 will expose only eligible governed relationships; historical files remain held pending consent/provenance |
-| Search destinations | generated `assets/js/search-index.js` (57 static entries) | `smart-search.js` ranking | Published fixed-route + CMS Search projection |
-| Direct answers | `verified-answer-engine.js`, duplicate `smart-search.js` fallback, optional public-info endpoint | Search UI | Verified database projection with supporting source links and fail-closed fallbacks |
+| Search destinations | generated `assets/js/search-index.js` (57 static entries) while the database gate is false | `smart-search.js` reviewed local ranking | Run 10 published CMS + current verified-information + optional reconciled-inventory projection after verified cutover |
+| Direct answers | reviewed coded engines while database Search is false | Search UI | Run 10 source-backed verified-information answers with private/no-answer/rate/unavailable states; no coded fallback after enabled-service failure |
 | Repeated contacts/address/hours | repeated HTML shell/body plus Search scripts | up to 57 audited pages | Verified site-fact projection where changeable; stable rendering templates remain code |
-| Core-page changing sections | direct HTML | Search index and chatbot corpus | CMS page/section/slot records after verification |
-| Public inventory claims | static cautionary wording; legacy `shop_items`/uniform/transport seeds | shop/uniform/transport/search | Office-confirmed inventory/service projection only |
+| Core-page changing sections | direct HTML | Search index and chatbot corpus | Run 10 held source-hashed Page candidates plus audited fixed slots after field verification/import |
+| Public inventory claims | static cautionary wording; legacy seeds preserved | shop/uniform/transport/Search | Run 10 both-sides-reconciled coarse projection only; no public balances, movements, prices or actors |
 | Metadata and sitemap | direct HTML + static `sitemap.xml` | Search index build | Same published record/route projection as visible content |
 
 Code continues to own templates, renderers, block allowlists, calculations, validation, permissions, security and safe fallback wording. Supabase owns safe changing content/state/relationships after cutover.
@@ -245,9 +245,20 @@ The five historical stories are currently canonicalized noindex archive pages. T
 
 `public.news_posts` and `public.news_images` exist in production with zero rows. They are legacy schema, not proof of the approved CMS model and not a reason to bypass the purpose-built additive structures in the master plan.
 
+### Run 10 deterministic held manifest
+
+`content/migration/run10-held-candidates.json` contains 14 exact-source SHA-256 candidates generated from tracked repository HTML:
+
+- six News candidates listed above; each explicitly holds historical child media and imports no media relationship;
+- eight core-page candidates: About, Academics, Admissions, Fees, Contact, Privacy, Safeguarding and Credits;
+- every candidate remains `held`, requires field/source verification and carries structured text only;
+- the manifest is an inventory/staging input, not an import or publication instruction.
+
+The protected CMS stages at most one selected manifest record per action. Staging, verify/reject, draft import, independent review and publication are separate audited steps. No record was staged in Run 10.
+
 ## 6. Event inventory
 
-There is no dedicated public `/events` listing or typed Event detail route. Production contains five legacy `calendar_events` rows, but their text, dates, public classification and source authority were not re-approved in Run 1.
+Production has no dedicated dynamic `/events` authority. Run 8 accepts the local typed listing/detail renderer, and Run 10 accepts held/current/stale controls, but Production contains five legacy `calendar_events` rows whose text, dates, public classification and source authority were not re-approved.
 
 Required process:
 
@@ -356,6 +367,7 @@ otp-relay.mjs
 parent-linking.mjs
 portal-register.mjs
 public-content.mjs
+public-discovery.mjs
 registrations.mjs
 ```
 
@@ -368,17 +380,18 @@ registrations.mjs
 - direct Cloudinary Upload/Admin/Usage REST integration in the trusted server, with no added SDK dependency and `CMS_MEDIA_ENABLED=false`;
 - Run 8 reuses the accepted signed-delivery helper for fixed public transforms only; all three public content/media/download gates are false and no provider call was made;
 - Run 9 reuses the twelfth Function and portal browser-session authentication for gated public engagement; engagement, comments and homepage placements remain false;
+- Run 10 also reuses the twelfth Function for explicit-submit Search, fixed core-page slots and coarse inventory; its three gates remain encrypted false and its Search HMAC pepper is Sensitive;
 - no production AI backend;
 - dormant Monnify files/gates, out of approved scope.
 
 ## 11. Database inventory boundary
 
-The accepted pre/post-Run-5 Production database baseline, preserved unchanged through local Run 9, contains 105 public tables, all 105 RLS-enabled:
+The accepted pre/post-Run-5 Production database baseline, preserved unchanged through local Run 10, contains 105 public tables, all 105 RLS-enabled:
 
 - earlier tables such as `school_data`, `news_posts`, `news_images`, `calendar_events`, `shop_items`, `fee_structure`, `transport_routes`, `uniform_items`, `staff` and related operational tables;
 - additive secure-portal families for accounts, operations, family linking, enrolment, finance/inventory, admission tracking/developer capabilities, continuity/account claims and the accepted Run 4 bootstrap boundary.
 
-Production still contains zero of the 25 planned Runs 5/6/9 CMS, media-governance and engagement/placement-audit tables. `school_data` remains present with its preserved row; Auth users/identities remain `2/2`; storage remains empty; pending/claimed account claims remain `2/2`; live claim challenges and bootstrap authorisations remain zero.
+Production still contains zero of the 32 planned Runs 5/6/9/10 CMS, media-governance, engagement, migration, core-slot and Search-control tables. `school_data` remains present with its preserved row; Auth users/identities remain `2/2`; storage remains empty; pending/claimed account claims remain `2/2`; live claim challenges and bootstrap authorisations remain zero.
 
 Run 5 now has exactly one purpose-built source migration, `20261026060000_public_cms_foundation.sql`, with:
 
@@ -399,9 +412,11 @@ Run 8 adds `20261027080000_public_content_delivery.sql`. It replaces the public-
 
 Run 9 adds `20261027090000_public_engagement_and_placements.sql`. It adds three RLS tables for rotating daily HMAC view receipts, one-per-actor comment reports and immutable homepage placement events; completes the comment states; exposes only fixed aggregate/approved-comment views; and adds constrained view/like/comment/moderation/placement RPCs. It creates no row. The endpoint and accessible public/protected UI reuse the existing twelfth Function and remain exact-false gated.
 
-All four migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+Run 10 adds `20261027100000_verified_content_search_and_inventory.sql`. It adds seven RLS relations for held candidates, immutable migration/source history, fixed core slots/events, short-lived HMAC Search buckets and aggregate daily insights; current verified-information, core-slot, inventory and Search projections; constrained staging/verification/import/slot/Search functions; and a private stale-review queue. It creates no row and reconciles no inventory.
 
-### Runs 5–9 authority status
+All five migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+
+### Runs 5–10 authority status
 
 | Surface | Local result | Current public authority |
 |---|---|---|
@@ -409,10 +424,12 @@ All four migrations remain unapplied to Production and contain no import. The em
 | Structured body blocks | Allowlist and validation accepted locally; zero blocks | Existing reviewed HTML remains authoritative |
 | Media metadata/relationships | Governed signed-upload, provider confirmation, consent/provenance/safeguarding, placement/download, manifest/orphan and quota boundary accepted locally; zero media | Existing approved deployment assets only; historical child media held |
 | Slug aliases | Stable alias model accepted locally; zero aliases | Existing `.html` routes remain unchanged |
-| Search vocabulary | Controlled per-revision terms accepted locally; zero terms; no raw queries | Existing static Search remains authoritative |
-| Homepage slots/navigation | Publisher-only audited slot controls and safe gated client accepted locally; zero rows | Existing coded layout/navigation remains authoritative while the exact placement gate is false |
+| Search vocabulary | Controlled terms plus Run 10 service-only published projection, source citations, HMAC rate buckets and aggregate family insights accepted locally; zero rows and no raw-query column | Existing static Search remains authoritative while the exact database gate is false |
+| Homepage slots/navigation | Publisher-only audited homepage slots plus Run 10 fixed core-page slots/DOM client accepted locally; zero rows | Existing coded layout/navigation/core guidance remains authoritative while exact gates are false |
 | Engagement | Privacy-safe aggregate views, active-account likes, pending-first comments and leadership moderation accepted locally | No CMS views/likes/comments feature is active; engagement and comments gates are false |
-| Public projections | RLS, current-publication, media-withdrawal and engagement privacy behavior proven locally through 15 migrations and 9 SQL suites | Runs 8–9 consume only fixed projections locally; Production has no migration/source/route activation |
+| Public projections | RLS, current-publication, media-withdrawal, engagement, current-review, coarse-inventory and Search privacy proven through 16 migrations and 10 SQL suites | Runs 8–10 consume only fixed projections locally; Production has no migration/source/route activation |
+| Verified migration/freshness | Deterministic 14-candidate text-only held manifest, controlled staging, source linkage and overdue/due-soon review queue accepted locally; zero staged/imported records | Existing verified static HTML remains authoritative; historical media and unverified operational data remain held |
+| Public inventory | Both-sides-reconciled coarse projection, safe API/client and protected public-state preview accepted locally; zero reconciled records | Existing cautionary static Shop guidance remains authoritative; office ledger remains private |
 | News/Event routes and feeds | One consolidated SSR renderer, canonical pagination/detail/archive/metadata and canonical-summary feeds accepted locally | Existing static News remains authoritative; no typed Production Event/feed route |
 | Gallery and derivatives | Current relationship-only Gallery, stable opaque identifiers, same-origin fixed transforms and explicit derivative permission accepted locally | No Production Gallery/media/download route; all three public gates false |
 

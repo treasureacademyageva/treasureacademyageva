@@ -4,7 +4,7 @@
 const DB_KEY = "treasure_db_v5";
 const SCHOOL_DEFAULTS = {
   name: "Treasure Academy, Ageva",
-  levels: "Creche • Pre-Nursery • Nursery 1–2 • Primary 1–4 • Primary 6",
+  levels: "Pre-Nursery • Nursery 1–2 • Primary 1–4 • Primary 6",
   motto: "Our God is able",
   address: "Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State",
   phone: "+234 814 194 3478",
@@ -27,23 +27,23 @@ const SCHOOL_DEFAULTS = {
 };
 
 const PUBLIC_NEWS = [
-  {id:"NEA26",type:"news",title:"2026/2027 Admissions Are Open",date:"2026-09-15",link:"news/2026-2027-admissions-open.html",image:"assets/img/hero-kids.webp",text:"Admissions are open from Creche to Primary 6. Confirm the current process with the verified school office before paying."},
+  {id:"NEA26",type:"news",title:"2026/2027 Admissions Are Open",date:"2026-09-15",link:"/news/2026-2027-admissions-open",image:"assets/img/hero-kids.webp",text:"Admissions are open from Pre-Nursery to Primary 6. Confirm the current process with the verified school office before paying."},
   {id:"NEV24",type:"video",title:"Watch: Treasure Academy Students Explore",date:"2024-12-10",link:"https://www.facebook.com/100093241642093/videos/538199732380350/",image:"assets/img/excursion-girls.jpg",text:"The existing website linked this school-excursion video on the school’s Facebook page."},
   {id:"NER24",type:"archive",title:"Excursion: Pupils Visit the Railway Station",date:"2024-12-04",link:"https://www.facebook.com/100093241642093/posts/460838207034230/",image:"assets/img/excursion-railway.webp",text:"A one-day learning excursion recorded in the school’s existing website archive."},
   {id:"NES24",type:"archive",title:"Excursion: Learning Beyond the Classroom",date:"2024-12-04",link:"https://www.facebook.com/100093241642093/posts/460833623701355/",image:"assets/img/excursion-shop.webp",text:"The school’s existing archive links to photographs from the 2024 learning excursion."},
-  {id:"NEG5",type:"archive",title:"5th Graduation Ceremony",date:"2021-08-12",link:"news/2021-fifth-graduation-ceremony.html",image:"assets/img/graduation.webp",text:"The school archive records a post-pandemic graduation and an important Common Entrance centre milestone."},
-  {id:"NEG4",type:"archive",title:"4th Graduation Ceremony",date:"2020-08-07",link:"news/2020-fourth-graduation-ceremony.html",image:"assets/img/graduation.webp",text:"The school community found a way to recognise its graduands during the Covid-19 period."},
-  {id:"NEG3",type:"archive",title:"3rd Graduation Ceremony",date:"2019-08-06",link:"news/2019-third-graduation-ceremony.html",image:"assets/img/graduation.webp",text:"The archive celebrates the third graduating set and their preparation for the next stage."},
-  {id:"NEG2",type:"archive",title:"2nd Graduation Ceremony",date:"2018-07-24",link:"news/2018-second-graduation-ceremony.html",image:"assets/img/graduation.webp",text:"The second school graduation celebrated another set of pupils and the school's continued growth."},
-  {id:"NEG1",type:"archive",title:"1st Graduation Ceremony",date:"2017-07-26",link:"news/2017-first-graduation-ceremony.html",image:"assets/img/graduation.webp",text:"Treasure Academy's first full graduation ceremony celebrated six graduands and an early school milestone."}
+  {id:"NEG5",type:"archive",title:"5th Graduation Ceremony",date:"2021-08-12",link:"/news/2021-fifth-graduation-ceremony",image:"assets/img/graduation.webp",text:"The school archive records a post-pandemic graduation and an important Common Entrance centre milestone."},
+  {id:"NEG4",type:"archive",title:"4th Graduation Ceremony",date:"2020-08-07",link:"/news/2020-fourth-graduation-ceremony",image:"assets/img/graduation.webp",text:"The school community found a way to recognise its graduands during the Covid-19 period."},
+  {id:"NEG3",type:"archive",title:"3rd Graduation Ceremony",date:"2019-08-06",link:"/news/2019-third-graduation-ceremony",image:"assets/img/graduation.webp",text:"The archive celebrates the third graduating set and their preparation for the next stage."},
+  {id:"NEG2",type:"archive",title:"2nd Graduation Ceremony",date:"2018-07-24",link:"/news/2018-second-graduation-ceremony",image:"assets/img/graduation.webp",text:"The second school graduation celebrated another set of pupils and the school's continued growth."},
+  {id:"NEG1",type:"archive",title:"1st Graduation Ceremony",date:"2017-07-26",link:"/news/2017-first-graduation-ceremony",image:"assets/img/graduation.webp",text:"Treasure Academy's first full graduation ceremony celebrated six graduands and an early school milestone."}
 ];
 
 const PUBLIC_DB = {
   school: SCHOOL_DEFAULTS,
   whatsapp: [{id:"W1",name:"School WhatsApp",role:"Verified school office contact",phone:"2349063932487"}],
-  promotions: [{id:"PR1",badge:"Admissions Open",title:"2026/2027 Admission Is On",text:"Ask the school office about places from Creche to Primary 6 and confirm every payment instruction.",cta:"Admission Details",link:"admissions.html",color:"sun"}],
+  promotions: [{id:"PR1",badge:"Admissions Open",title:"2026/2027 Admission Is On",text:"Ask the school office about places from Pre-Nursery to Primary 6 and confirm every payment instruction.",cta:"Admission Details",link:"/admissions",color:"sun"}],
   newsEvents: PUBLIC_NEWS,
-  classes: ["Creche","Pre-Nursery","Nursery 1","Nursery 2","Primary 1","Primary 2","Primary 3","Primary 4","Primary 6"],
+  classes: ["Pre-Nursery","Nursery 1","Nursery 2","Primary 1","Primary 2","Primary 3","Primary 4","Primary 6"],
   calendar: [], staffWall: [], formerTeachers: [], teachers: [], pupils: [], admins: [],
   results: [], registrations: [], applications: [], graduates: [], supportPledges: [],
   testimonials: [], exams: [], shopItems: [], lostfound: [], notices: [],

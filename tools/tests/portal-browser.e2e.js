@@ -52,7 +52,7 @@ function fictionalSession() {
       });
     });
 
-    const response = await page.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'networkidle' });
+    const response = await page.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'domcontentloaded' });
     assert(response && response.status() < 400, `portal HTTP at ${width}`);
     await page.getByRole('heading', { level: 1, name: 'Welcome back' }).waitFor();
     assert.equal(await page.locator('h1').count(), 1, `one h1 at ${width}`);
@@ -89,7 +89,7 @@ function fictionalSession() {
   const inactiveContext = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'dark' });
   const inactive = await inactiveContext.newPage();
   await inactive.route('**/api/portal-config', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"enabled":false}' }));
-  await inactive.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'networkidle' });
+  await inactive.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'domcontentloaded' });
   await inactive.getByRole('heading', { level: 1, name: 'Your school portal is being securely reconnected' }).waitFor();
   assert.match(await inactive.locator('.alert').innerText(), /Preserve first, then reconnect/i);
   assert.equal(await inactive.locator('html').getAttribute('data-theme'), 'dark');
@@ -136,7 +136,7 @@ function fictionalSession() {
     }
     return route.fulfill({ status: 404, headers: corsHeaders, body: '{}' });
   });
-  await passwordPage.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'networkidle' });
+  await passwordPage.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'domcontentloaded' });
   await passwordPage.getByLabel('Nigerian phone number').fill('0906 393 2487');
   await passwordPage.getByLabel('Password').fill('Temporary7!Password');
   await passwordPage.getByRole('button', { name: 'Sign in securely' }).click();
@@ -182,7 +182,7 @@ function fictionalSession() {
     if (url.pathname.startsWith('/rest/v1/')) return route.fulfill({ status: 200, headers: corsHeaders, body: '[]' });
     return route.fulfill({ status: 404, headers: corsHeaders, body: '{}' });
   });
-  await parentPage.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'networkidle' });
+  await parentPage.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'domcontentloaded' });
   await parentPage.getByLabel('Nigerian phone number').fill('0906 393 2487');
   await parentPage.getByLabel('Password').fill('Fictional7!Password');
   await parentPage.getByRole('button', { name: 'Sign in securely' }).click();
@@ -237,7 +237,7 @@ function fictionalSession() {
     if (url.pathname.startsWith('/rest/v1/')) return route.fulfill({ status: 200, headers: corsHeaders, body: '[]' });
     return route.fulfill({ status: 404, headers: corsHeaders, body: '{}' });
   });
-  await adminPage.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'networkidle' });
+  await adminPage.goto(new URL('portal/login.html', BASE).href, { waitUntil: 'domcontentloaded' });
   await adminPage.getByLabel('Nigerian phone number').fill('0906 393 2487');
   await adminPage.getByLabel('Password').fill('Fictional7!Password');
   await adminPage.getByRole('button', { name: 'Sign in securely' }).click();

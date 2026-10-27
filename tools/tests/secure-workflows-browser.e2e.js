@@ -32,7 +32,7 @@ function token(payload) {
       portalContinuationTokens: ['opaque-continuation-token-that-is-long-enough-654321'], portalLoginAvailable: true
     }) });
   });
-  await admissionPage.goto(new URL('admissions.html#tracker', BASE).href, { waitUntil: 'networkidle' });
+  await admissionPage.goto(new URL('admissions.html#tracker', BASE).href, { waitUntil: 'domcontentloaded' });
   assert.equal(await admissionPage.evaluate(() => document.documentElement.dataset.theme), 'dark');
   assert.equal(await admissionPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
   await admissionPage.locator('#admissionPhone').fill('0803 000 0000');
@@ -55,7 +55,7 @@ function token(payload) {
   const searchContext = await browser.newContext({ viewport: { width: 900, height: 700 } });
   const search = await searchContext.newPage();
   await search.route('**/api/public-information', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [{ topic: 'calendar', title: 'Verified fictional calendar', summary: 'Fictional first term resumes 4 January 2099.', detail: '', revision: 'TEST-1' }] }) }));
-  await search.goto(new URL('search.html', BASE).href, { waitUntil: 'networkidle' });
+  await search.goto(new URL('search.html', BASE).href, { waitUntil: 'domcontentloaded' });
   await search.getByLabel('What do you need?').fill('When is term resumption?');
   await search.getByRole('button', { name: 'Search', exact: true }).click();
   assert.equal(await search.getByRole('heading', { name: 'Verified fictional calendar' }).count(), 1);
@@ -73,7 +73,7 @@ function token(payload) {
     bootstrapPayload = JSON.parse(route.request().postData() || '{}');
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ completed: true, purpose: 'initial_password', message: 'Your private developer password is ready.' }) });
   });
-  await bootstrapPage.goto(new URL('developer.html', BASE).href, { waitUntil: 'networkidle' });
+  await bootstrapPage.goto(new URL('developer.html', BASE).href, { waitUntil: 'domcontentloaded' });
   assert.equal(await bootstrapPage.getByRole('heading', { name: 'Normal sign-in is closed' }).count(), 1);
   assert.equal(await bootstrapPage.locator('#developerLogin').count(), 0);
   assert.equal(await bootstrapPage.locator('#developerBootstrap').count(), 1);
@@ -122,7 +122,7 @@ function token(payload) {
     if (action.action === 'reveal') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ challengeId, channel: 'sms', phone: '+2348000000102', message: 'Treasure Academy admission tracking code: 123456. It expires in 5 minutes.', clearAfterSeconds: 30 }) });
     return route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
   });
-  await developer.goto(new URL('developer.html', BASE).href, { waitUntil: 'networkidle' });
+  await developer.goto(new URL('developer.html', BASE).href, { waitUntil: 'domcontentloaded' });
   await developer.getByLabel('Nigerian phone number').fill('0800 000 0001');
   await developer.getByLabel('Password').fill('Fictional!Password1');
   await developer.getByRole('button', { name: 'Sign in' }).click();
@@ -146,7 +146,7 @@ function token(payload) {
   dashboard.information = null;
   dashboard.gates = null;
   const otpGetsBeforeRestrictedReload = otpGetCount;
-  await developer.reload({ waitUntil: 'networkidle' });
+  await developer.reload({ waitUntil: 'domcontentloaded' });
   await developer.getByRole('heading', { name: 'Developer control room' }).waitFor();
   assert.equal(await developer.getByText(/No data from this category was queried or returned/).count(), 2);
   assert.match(await developer.locator('#otpQueue').innerText(), /does not have OTP dispatch capability/i);

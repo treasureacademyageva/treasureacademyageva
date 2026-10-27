@@ -16,8 +16,8 @@ function publicHtml(){
 const pages=publicHtml();
 const shellPages=pages.filter(x=>!x.startsWith('portal/'));
 
-ok('homepage answers identity with school, levels and location',/Treasure Academy, Ageva/.test(read('index.html'))&&/Creche, Nursery and Primary/.test(read('index.html'))&&/Ageva, Okene/.test(read('index.html')));
-ok('homepage exposes a real search field and five top tasks above later sections',/class="home-finder"/.test(read('index.html'))&&['fees.html','academics.html','calendar.html','uniform.html','contact.html'].every(x=>read('index.html').includes(x)));
+ok('homepage answers identity with school, active levels and location',/Treasure Academy, Ageva/.test(read('index.html'))&&/Pre-Nursery, Nursery and Primary/.test(read('index.html'))&&/Ageva, Okene/.test(read('index.html')));
+ok('homepage exposes a real search field and five top tasks above later sections',/class="home-finder"/.test(read('index.html'))&&['/fees','/academics','/calendar','/uniform','/contact'].every(x=>read('index.html').includes(x)));
 ok('visitor sitemap groups admissions, learning, families, school, community and help',shellPages.includes('explore.html')&&['id="joining"','id="learning"','id="families"','id="school"','id="community"','id="help"'].every(x=>read('explore.html').includes(x)));
 ok('all public shell pages use one bundled stylesheet',shellPages.every(x=>{const refs=[...read(x).matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)/g)].map(m=>m[1]);return refs.length===1&&refs[0].includes('/assets/css/site.css');}));
 ok('artificial blocking loader is absent everywhere',shellPages.every(x=>!read(x).includes('siteLoader')));
@@ -26,7 +26,7 @@ ok('privacy-safe visitor diagnostics are available on every public page',shellPa
 ok('homepage and explore keep raw search words out of URLs',/data-private-search/.test(read('index.html'))&&/data-private-search/.test(read('explore.html'))&&!/<input[^>]+name="q"[^>]+homeQuery/.test(read('index.html'))&&!/<input[^>]+name="q"[^>]+exploreQuery/.test(read('explore.html')));
 ok('mobile quick navigation is present in one consistent order',shellPages.every(x=>{const h=read(x),m=h.match(/<nav class="mobile-dock"[\s\S]*?<\/nav>/);return m&&['Home','Admissions','Explore','Search','Contact'].every((label,i,a)=>i===0||m[0].indexOf(label)>m[0].indexOf(a[i-1]));}));
 ok('secondary pages expose visible location and early actions',shellPages.filter(x=>!['index.html','search.html','explore.html','404.html'].includes(x)).every(x=>/class="route-bar"/.test(read(x))&&/class="route-actions"/.test(read(x))));
-ok('universal footer provides popular, support, problem-report and verified-contact routes',shellPages.every(x=>/class="universal-footer"/.test(read(x))&&/Find it fast/.test(read(x))&&/Verified contact/.test(read(x))&&/website-help\.html/.test(read(x))));
+ok('universal footer provides popular, support, problem-report and verified-contact routes',shellPages.every(x=>/class="universal-footer"/.test(read(x))&&/Find it fast/.test(read(x))&&/Verified contact/.test(read(x))&&/\/website-help/.test(read(x))));
 ok('responsive illustration variants are referenced by width',/stage-nursery-640\.webp 640w/.test(read('index.html'))&&/uniform-banner-640\.webp 640w/.test(read('uniform.html')));
 ok('familiar illustrations are restored without presenting them as verified current photos',/hero-school\.jpg/.test(read('index.html'))&&/hero-kids\.png/.test(read('index.html'))&&/classroom\.png/.test(read('index.html'))&&/Restored earlier-website illustrations/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('news.html')));
 ok('shop uses small WebP sources without invalid nested picture elements',/shop-uniform-560\.webp/.test(read('shop.html'))&&!/<picture>(?:(?!<\/picture>)[\s\S])*<picture>/.test(read('shop.html')));
@@ -47,17 +47,17 @@ vm.runInContext(read('assets/js/smart-search.js'),ctx);
 const index=ctx.window.TA_SEARCH_INDEX||[];
 const search=ctx.window.TA_SMART_SEARCH;
 function top(query){return index.map(e=>({e,s:search.score(e,query)})).sort((a,b)=>b.s-a.s)[0]?.e?.u;}
-ok('smart search indexes all fifty-six useful public destinations',index.length>=56&&index.some(x=>x.u==='website-help.html')&&index.some(x=>x.u==='class.html')&&index.some(x=>x.u==='story.html'));
+ok('smart search indexes all fifty-six useful public destinations',index.length===56&&index.some(x=>x.u==='/website-help')&&index.some(x=>x.u==='/classes')&&index.some(x=>x.u==='/story'));
 ok('smart search gives a direct safe-fee answer',/current written fee schedule/i.test(search.directAnswer('how much are the school charges').title));
 ok('smart search answers location questions',/opposite Morak Pure-Water Factory/i.test(search.directAnswer('whereabouts of the campus').text));
-const uniform=index.find(x=>x.u==='uniform.html');
+const uniform=index.find(x=>x.u==='/uniform');
 ok('smart search tolerates a transposed spelling error',uniform&&search.score(uniform,'unifrom')>=16);
-ok('word-family search relates payments to fees',top('how are payments made')==='fees.html');
-ok('word-family search relates enrolling to admissions',top('enrolling a new pupil')==='admissions.html');
-ok('meaning family relates school dress to uniform',top('school dress and shoes')==='uniform.html');
-ok('phrase family relates pick up service to transport',top('pick up service in my area')==='transport.html');
-ok('phrase family relates former students to alumni',top('former student history')==='alumni.html');
-ok('problem wording finds website help',top('a broken webpage is not working')==='website-help.html');
+ok('word-family search relates payments to fees',top('how are payments made')==='/fees');
+ok('word-family search relates enrolling to admissions',top('enrolling a new pupil')==='/admissions');
+ok('meaning family relates school dress to uniform',top('school dress and shoes')==='/uniform');
+ok('phrase family relates pick up service to transport',top('pick up service in my area')==='/transport');
+ok('phrase family relates former students to alumni',top('former student history')==='/alumni');
+ok('problem wording finds website help',top('a broken webpage is not working')==='/website-help');
 ok('smart search explains secure school-issued portal access without inventing a public account',/school-issued account[\s\S]*linked children/i.test(search.directAnswer('how do I see report cards').text));
 ok('search page explains meaning matching and on-device privacy',/related meanings, word families/.test(read('search.html'))&&/Private on-device search/.test(read('search.html')));
 vm.runInContext(read('assets/js/content-quality.js'),ctx);

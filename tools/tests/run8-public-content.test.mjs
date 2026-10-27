@@ -73,17 +73,17 @@ const mediaEnv = {
 
 async function body(response) { return response.text(); }
 
-test('Run 8 gates are exact-true, independent and preserve the legacy News authority while disabled', async () => {
+test('Run 8 gates remain exact-true and disabled dynamic routes return a real 404 without redirect loops', async () => {
   const repo = repository();
   const legacy = await handlePublicContent(new Request('https://example.test/news'), { env: { PUBLIC_CMS_ENABLED: 'TRUE' }, repository: repo, now: () => fixedNow });
-  assert.equal(legacy.status, 307);
-  assert.equal(legacy.headers.get('location'), '/news.html');
+  assert.equal(legacy.status, 404);
+  assert.equal(legacy.headers.get('location'), null);
   assert.deepEqual(repo.calls, []);
   const eventOff = await handlePublicContent(new Request('https://example.test/events'), { env: {}, repository: repo, now: () => fixedNow });
   assert.equal(eventOff.status, 404);
   const rewrittenLegacy = await handlePublicContent(new Request('https://example.test/api/public-content?route=news-list'), { env: {}, repository: repo, now: () => fixedNow });
-  assert.equal(rewrittenLegacy.status, 307);
-  assert.equal(rewrittenLegacy.headers.get('location'), '/news.html');
+  assert.equal(rewrittenLegacy.status, 404);
+  assert.equal(rewrittenLegacy.headers.get('location'), null);
   const galleryOff = await handlePublicContent(new Request('https://example.test/gallery'), { env: contentEnv, repository: repo, now: () => fixedNow });
   assert.equal(galleryOff.status, 404);
   assert.match(read('.env.example'), /^PUBLIC_CMS_ENABLED=false$/m);

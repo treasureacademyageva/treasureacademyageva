@@ -1,0 +1,1849 @@
+{
+  "version": 1,
+  "generated_from": "tracked repository HTML",
+  "authority": "verification manifest only; not an import or publication instruction",
+  "candidate_count": 14,
+  "all_candidates_held": true,
+  "historical_media_policy": "No image/video relationship is included. Historical child-related media remains held for provenance and consent review.",
+  "candidates": [
+    {
+      "source_key": "repository_html/news/2017-first-graduation-ceremony.html",
+      "source_kind": "repository_html",
+      "source_locator": "/news/2017-first-graduation-ceremony.html",
+      "source_sha256": "79f2d1fe33af29d2ac0b7c10e2c7039ccaf0ffbc1c9e5c3215d949047458008d",
+      "content_type": "news",
+      "slug": "2017-first-graduation-ceremony",
+      "canonical_target": "/news/2017-first-graduation-ceremony",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": true,
+      "media_imported": false,
+      "document": {
+        "title": "1st Graduation Ceremony",
+        "summary": "Treasure Academy’s school archive records its first full graduation ceremony in 2017 and the early history of the school in Ageva.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "1st Graduation Ceremony",
+        "seo_description": "Treasure Academy’s school archive records its first full graduation ceremony in 2017 and the early history of the school in Ageva.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/news/2017-first-graduation-ceremony.html",
+          "legacy_publication_date": "2017-07-26"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Archive privacy: candidate numbers, subject marks, private contact details and photographed school records are not reproduced here."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The first graduation ceremony of Treasure Academy, Ageva, took place on Wednesday, 26 July 2017."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The graduands were six pupils—children from other private and public schools who joined the school between 2016 and 2017—and the school celebrated their successful completion."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school archive names the graduands as Jimoh Faridat (Head Girl), Aliyu AbdulHakeem, Olowolabi Favour, Abdulrazak Kamirudeen, Rashidat Muhammed and MomohJimoh Mutolib (Head Boy)."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Before this set, one pupil had completed the school alone in 2016. The 2017 set became the first group that Treasure Academy celebrated with a full graduation ceremony."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Treasure Academy was established in 2016 by the Proprietress, Shaibu Sidikat Ruth, to serve Ageva and neighbouring communities. The school’s stated aim is to raise confident, brilliant and well-mannered children through strong academics and sound morals."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Back to News & Events Former-Pupil Support"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/news/2018-second-graduation-ceremony.html",
+      "source_kind": "repository_html",
+      "source_locator": "/news/2018-second-graduation-ceremony.html",
+      "source_sha256": "4162563ed8d2a4ef4ea6a865024e14b66b93040193403c7f311b38c73c42734c",
+      "content_type": "news",
+      "slug": "2018-second-graduation-ceremony",
+      "canonical_target": "/news/2018-second-graduation-ceremony",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": true,
+      "media_imported": false,
+      "document": {
+        "title": "2nd Graduation Ceremony",
+        "summary": "Treasure Academy’s school archive looks back at the second graduation ceremony held in Ageva in July 2018.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "2nd Graduation Ceremony",
+        "seo_description": "Treasure Academy’s school archive looks back at the second graduation ceremony held in Ageva in July 2018.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/news/2018-second-graduation-ceremony.html",
+          "legacy_publication_date": "2018-07-24"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Archive privacy: candidate numbers, subject marks, private contact details and photographed school records are not reproduced here."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The second graduation ceremony took place at the school premises on Tuesday, 24 July 2018."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school archive records another set of graduands, including children who had joined Treasure Academy from other private and public schools, as the school continued to grow."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The write-up celebrates the pupils’ preparation for Common Entrance and other terminal examinations, and the confidence and determination they developed for those examinations."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Congratulations to the second set of graduands—once a Treasure pupil, always a Treasure pupil."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Back to News & Events Former-Pupil Support"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/news/2019-third-graduation-ceremony.html",
+      "source_kind": "repository_html",
+      "source_locator": "/news/2019-third-graduation-ceremony.html",
+      "source_sha256": "6579f91ca683d9ac18195a70c88fb0f4e7a27950f669a219c04be36ec36e142b",
+      "content_type": "news",
+      "slug": "2019-third-graduation-ceremony",
+      "canonical_target": "/news/2019-third-graduation-ceremony",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": true,
+      "media_imported": false,
+      "document": {
+        "title": "3rd Graduation Ceremony",
+        "summary": "Treasure Academy’s school archive looks back at its third graduation ceremony and the 2019 graduands’ next-stage preparation.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "3rd Graduation Ceremony",
+        "seo_description": "Treasure Academy’s school archive looks back at its third graduation ceremony and the 2019 graduands’ next-stage preparation.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/news/2019-third-graduation-ceremony.html",
+          "legacy_publication_date": "2019-08-06"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Archive privacy: candidate numbers, subject marks, private contact details and photographed school records are not reproduced here."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The third graduation ceremony took place at the school premises on Tuesday, 6 August 2019."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "According to the existing school archive, the graduands sat their Common Entrance and other external examinations at St. Paul Primary School and progressed successfully to their next stage."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The event marked another step in the school’s effort to prepare pupils confidently for external examinations and to establish its own examination-centre arrangements."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school celebrated the graduands and the teachers and families who supported them."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Back to News & Events Former-Pupil Support"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/news/2020-fourth-graduation-ceremony.html",
+      "source_kind": "repository_html",
+      "source_locator": "/news/2020-fourth-graduation-ceremony.html",
+      "source_sha256": "883e191c479aa2efa32798e7a917829fc6a69a16428200dd079d38a73eceee70",
+      "content_type": "news",
+      "slug": "2020-fourth-graduation-ceremony",
+      "canonical_target": "/news/2020-fourth-graduation-ceremony",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": true,
+      "media_imported": false,
+      "document": {
+        "title": "4th Graduation Ceremony",
+        "summary": "Treasure Academy’s school archive records how the fourth graduating set was recognised during the Covid-19 period in 2020.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "4th Graduation Ceremony",
+        "seo_description": "Treasure Academy’s school archive records how the fourth graduating set was recognised during the Covid-19 period in 2020.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/news/2020-fourth-graduation-ceremony.html",
+          "legacy_publication_date": "2020-08-07"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Archive privacy: candidate numbers, subject marks, private contact details and photographed school records are not reproduced here."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The fourth graduation could not hold in the usual way because of the Covid-19 outbreak."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school archive records that the set numbered eleven pupils. They were invited back for a ceremony that combined their graduation with the speech and prize-giving day so that their work could still be recognised."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school gave thanks for seeing pupils, families and staff through that difficult period and celebrated a set that completed school in an unusual year."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Back to News & Events Former-Pupil Support"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/news/2021-fifth-graduation-ceremony.html",
+      "source_kind": "repository_html",
+      "source_locator": "/news/2021-fifth-graduation-ceremony.html",
+      "source_sha256": "f1aa04c0c99054650dd86a9cecaf8223f878576ee39296a9b903462c1107a5fd",
+      "content_type": "news",
+      "slug": "2021-fifth-graduation-ceremony",
+      "canonical_target": "/news/2021-fifth-graduation-ceremony",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": true,
+      "media_imported": false,
+      "document": {
+        "title": "5th Graduation Ceremony",
+        "summary": "Treasure Academy’s school archive records its fifth graduation and a Common Entrance centre milestone in August 2021.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "5th Graduation Ceremony",
+        "seo_description": "Treasure Academy’s school archive records its fifth graduation and a Common Entrance centre milestone in August 2021.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/news/2021-fifth-graduation-ceremony.html",
+          "legacy_publication_date": "2021-08-12"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Archive privacy: candidate numbers, subject marks, private contact details and photographed school records are not reproduced here."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The fifth graduation ceremony was held on Thursday, 12 August 2021, after the Covid-19 pandemic period."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school archive records that the graduands wrote Common Entrance and other examinations in the name of Treasure Academy, Ageva, at the school’s own Common Entrance centre."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Moving from external centres to the school’s registered centre was an important milestone for the Treasure Academy community."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school congratulated its graduands and thanked the teachers and parents whose work supported them."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Back to News & Events Former-Pupil Support"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/news/2026-2027-admissions-open.html",
+      "source_kind": "repository_html",
+      "source_locator": "/news/2026-2027-admissions-open.html",
+      "source_sha256": "7026eeee87c99abd54a0cde0383a93119cf978484f143c50e6fcb98458c9c023",
+      "content_type": "news",
+      "slug": "2026-2027-admissions-open",
+      "canonical_target": "/news/2026-2027-admissions-open",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": true,
+      "media_imported": false,
+      "document": {
+        "title": "2026/2027 Admissions Are Open",
+        "summary": "Treasure Academy, Ageva is receiving 2026/2027 admission enquiries from Pre-Nursery to Primary 6. Follow the verified, bank-transfer-safe application steps.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "2026/2027 Admissions Are Open",
+        "seo_description": "Treasure Academy, Ageva is receiving 2026/2027 admission enquiries from Pre-Nursery to Primary 6. Follow the verified, bank-transfer-safe application steps.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/news/2026-2027-admissions-open.html",
+          "legacy_publication_date": "2026-09-15"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Treasure Academy, Ageva is receiving admission enquiries from Pre-Nursery to Primary 6 for the 2026/2027 academic session."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "How to start safely",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Contact the school through the verified WhatsApp number or call line."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Ask the office to confirm class availability, the current form fee and required documents."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Confirm the current school bank account before making any transfer."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Submit the official documents and visit the school when instructed."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The retired browser-only application form does not accept or store applications. An application is received only when the school office confirms it through the official process."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "What to bring",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The office will confirm the list for your child's class. It may include a birth certificate copy, passport photographs, a previous report card for a transfer pupil and an immunisation record for Pre-Nursery or Nursery."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Ask the Admissions Office",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Do not transfer to an account that has not been confirmed through the verified contacts."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "← Back to News & Events"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/about.html",
+      "source_kind": "repository_html",
+      "source_locator": "/about.html",
+      "source_sha256": "4d95a98876a0437de3dda6b16a49a0c03b7fc645439d1d15196bff94669d1a99",
+      "content_type": "page",
+      "slug": "about",
+      "canonical_target": "/about",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "Our Story",
+        "summary": "Our story, mission and the people behind Treasure Academy, Ageva — a Pre-Nursery to Primary 6 school serving Ageva and Okene, Kogi State.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "Our Story",
+        "seo_description": "Our story, mission and the people behind Treasure Academy, Ageva — a Pre-Nursery to Primary 6 school serving Ageva and Okene, Kogi State.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/about.html"
+        },
+        "blocks": [
+          {
+            "type": "heading",
+            "payload": {
+              "text": "A Brief History",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "was founded in 2016 by Shaibu Sidikat Ruth to serve children and families in Ageva."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school offers Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6. Its stated focus is to build strong academic foundations, good character and readiness for each child's next stage."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Families are encouraged to visit the school and ask the office to confirm current facilities, class arrangements and availability."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Our Mission",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Building an effective and efficient future leader: raising confident, brilliant and well-mannered children through strong academics and morals."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Our Vision",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "To be the most trusted school in Okene, where every graduate shines in secondary school and beyond."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Registration & Approvals",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Official details families can use to identify our school."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Corporate Registration",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Treasure Academy Ageva LimitedCAC Registration Number: RC 9634403"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Common Entrance Centre",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Approved Common Entrance Examination CentreCentre No. BS/OKN/141"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Our Journey So Far",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Use the verified contacts or arrange a visit. The office can confirm current facilities, staffing and class information."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Ask About the Current School Team",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school office can confirm current leadership, class teachers and the right person for a family question. Staff profiles are not published until the school approves the details and any photograph."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "More About Our Community",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Meet the people, policies and partners who support Treasure Academy."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/academics.html",
+      "source_kind": "repository_html",
+      "source_locator": "/academics.html",
+      "source_sha256": "28511c0afe65e854d42e94568262a3433e9350888459555fbfe6673461ddbb59",
+      "content_type": "page",
+      "slug": "academics",
+      "canonical_target": "/academics",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "Learning at Treasure Academy",
+        "summary": "Phonics, mathematics, science and computer studies from Pre-Nursery to Primary 6 at Treasure Academy, Ageva, Okene — how we teach and assess.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "Learning at Treasure Academy",
+        "seo_description": "Phonics, mathematics, science and computer studies from Pre-Nursery to Primary 6 at Treasure Academy, Ageva, Okene — how we teach and assess.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/academics.html"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Every class has its own page — choose a level to see the learning focus and the questions families should confirm with the office."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Early Years & Nursery",
+              "level": "2"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Pre-Nursery",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "First steps into learning"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Nursery 1",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Sounds, letters, numbers"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Nursery 2",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Confident readers grow here"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Primary School",
+              "level": "2"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Primary 1",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Strong start, bright future"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Primary 2",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Growing minds, deeper skills"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Primary 3",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Thinking, reasoning, excelling"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Primary 4",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Independent learners emerge"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Primary 6",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Follows Primary 4 · Common Entrance readiness"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Learning and Assessment",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Classwork and teacher guidance"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Age-appropriate checks for understanding"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Term assessments as confirmed by the school"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Parent records supplied through the school office"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Primary 6 Practice",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The public practice page offers a small set of Common Entrance-style questions. It is practice only and does not submit an examination or save a school result."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "School Hours",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Mon – Fri • 7:30am – 3:00pm"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Learning Beyond Regular Lessons",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The restored school archive includes a 2024 learning excursion. Earlier class guidance also mentions supervised sports, debate and quiz activities."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Published excursion archive",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "See the existing 2024 railway-station excursion links and the school’s graduation history."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Open School News"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Confirm current activities",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Activity clubs, sports and event dates can change. Ask the office what currently applies to your child’s class."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Ask the School"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Keep Learning on Track",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Timetables, assignments and digital practice in one place."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/admissions.html",
+      "source_kind": "repository_html",
+      "source_locator": "/admissions.html",
+      "source_sha256": "c9d8ed7c3c35bb6aaff3cbc26cf80083b919f3b8364acf764547b08b5f432b51",
+      "content_type": "page",
+      "slug": "admissions",
+      "canonical_target": "/admissions",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "Join Treasure Academy",
+        "summary": "How to enrol your child at Treasure Academy, Ageva. Entry classes, required documents, fees and the admission steps for the 2026/2027 session.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "Join Treasure Academy",
+        "seo_description": "How to enrol your child at Treasure Academy, Ageva. Entry classes, required documents, fees and the admission steps for the 2026/2027 session.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/admissions.html"
+        },
+        "blocks": [
+          {
+            "type": "heading",
+            "payload": {
+              "text": "New here? Start in 3 safe steps",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Create a restricted new-applicant parent account online or ask for assistance at the school office."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Complete the official admission form and confirm class availability and required documents."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Track the application with the registered phone; payment never approves admission."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Online applications are available at any time. In-person assistance is available Monday–Friday, 7:30 a.m.–3:00 p.m."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Website guidance updated 24 October 2026."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Admission FAQs",
+              "level": "2"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Track a New-Pupil Application",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Use the registered phone number from the application. We send a short code by WhatsApp or SMS only after an authorised dispatcher releases it. This tracker never shows existing linked pupils."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "For privacy, name and class alone cannot retrieve an application. Linked or admitted pupil information requires full parent sign-in."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Verify a Receipt",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Receipt verification is performed by the school office—not by a browser-only lookup."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Contact the Office",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Ask for the current admission form, class availability and required documents."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Confirm Before Payment",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "After the office issues an official invoice, use only its approved bank details or pay in person through the school’s physical office POS. Both methods require office verification; WhatsApp is not payment evidence."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Visit School",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Bring the documents and payment evidence requested by the office."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Receive Confirmation",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school will confirm admission and the official start date."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Required Documents",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Birth certificate (photocopy)"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "2 passport photographs"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Previous report card (Primary transfers)"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Immunisation record where requested by the school"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school office will confirm the full list for your class."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Classes Offered",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Pre-NurseryNursery 1–2Primary 1–4 and Primary 6"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Ask the office which classes currently have places."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "School Fees",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The office will confirm the current amount for your child's class before payment."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Read the safe-payment guidance →"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Plan for School",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Check the details families usually need before resumption."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/fees.html",
+      "source_kind": "repository_html",
+      "source_locator": "/fees.html",
+      "source_sha256": "a25a80d9cd20cbad576e2df8ef3b49dabc63e801448c54e74b3de3ff590dbe2e",
+      "content_type": "page",
+      "slug": "fees",
+      "canonical_target": "/fees",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "School Fees and Safe Payment",
+        "summary": "School fee and safe-payment guidance for Treasure Academy, Ageva: current amounts and approved bank details appear only in the signed-in portal or official invoice.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "School Fees and Safe Payment",
+        "seo_description": "School fee and safe-payment guidance for Treasure Academy, Ageva: current amounts and approved bank details appear only in the signed-in portal or official invoice.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/fees.html"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Website guidance reviewed 24 October 2026."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Before you pay",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Open the signed-in parent portal and check the current class, session, term, included components and separate charges."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Term invoices may accept instalments. Examination or materials marked included must not be charged again."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Pay by manual bank transfer using only the approved account shown in the portal or official invoice, or in person through the school’s physical office POS."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Wait for authorised office verification. The official receipt appears only afterwards."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "There is no online card form, card-data storage, automatic admission from payment or WhatsApp payment-evidence workflow."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Use the verified next step",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Online forms save through the school database. WhatsApp actions, where offered, open a draft for you to review before sending."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Call: +234 814 194 3478 · Verified WhatsApp: 09063932487"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/contact.html",
+      "source_kind": "repository_html",
+      "source_locator": "/contact.html",
+      "source_sha256": "ea98f9f5eea5223bea5ad802d78f270a28c20a06260d3e971e2d9de2ab7b886e",
+      "content_type": "page",
+      "slug": "contact",
+      "canonical_target": "/contact",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "Get in Touch",
+        "summary": "Call, email, WhatsApp or visit Treasure Academy, Ageva — opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "Get in Touch",
+        "seo_description": "Call, email, WhatsApp or visit Treasure Academy, Ageva — opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/contact.html"
+        },
+        "blocks": [
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Send Us a Message",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Complete the short draft below. WhatsApp will open so you can check the message before sending it. Fields marked * are required; email is optional."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Or WhatsApp Us",
+              "level": "2"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Or Visit Us",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Location:"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Hours: Mon – Fri, 7:30am – 3:00pm"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Visit the School",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Address: Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Confirm your visit with the office so a member of staff is ready to receive you. The directions link opens Google Maps only when you choose it."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Open Directions Call Before Visiting"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Frequently Asked Questions",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Tap any question to open it."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Contact the Headmistress",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Send a private suggestion or complaint through the verified school WhatsApp. WhatsApp identifies the sending account, so this channel is confidential but not anonymous."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/privacy.html",
+      "source_kind": "repository_html",
+      "source_locator": "/privacy.html",
+      "source_sha256": "5336bd3756ec2a54f18423810bd590f230007e2aabdbb12d3dec897f8a6ed112",
+      "content_type": "page",
+      "slug": "privacy",
+      "canonical_target": "/privacy",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "Privacy Policy",
+        "summary": "How Treasure Academy, Ageva handles website preferences, verified contact channels and school records, including children's privacy and parent rights.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "Privacy Policy",
+        "seo_description": "How Treasure Academy, Ageva handles website preferences, verified contact channels and school records, including children's privacy and parent rights.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/privacy.html"
+        },
+        "blocks": [
+          {
+            "type": "heading",
+            "payload": {
+              "text": "1. Who we are",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Treasure Academy, Ageva is a Pre-Nursery, Nursery and Primary school established in 2016 in Ageva, Okene, Kogi State, Nigeria. It is operated by Treasure Academy Ageva Limited, an incorporated company registered in Nigeria (RC-9634403). This policy applies to the public website and to records received and kept by the school office."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "2. Information we collect",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The public Request & Verification Centre records the request type, your name, Nigerian phone number, optional email and class, subject, message, source, status and school follow-up notes. After database creation it issues a public reference and a private tracking code. Only a one-way hash of that private code is retained, so the readable code cannot be recovered."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The public website does not accept portal passwords, result entries, full medical files, bank-card details or payment claims. A request reference confirms receipt only; it does not approve admission, verify payment or promise an outcome. Authorised staff may register a phone, generic WhatsApp or office conversation in the same system and issue both tracking values privately."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The website may keep non-sensitive preferences on your device, such as light or dark mode. It also keeps a short list of broad action categories during the current tab session—for example, “opened fees” or “search category: admissions.” It never stores form values or raw search words in those local diagnostics."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "A service worker may cache public pages and brand assets for basic offline access. You can clear these copies in your browser settings."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Vercel Speed Insights measures anonymous performance signals: route, network class, browser, device type, operating system, country, Web Vitals and the page element involved."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The measurement is not tied to an individual or IP address. It does not receive form content or raw search words, and it does not load when the browser sends Do Not Track or Global Privacy Control. There is no advertising tracker or session recording."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "3. Information received by the school",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school office may collect pupil, parent, admission, attendance, result, fee and safeguarding information through its verified office processes. We use it only to operate the school, contact families, teach and assess pupils, protect children and meet legal or regulatory duties."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "For parent access, the portal may use the pupil’s typed register name, selected class, the authenticated parent account and a school-issued one-time linking code. It never displays a class list to the parent. Only a SHA-256 hash of a pupil-linking or second-parent invitation code is stored. A successful code creates a recorded parent–pupil relationship; later access uses the parent’s ordinary phone-and-password sign-in."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "A pupil may have no more than two active parent or guardian accounts. A second-parent invitation is separate from the original pupil code, bound to the intended Nigerian phone number and consumed after use. New-pupil applications remain separate from existing-pupil linking, payments and final admission decisions."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "WhatsApp, email, telephone and Google Maps are separate services with their own privacy practices. WhatsApp remains an optional generic contact channel, not the endpoint for a structured website request. Avoid sending passwords, PINs or full medical records through ordinary chat."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Phone verification processor: when Treasure Academy enables automated WhatsApp authentication delivery, Paragon Hub acts only as the school’s separated technical processor for the registered phone number, short-lived one-time code, expiry and delivery status. That relay is not sent a pupil or parent name, class, result, admission record, payment, password or school-database credential. Treasure Academy Ageva Limited remains the publisher and data controller."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "4. How we store and protect school records",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The school office limits pupil and family records to the Headmistress and authorised staff who need them for their work."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The secure portal is a separate authenticated record system and is activated only after preservation, migration and access checks."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Records are kept only for a necessary school, safeguarding or legal purpose."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Records are disposed of safely when no longer required."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "We never sell personal information. We share it only with appropriate authority, consent or a safeguarding or legal requirement."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "5. Children's privacy",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "The public website does not publish a child’s password, candidate number, individual marks, date of birth, phone number or medical details."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "A child’s photograph, name or achievement requires appropriate parent or guardian authority."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "A parent or guardian may ask the school to remove an identifiable photograph or profile."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "6. Your rights",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "As a parent or guardian you can ask us to:"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "See the information we hold about you and your child;"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Correct anything that is wrong or out of date;"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Delete information we no longer need to keep;"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Stop using your child's photograph."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "To make any of these requests, or if you have a concern about how we handle your data, please contact the school (see below)."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "7. Changes to this policy",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "We may update this policy from time to time. The date at the top shows when it was last changed. Significant changes will be announced on the school notice board and this page."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "8. Contact us",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Questions about this policy or your child's information can be sent to the school:"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Email: Call: WhatsApp: 0906 393 2487 Address: Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/safeguarding.html",
+      "source_kind": "repository_html",
+      "source_locator": "/safeguarding.html",
+      "source_sha256": "734765cbc242aa14d2832b3957e5b971915b9dfc5dd74776d902916b8bac9585",
+      "content_type": "page",
+      "slug": "safeguarding",
+      "canonical_target": "/safeguarding",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "Safeguarding & Child Protection",
+        "summary": "Safeguarding and child protection at Treasure Academy, Ageva — how we keep every pupil safe and how parents, pupils and staff can raise a concern.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "Safeguarding & Child Protection",
+        "seo_description": "Safeguarding and child protection at Treasure Academy, Ageva — how we keep every pupil safe and how parents, pupils and staff can raise a concern.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/safeguarding.html"
+        },
+        "blocks": [
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Our commitment",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Treasure Academy provides a safe, caring and welcoming place for every pupil to learn and grow."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Every member of staff shares responsibility for protecting children from harm, neglect, bullying and abuse. Every adult on the premises must uphold this duty."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "A safe environment",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Pupils are supervised throughout the school day, at play and at events."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Only known parents, guardians or persons named by them may collect a child."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Visitors report to the office and are not left alone with pupils."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "A first-aid point is kept on site; each pupil's blood group and health notes are held for emergencies."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Our staff",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Teachers and support staff are recruited with references and interviews."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Staff are briefed on child care and protection and follow a code of conduct."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Risky adult behaviour is handled firmly and reported to the appropriate authority when required."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Anti-bullying & behaviour",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "We do not tolerate bullying of any kind. Pupils are taught to treat one another with respect, and any incident is taken seriously, investigated and addressed with the children and families involved. Discipline is firm but never degrading or harmful."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Online safety",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Where pupils use computers for Common Entrance practice and learning, activity is supervised and limited to approved material. We teach children simple, age-appropriate rules for staying safe online."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "How to raise a concern",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Our Designated Safeguarding Lead is the Headmistress, Mrs. Salihu Nanahawa. If you are a parent, pupil or member of staff and you are worried about the safety or welfare of any child, please tell us straight away. You can:"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Speak to the Headmistress or a teacher in person at the school;"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Call the verified school line ;"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Send a WhatsApp message to 0906 393 2487;"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Email ."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Every concern is listened to, taken seriously and handled sensitively. We will act to protect the child and, where needed, involve parents and the appropriate authorities."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_key": "repository_html/credits.html",
+      "source_kind": "repository_html",
+      "source_locator": "/credits.html",
+      "source_sha256": "cb741b6619de83efb0c6e5a99c1fb97b810ec81391382a8bba27216b915cd05a",
+      "content_type": "page",
+      "slug": "credits",
+      "canonical_target": "/credits",
+      "verification_status": "held",
+      "verification_required": true,
+      "historical_child_media_held": false,
+      "media_imported": false,
+      "document": {
+        "title": "Built for Treasure Academy, Ageva",
+        "summary": "Website design and implementation credits for Treasure Academy, Ageva, including publisher, data-controller and Paragon Hub processor roles.",
+        "classification": "public",
+        "source_note": "Repository source candidate; field verification is required before import.",
+        "seo_title": "Built for Treasure Academy, Ageva",
+        "seo_description": "Website design and implementation credits for Treasure Academy, Ageva, including publisher, data-controller and Paragon Hub processor roles.",
+        "search_keywords": [],
+        "search_terms": [],
+        "metadata": {
+          "legacy_source_path": "/credits.html"
+        },
+        "blocks": [
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Website guidance reviewed 24 October 2026."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Publisher and data controller",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Treasure Academy Ageva Limited publishes this website and remains responsible for school information, admissions, pupil and family records, staff records, results, payments and operational decisions."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Design and implementation",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Jibril Abdullahi Onoruoiza designed and implemented this website through Paragon Hub, with direct authorisation from Treasure Academy's Proprietress."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Paragon Hub's technical role does not make it the school publisher or data controller. Where the school enables phone verification, Paragon Hub may process only the registered phone number, short-lived one-time code, expiry and delivery status. The relay is not sent pupil or parent names, classes, results, admissions, payments, passwords or school-database credentials."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "School-controlled content",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Public information is published only from school-authorised records. Private school information requires a signed-in, capability-scoped account. If a public detail is missing, ask the school to add or update it."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Use the verified next step",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Online forms save through the school database. WhatsApp actions, where offered, open a draft for you to review before sending."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Call: +234 814 194 3478 · Verified WhatsApp: 09063932487"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 /* Treasure Academy offline shell. Never cache private, operational or review routes. */
-const CACHE = 'treasure-v20261027-run9';
+const CACHE = 'treasure-v20261027-run11';
 const CORE = [
-  '/', '/index.html', '/about.html', '/academics.html', '/admissions.html',
-  '/contact.html', '/news.html', '/privacy.html', '/safeguarding.html', '/explore.html', '/search.html', '/404.html',
+  '/', '/about', '/academics', '/admissions',
+  '/contact', '/privacy', '/safeguarding', '/site-map', '/search', '/404.html',
   '/assets/css/site.css?v=20261023-design1',
   '/assets/js/theme-init.js?v=20261023-design1', '/assets/js/visitor-insights.js?v=20261023-design1',
   '/assets/js/public-shell.js?v=20261023-design1',
@@ -30,7 +30,8 @@ function isPrivate(pathname) {
   return pathname.startsWith('/portal/') ||
     pathname === '/developer.html' || pathname === '/developer-operations.html' ||
     pathname === '/developer-review' || pathname === '/developer-review.html' ||
-    pathname === '/admission-form.html' || pathname === '/receipt.html' ||
+    pathname === '/admission-form' || pathname === '/admission-form.html' ||
+    pathname === '/receipt' || pathname === '/receipt.html' ||
     pathname === '/assets/js/developer-review.js' ||
     pathname === '/assets/js/developer-console.js' ||
     pathname === '/assets/css/developer-console.css' ||
@@ -47,7 +48,7 @@ function isPrivate(pathname) {
 }
 
 function isDynamicPublicContent(pathname) {
-  return /^\/(?:news|events|gallery)(?:\/|$)/.test(pathname) && pathname !== '/news.html';
+  return /^\/(?:news|events|gallery)(?:\/|$)/.test(pathname);
 }
 
 async function cacheOk(request, response) {
@@ -63,7 +64,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || isPrivate(url.pathname) || url.pathname.startsWith('/_vercel/')) return;
 
-  /* Public CMS responses are always network-only here. Their one-minute edge
+  /* Public CMS responses are always network-only here. Their short edge
      policy is controlled by the server so a service-worker cache cannot conceal
      an archive, consent withdrawal or emergency correction. */
   if (isDynamicPublicContent(url.pathname)) {
@@ -81,7 +82,7 @@ self.addEventListener('fetch', event => {
       fetch(request)
         .then(response => cacheOk(request, response))
         .catch(async () => (await caches.match(request, {ignoreSearch: true})) ||
-          (await caches.match('/index.html')) ||
+          (await caches.match('/')) ||
           new Response('<!doctype html><title>Offline</title><h1>You are offline</h1><p>Please reconnect to open this page.</p>', {
             status: 503, headers: {'Content-Type': 'text/html; charset=utf-8'}
           }))

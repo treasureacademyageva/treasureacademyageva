@@ -173,7 +173,7 @@
         if (!field || !String(field.value || "").trim()) return;
         event.preventDefault();
         try { sessionStorage.setItem("taa_pending_search", String(field.value).trim().slice(0, 240)); } catch (error) {}
-        location.assign("/search.html");
+        location.assign("/search");
       });
     });
   }

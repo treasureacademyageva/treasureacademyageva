@@ -22,7 +22,7 @@ cleanup() {
 trap cleanup EXIT
 
 if ! curl -fsS --max-time 2 http://127.0.0.1:4173/ >/dev/null 2>&1; then
-  python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/treasure-academy-current-tests-http.log 2>&1 &
+  HOST=127.0.0.1 PORT=4173 node tools/clean-route-test-server.mjs >/tmp/treasure-academy-current-tests-http.log 2>&1 &
   server_pid=$!
   own_server=1
   for _ in $(seq 1 50); do
@@ -41,6 +41,8 @@ npm run test:portal-browser
 npm run test:cms-browser
 npm run test:public-content-browser
 npm run test:public-engagement-browser
+npm run test:verified-content-browser
+npm run test:run11-browser
 npm run test:header-browser
 
 echo "CURRENT RELEASE QA: all static, security, answer, review, visitor, accessibility and browser suites passed."

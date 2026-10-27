@@ -376,6 +376,9 @@ const savedPortalEnv = {
   PUBLIC_CMS_ENGAGEMENT_ENABLED: process.env.PUBLIC_CMS_ENGAGEMENT_ENABLED,
   PUBLIC_CMS_COMMENTS_ENABLED: process.env.PUBLIC_CMS_COMMENTS_ENABLED,
   PUBLIC_CMS_PLACEMENTS_ENABLED: process.env.PUBLIC_CMS_PLACEMENTS_ENABLED,
+  PUBLIC_CMS_SEARCH_ENABLED: process.env.PUBLIC_CMS_SEARCH_ENABLED,
+  PUBLIC_CMS_CORE_SLOTS_ENABLED: process.env.PUBLIC_CMS_CORE_SLOTS_ENABLED,
+  PUBLIC_INVENTORY_ENABLED: process.env.PUBLIC_INVENTORY_ENABLED,
   DEVELOPER_MANUAL_BOOTSTRAP_ENABLED: process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED,
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
@@ -393,7 +396,7 @@ await asyncTest('portal config endpoint fails closed when the activation switch 
   process.env.SUPABASE_PUBLISHABLE_KEY = 'must-not-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: false });
+  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicInventoryEnabled: false });
   restorePortalEnvironment();
 });
 await asyncTest('portal config can expose only the temporary bootstrap gate while normal sign-in stays closed', async () => {
@@ -402,7 +405,7 @@ await asyncTest('portal config can expose only the temporary bootstrap gate whil
   process.env.SUPABASE_URL = 'https://must-not-be-returned.supabase.co';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'must-not-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
-  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: true });
+  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: true, publicSearchEnabled: false, coreSlotsEnabled: false, publicInventoryEnabled: false });
   restorePortalEnvironment();
 });
 await asyncTest('enabled portal config returns only public keys and gate booleans', async () => {
@@ -418,7 +421,7 @@ await asyncTest('enabled portal config returns only public keys and gate boolean
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional_must-never-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   const body = await response.json();
-  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false, cmsEnabled: false, mediaEnabled: false, publicEngagementEnabled: false, commentsEnabled: false, placementsEnabled: false });
+  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false, cmsEnabled: false, mediaEnabled: false, publicEngagementEnabled: false, commentsEnabled: false, placementsEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicInventoryEnabled: false });
   assert.doesNotMatch(JSON.stringify(body), /secret/i);
   restorePortalEnvironment();
 });
@@ -682,9 +685,9 @@ await asyncTest('public information is independently gated and exposes only publ
   const body = await enabled.json();
   assert.equal(enabled.status, 200);
   assert.equal(body.items.length, 1);
-  assert.match(query, /status=eq\.published/);
-  assert.match(query, /published_at=not\.is\.null/);
-  assert.match(query, /select=topic%2Ctitle%2Csummary%2Cdetail%2Crevision%2Ceffective_from%2Ceffective_until%2Cpublished_at/);
+  assert.match(query, /\/rest\/v1\/public_verified_information\?/);
+  assert.doesNotMatch(query, /status=eq\.published|published_at=not\.is\.null/);
+  assert.match(query, /select=topic%2Ctitle%2Csummary%2Cdetail%2Crevision%2Csource_path%2Ceffective_from%2Ceffective_until%2Cpublished_at%2Creviewed_at%2Cnext_review_date/);
   assert.doesNotMatch(query, /created_by|approved_by|content_hash|id%2C/);
   assert.match(enabled.headers.get('cache-control') || '', /s-maxage=300/);
   restorePublicInformationEnvironment();
@@ -813,7 +816,7 @@ await asyncTest('only Headmistress endpoint issues a pupil code and stores its h
 });
 restoreParentEnvironment();
 
-const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration, publicEngagementMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
+const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration, publicEngagementMigration, verifiedContentMigration, cleanRoutesMigration, currentResultsMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
   read('supabase/migrations/202610230002_portal_accounts.sql'),
   read('supabase/migrations/202610230003_staff_operations_and_requests.sql'),
@@ -829,6 +832,9 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('supabase/migrations/20261026070000_cloudinary_media_governance.sql'),
   read('supabase/migrations/20261027080000_public_content_delivery.sql'),
   read('supabase/migrations/20261027090000_public_engagement_and_placements.sql'),
+  read('supabase/migrations/20261027100000_verified_content_search_and_inventory.sql'),
+  read('supabase/migrations/20261027110000_clean_routes_and_discovery_quality.sql'),
+  read('supabase/migrations/20261027130000_current_classes_and_flexible_results.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
@@ -961,12 +967,16 @@ test('leadership capability is independent, account management is Headmistress-o
   assert.match(operationsMigration, /verified_public_information_admin_insert[\s\S]+is_admin/i);
   assert.match(accountServer, /profile\.leadership_scope === 'headmistress'/);
 });
-test('CA1, CA2, exam review and publication workflow is database-enforced', () => {
+test('class-wide flexible assessment, score limits, review and publication are database-enforced', () => {
   assert.match(operationsMigration, /add column if not exists ca1 numeric\(5,2\)/i);
   assert.match(operationsMigration, /add column if not exists ca2 numeric\(5,2\)/i);
-  assert.match(operationsMigration, /grades_ca1_range check \(ca1 between 0 and 20\)/i);
-  assert.match(operationsMigration, /grades_ca2_range check \(ca2 between 0 and 20\)/i);
-  assert.match(`${migration}\n${operationsMigration}`, /exam_score numeric\(5,2\)[\s\S]+between 0 and 60/i);
+  assert.match(currentResultsMigration, /add column if not exists ca3 numeric\(5,2\)/i);
+  assert.match(currentResultsMigration, /create table if not exists public\.class_term_assessment_plans/i);
+  assert.match(currentResultsMigration, /pre_nursery_exam_100[\s\S]+three_entry_15_15_70[\s\S]+four_entry_10_10_10_70/i);
+  assert.match(currentResultsMigration, /Pre-Nursery accepts Examination 0-100 and no CA scores/i);
+  assert.match(currentResultsMigration, /Three-entry scores must be CA1 0-15, CA2 0-15 and Examination 0-70/i);
+  assert.match(currentResultsMigration, /Four-entry scores must be CA1 0-10, CA2 0-10, CA3 0-10 and Examination 0-70/i);
+  assert.match(currentResultsMigration, /A term assessment plan cannot change after score entry begins/i);
   assert.match(operationsMigration, /Only the Headmistress may publish or lock results/i);
   assert.match(operationsMigration, /cannot review or alter their own submitted result entry/i);
   assert.match(operationsMigration, /Only approved results may be published/i);
@@ -1210,10 +1220,13 @@ test('baseline preserves the former Supabase portal until a separate verified cu
   assert.match(rootSchema, /20261026070000_cloudinary_media_governance\.sql/i);
   assert.match(rootSchema, /20261027080000_public_content_delivery\.sql/i);
   assert.match(rootSchema, /20261027090000_public_engagement_and_placements\.sql/i);
-  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration, publicEngagementMigration]) {
+  assert.match(rootSchema, /20261027100000_verified_content_search_and_inventory\.sql/i);
+  assert.match(rootSchema, /20261027110000_clean_routes_and_discovery_quality\.sql/i);
+  assert.match(rootSchema, /20261027130000_current_classes_and_flexible_results\.sql/i);
+  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration, publicEngagementMigration, verifiedContentMigration, cleanRoutesMigration, currentResultsMigration]) {
     assert.ok(rootSchema.includes(orderedMigration.trim()), 'root schema must contain every migration verbatim');
   }
-  assert.ok(rootSchema.trimEnd().endsWith(publicEngagementMigration.trimEnd()), 'root schema must end with the exact current public-engagement migration');
+  assert.ok(rootSchema.trimEnd().endsWith(currentResultsMigration.trimEnd()), 'root schema must end with the exact current classes/results migration');
   assert.match(legacyInventory, /begin transaction read only/i);
   assert.match(legacyInventory, /rollback;/i);
   assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);
@@ -1294,9 +1307,10 @@ test('portal restores teacher daily work and leadership result controls without 
   for (const marker of ['Attendance', 'Homework', 'Operations Inbox', 'Public Information', 'Staff Info', 'Leadership Tools']) {
     assert.match(portalSource, new RegExp(marker, 'i'));
   }
-  assert.match(portalSource, /CA1 \(0–20\)/i);
-  assert.match(portalSource, /CA2 \(0–20\)/i);
-  assert.match(portalSource, /Exam \(0–60\)/i);
+  assert.match(portalSource, /three_entry_15_15_70/i);
+  assert.match(portalSource, /four_entry_10_10_10_70/i);
+  assert.match(portalSource, /pre_nursery_exam_100/i);
+  assert.match(portalSource, /CA3 obtained \/ obtainable/i);
   assert.match(portalSource, /workflow_status: values\.get\('workflow_status'\)/i);
   assert.match(portalSource, /state\.profile\.leadership_scope === 'headmistress'/i);
   assert.match(portalSource, /no online assignment submission or pupil upload/i);
@@ -1328,9 +1342,9 @@ test('Request Centre succeeds only after its API, supports private status lookup
 });
 test('verified public information has an independently gated, read-only website surface', () => {
   assert.match(publicInfoApi, /PUBLIC_INFORMATION_ENABLED !== 'true'/);
-  assert.match(publicInfoApi, /\.eq\('status', 'published'\)/);
-  assert.match(publicInfoApi, /effective_from\.is\.null,effective_from\.lte/);
-  assert.match(publicInfoApi, /effective_until\.is\.null,effective_until\.gte/);
+  assert.match(publicInfoApi, /from\('public_verified_information'\)/);
+  assert.match(publicInfoApi, /source_path,effective_from,effective_until,published_at,reviewed_at,next_review_date/);
+  assert.doesNotMatch(publicInfoApi, /from\('verified_public_information'\)|\.eq\('status', 'published'\)/);
   assert.match(verifiedInfoScript, /\/api\/public-information/);
   assert.match(verifiedInfoScript, /textContent = item\.summary/);
   assert.doesNotMatch(verifiedInfoScript, /innerHTML/);
@@ -1353,7 +1367,7 @@ test('portal has explicit labels, focus styling, reduced motion and mobile reflo
   assert.match(portalHtml, /class="skip-link"/);
 });
 test('service worker never caches protected portal or developer assets', () => {
-  assert.match(serviceWorker, /treasure-v20261027-run9/);
+  assert.match(serviceWorker, /treasure-v20261027-run11/);
   for (const asset of ['portal-app.js', 'cms-workspace-app.js', 'cms-workspace.js', 'portal.css', 'developer-console.js', 'developer-console.css', 'developer-review.js']) {
     assert.match(serviceWorker, new RegExp(asset.replace('.', '\\.')));
   }

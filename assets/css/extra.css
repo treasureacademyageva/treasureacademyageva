@@ -373,7 +373,7 @@
 
 /* Founder card (about) */
 .founder-card{display:flex;align-items:center;gap:14px;max-width:560px;margin:26px auto 0;background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sun);border-radius:var(--r-md);padding:14px 18px;box-shadow:var(--sh-1)}
-.f-avatar{width:52px;height:52px;border-radius:var(--r-pill);background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex:none}
+.f-avatar{width:52px;height:52px;border-radius:var(--r-pill);background:var(--gold);color:#203040;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex:none}
 /* Bank line (join section) */
 .bank-line{font-size:var(--fs-xs);color:var(--green);font-weight:600;margin-top:6px}
 /* Dark-mode gradient background */

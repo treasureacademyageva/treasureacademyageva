@@ -16,9 +16,9 @@ SITE = "https://www.treasureacademyageva.com"
 
 # Hand-written, page-specific. Kept under ~158 chars so Google does not truncate.
 DESC = {
- "index.html": "Treasure Academy, Ageva — a Creche to Primary 6 school in Ageva, Okene, Kogi State. Strong foundations in reading, maths and character. Admissions open.",
- "about.html": "Our story, mission and the people behind Treasure Academy, Ageva — a Creche to Primary 6 school serving Ageva and Okene, Kogi State.",
- "academics.html": "Phonics, mathematics, science and computer studies from Creche to Primary 6 at Treasure Academy, Ageva, Okene — how we teach and assess.",
+ "index.html": "Treasure Academy, Ageva — a Pre-Nursery to Primary 6 school in Ageva, Okene, Kogi State. Strong foundations in reading, maths and character. Admissions open.",
+ "about.html": "Our story, mission and the people behind Treasure Academy, Ageva — a Pre-Nursery to Primary 6 school serving Ageva and Okene, Kogi State.",
+ "academics.html": "Phonics, mathematics, science and computer studies from Pre-Nursery to Primary 6 at Treasure Academy, Ageva, Okene — how we teach and assess.",
  "admissions.html": "How to enrol your child at Treasure Academy, Ageva. Entry classes, required documents, fees and the admission steps for the 2026/2027 session.",
  "admission-form.html": "Safe admission-form guidance for Treasure Academy, Ageva — admission decisions stay separate from payment, and payment details appear only on an official invoice.",
  "alumni.html": "Former-pupil record requests and consent-cleared achievement updates at Treasure Academy, Ageva, with clear privacy and safeguarding boundaries.",
@@ -27,7 +27,7 @@ DESC = {
  "board.html": "School-notice guidance for Treasure Academy, Ageva. Check published news and confirm dates, closures, deadlines and payment instructions with the office.",
  "calendar.html": "Current term-date guidance for Treasure Academy, Ageva, with verified office contacts for resumption, breaks, examinations and closing dates.",
  "careers.html": "Careers at Treasure Academy, Ageva — ask the office whether any verified vacancy is open and confirm the approved application process before sending documents.",
- "class.html": "Creche, Pre-Nursery, Nursery, Primary 1–4 and Primary 6 at Treasure Academy, Ageva — what each class covers and the daily activities.",
+ "class.html": "Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6 at Treasure Academy, Ageva — what each class covers and the daily activities.",
  "contact.html": "Call, email, WhatsApp or visit Treasure Academy, Ageva — opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.",
  "credits.html": "Website design and implementation credits for Treasure Academy, Ageva, including publisher, data-controller and Paragon Hub processor roles.",
  "elearning.html": "Three Common Entrance-style practice questions for Primary 6 revision in Mathematics, English and Basic Science. Scores stay on the page.",
@@ -59,7 +59,7 @@ DESC = {
  "website-help.html": "Report a missing, unclear or broken Treasure Academy website page through the website Request Centre, with optional privacy-safe diagnostics.",
 }
 
-DESC["news/2026-2027-admissions-open.html"] = "Treasure Academy, Ageva is receiving 2026/2027 admission enquiries from Creche to Primary 6. Follow the verified, bank-transfer-safe application steps."
+DESC["news/2026-2027-admissions-open.html"] = "Treasure Academy, Ageva is receiving 2026/2027 admission enquiries from Pre-Nursery to Primary 6. Follow the verified, bank-transfer-safe application steps."
 DESC.update({
     "news/2017-first-graduation-ceremony.html": "Treasure Academy’s school archive records its first full graduation ceremony in 2017 and the early history of the school in Ageva.",
     "news/2018-second-graduation-ceremony.html": "Treasure Academy’s school archive looks back at the second graduation ceremony held in Ageva in July 2018.",
@@ -69,8 +69,7 @@ DESC.update({
 })
 
 for _slug, _name, _focus in [
-    ("creche", "Creche", "gentle early care, routines and speech development"),
-    ("pre-nursery", "Pre-Nursery", "play-based letters, numbers, colours and social learning"),
+        ("pre-nursery", "Pre-Nursery", "play-based letters, numbers, colours and social learning"),
     ("nursery-1", "Nursery 1", "phonics, handwriting and early numeracy"),
     ("nursery-2", "Nursery 2", "reading fluency, spelling and primary-school readiness"),
     ("primary-1", "Primary 1", "English, Mathematics, handwriting and study habits"),
@@ -117,7 +116,7 @@ ORG_LD = {
   "alternateName": "Treasure Academy",
   "foundingDate": "2016",
   "slogan": "Our God is able",
-  "description": "A Creche to Primary 6 private school in Ageva, Okene, Kogi State, Nigeria.",
+  "description": "A Pre-Nursery to Primary 6 private school in Ageva, Okene, Kogi State, Nigeria.",
   "url": SITE + "/",
   "image": SITE + "/assets/img/og-cover.png",
   "logo": SITE + "/assets/img/logo.jpg",

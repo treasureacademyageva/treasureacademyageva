@@ -4,7 +4,7 @@ const assert=require('assert');
 async function check(width){
  const page=await browser.newPage({viewport:{width,height:800}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!/favicon|Failed to load resource/.test(m.text()))errors.push(m.text())});
- await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});
+ await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});
  await page.waitForTimeout(250);
  const top=await page.locator('.topbar').boundingBox(),nav=await page.locator('.navbar').boundingBox();
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`overflow ${width}`);
@@ -37,7 +37,7 @@ async function check(width){
  }
  for(const w of [1440,1120,960,959,360])await check(w);
  // Dark mode keeps visible controls and a non-white navbar treatment.
- const dark=await browser.newPage({viewport:{width:360,height:800}});await dark.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});await dark.evaluate(()=>localStorage.setItem('treasure_theme','dark'));await dark.reload({waitUntil:'networkidle'});assert(/dark/.test(await dark.locator('html').getAttribute('data-theme')));assert.equal(await dark.locator('.mobile-dock').isVisible(),true);await dark.close();passed++;
- const titlePage=await browser.newPage({viewport:{width:390,height:844}});await titlePage.goto('http://127.0.0.1:4173/index.html',{waitUntil:'networkidle'});assert(/Treasure Academy/.test(await titlePage.title()));assert.equal(await titlePage.locator('.portal-link').getAttribute('href'),'/portal/login.html');await titlePage.close();passed++;
+ const dark=await browser.newPage({viewport:{width:360,height:800}});await dark.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});await dark.evaluate(()=>localStorage.setItem('treasure_theme','dark'));await dark.reload({waitUntil:'domcontentloaded'});assert(/dark/.test(await dark.locator('html').getAttribute('data-theme')));assert.equal(await dark.locator('.mobile-dock').isVisible(),true);await dark.close();passed++;
+ const titlePage=await browser.newPage({viewport:{width:390,height:844}});await titlePage.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});assert(/Treasure Academy/.test(await titlePage.title()));assert.equal(await titlePage.locator('.portal-link').getAttribute('href'),'/portal/login.html');await titlePage.close();passed++;
  console.log(`HEADER BROWSER: ${passed} viewports/scenarios passed`);await browser.close();
 })().catch(e=>{console.error(e.stack);process.exit(1)});

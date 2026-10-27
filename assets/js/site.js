@@ -38,40 +38,40 @@ const Theme = {
 };
 
 const SEARCH_INDEX=[
- {t:"Home",u:"index.html",k:"home main start treasure academy ageva"},
- {t:"About Us",u:"about.html",k:"about story headmistress founder motto mission history"},
- {t:"Admissions",u:"admissions.html",k:"admissions apply enrol register form join track application requirements receipt verify payment check confirm authentic"},
- {t:"Request an Admission Form",u:"admission-form.html",k:"admission form safe verified office request"},
- {t:"Academics",u:"academics.html",k:"academics classes creche nursery primary curriculum subjects"},
- {t:"Contact Us",u:"contact.html",k:"contact phone call whatsapp address location map email message faq directions suggestion box idea vote"},
- {t:"News & Updates",u:"news.html",k:"news verified update admissions current"},
- {t:"Staff",u:"alumni.html#staff",k:"staff teachers names who teaches team alumni meet our staff"},
- {t:"E-Learning",u:"elearning.html",k:"elearning practice cbt common entrance primary 6 past questions"},
- {t:"School Supplies Guidance",u:"shop.html",k:"supplies books uniform price stock office"},
- {t:"PTA",u:"pta.html",k:"pta parents association meeting levy"},
- {t:"Staff & Graduate Privacy",u:"alumni.html",k:"staff teachers graduate privacy achievements"},
- {t:"Birthdays",u:"birthdays.html",k:"birthday staff celebrate wish song headmistress"},
- {t:"Calendar",u:"calendar.html",k:"calendar term dates resumption holiday events countdown"},
- {t:"Notice Board",u:"board.html",k:"notice board announcements news"},
- {t:"Homework Board",u:"homework.html",k:"homework assignment class study"},
- {t:"Lost & Found",u:"lost-found.html",k:"lost found missing item claim clothes"},
- {t:"Photo Day Archive",u:"photo-day.html",k:"photo day closed consent photography"},
- {t:"Uniform List",u:"uniform.html",k:"uniform price list clothes wear dress shop"},
- {t:"School Visit Guidance",u:"openday.html",k:"open day closed visit appointment tour"},
- {t:"Reading at Home",u:"reading.html",k:"reading books home guidance teacher"},
- {t:"Exam Timetable",u:"exams.html",k:"exam timetable test date papers revision"},
- {t:"Holiday Assignments",u:"holiday.html",k:"holiday assignment break work home"},
- {t:"Welcome Pack",u:"welcome.html",k:"welcome pack new parents guide steps start"},
- {t:"Transport",u:"transport.html",k:"transport bus route pickup dropoff fees driver"},
- {t:"Volunteer",u:"volunteer.html",k:"volunteer help event sign up parents support"},
- {t:"Careers",u:"careers.html",k:"careers jobs teach at treasure vacancy apply staff recruitment teacher work hiring"},
- {t:"School Fees",u:"fees.html",k:"fees school fees price per class pay bank transfer term charges print"},
- {t:"Anthem & Creed",u:"anthem.html",k:"anthem creed pledge song lyrics audio hymn school song"},
- {t:"Support Us",u:"support.html",k:"support donate pledge give project library fans thank you wall well-wisher"},
- {t:"Search",u:"search.html",k:"search find pages everything results lookup"},
+ {t:"Home",u:"/",k:"home main start treasure academy ageva"},
+ {t:"About Us",u:"/about",k:"about story headmistress founder motto mission history"},
+ {t:"Admissions",u:"/admissions",k:"admissions apply enrol register form join track application requirements receipt verify payment check confirm authentic"},
+ {t:"Request an Admission Form",u:"/admission-form",k:"admission form safe verified office request"},
+ {t:"Academics",u:"/academics",k:"academics classes creche nursery primary curriculum subjects"},
+ {t:"Contact Us",u:"/contact",k:"contact phone call whatsapp address location map email message faq directions suggestion box idea vote"},
+ {t:"News & Updates",u:"/news",k:"news verified update admissions current"},
+ {t:"Staff",u:"/alumni#staff",k:"staff teachers names who teaches team alumni meet our staff"},
+ {t:"E-Learning",u:"/elearning",k:"elearning practice cbt common entrance primary 6 past questions"},
+ {t:"School Supplies Guidance",u:"/shop",k:"supplies books uniform price stock office"},
+ {t:"PTA",u:"/pta",k:"pta parents association meeting levy"},
+ {t:"Staff & Graduate Privacy",u:"/alumni",k:"staff teachers graduate privacy achievements"},
+ {t:"Birthdays",u:"/birthdays",k:"birthday staff celebrate wish song headmistress"},
+ {t:"Calendar",u:"/calendar",k:"calendar term dates resumption holiday events countdown"},
+ {t:"Notice Board",u:"/board",k:"notice board announcements news"},
+ {t:"Homework Board",u:"/homework",k:"homework assignment class study"},
+ {t:"Lost & Found",u:"/lost-found",k:"lost found missing item claim clothes"},
+ {t:"Photo Day Archive",u:"/photo-day",k:"photo day closed consent photography"},
+ {t:"Uniform List",u:"/uniform",k:"uniform price list clothes wear dress shop"},
+ {t:"School Visit Guidance",u:"/openday",k:"open day closed visit appointment tour"},
+ {t:"Reading at Home",u:"/reading",k:"reading books home guidance teacher"},
+ {t:"Exam Timetable",u:"/exams",k:"exam timetable test date papers revision"},
+ {t:"Holiday Assignments",u:"/holiday",k:"holiday assignment break work home"},
+ {t:"Welcome Pack",u:"/welcome",k:"welcome pack new parents guide steps start"},
+ {t:"Transport",u:"/transport",k:"transport bus route pickup dropoff fees driver"},
+ {t:"Volunteer",u:"/volunteer",k:"volunteer help event sign up parents support"},
+ {t:"Careers",u:"/careers",k:"careers jobs teach at treasure vacancy apply staff recruitment teacher work hiring"},
+ {t:"School Fees",u:"/fees",k:"fees school fees price per class pay bank transfer term charges print"},
+ {t:"Anthem & Creed",u:"/anthem",k:"anthem creed pledge song lyrics audio hymn school song"},
+ {t:"Support Us",u:"/support",k:"support donate pledge give project library fans thank you wall well-wisher"},
+ {t:"Search",u:"/search",k:"search find pages everything results lookup"},
  {t:"Secure Parent & Staff Portal",u:"portal/login.html",k:"portal login results payments parent teacher admin secure support"},
- {t:"Family Feedback",u:"testimonials.html",k:"private feedback consent headmistress"},
- {t:"Class Pages",u:"academics.html",k:"class page creche nursery primary learning"}
+ {t:"Family Feedback",u:"/testimonials",k:"private feedback consent headmistress"},
+ {t:"Class Pages",u:"/academics",k:"class page creche nursery primary learning"}
 ];
 const Search={
  init(){
@@ -79,7 +79,7 @@ const Search={
   const row=document.querySelector(".navbar .nav-cta-row"); if(!row)return;
   let b=document.getElementById("searchBtn");
   if(!b){
-    b=document.createElement("a"); b.id="searchBtn"; b.className="icon-action"; b.href="search.html"; b.title="Search this website"; b.setAttribute("aria-label",b.title);
+    b=document.createElement("a"); b.id="searchBtn"; b.className="icon-action"; b.href="/search"; b.title="Search this website"; b.setAttribute("aria-label",b.title);
     b.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg>';
     row.insertBefore(b,row.firstChild);
   }
@@ -119,7 +119,7 @@ const Search={
     const rec=this.recent();
     box.innerHTML=(rec.length?'<p class="sub">Your recent searches <button class="link-btn" id="clearRec" style="font-size:.78rem">Clear</button></p>'+rec.map(r=>`<a href="#" data-re="${U.esc(r)}">${U.esc(r)} &#8594;</a>`).join(""):'')
      +'<p class="sub">Popular pages</p>'+SEARCH_INDEX.slice(0,6).map(p=>`<a href="${p.u}"><b>${U.esc(p.t)}</b></a>`).join("")
-     +'<p class="sub" style="margin-top:8px"><a href="search.html" style="font-weight:800;color:var(--green)">Open the full search page \u2192</a></p>';
+     +'<p class="sub" style="margin-top:8px"><a href="/search" style="font-weight:800;color:var(--green)">Open the full search page \u2192</a></p>';
     return;
   }
   const stem=w=>w.length>4&&w.endsWith("ies")?w.slice(0,-3)+"y":w.length>4&&w.endsWith("es")?w.slice(0,-2):w.length>3&&w.endsWith("s")?w.slice(0,-1):w;
@@ -132,13 +132,13 @@ const Search={
   try{
     const db=DB.load(), today=U.todayStr();
     const news=(db.newsEvents||[]).filter(n=>(!n.publishAt||n.publishAt<=today)&&match(n.title+" "+(n.text||""),q)).slice(0,3);
-    if(news.length)extra+='<p class="sub">News & events</p>'+news.map(n=>`<a href="${U.esc(n.link||'news.html')}">${hl(n.title)}</a>`).join("");
+    if(news.length)extra+='<p class="sub">News & events</p>'+news.map(n=>`<a href="${U.esc(n.link||'/news')}">${hl(n.title)}</a>`).join("");
     const staff=(db.staffWall||db.teachers||[]).filter(t=>match((t.name||"")+" "+(t.class||"")+" "+((t.subjects||[]).join(" ")),q)).slice(0,3);
-    if(staff.length)extra+='<p class="sub">Staff</p>'+staff.map(t=>`<a href="alumni.html#staff">${hl(t.name)} — ${U.esc(t.class||"")}</a>`).join("");
+    if(staff.length)extra+='<p class="sub">Staff</p>'+staff.map(t=>`<a href="/alumni#staff">${hl(t.name)} — ${U.esc(t.class||"")}</a>`).join("");
     const ex=(db.exams||[]).filter(x=>match(x.subject||"",q)).slice(0,2);
-    if(ex.length)extra+='<p class="sub">Exams</p>'+ex.map(x=>`<a href="exams.html">${hl(x.subject)} — ${U.shortDate(x.date)}</a>`).join("");
+    if(ex.length)extra+='<p class="sub">Exams</p>'+ex.map(x=>`<a href="/exams">${hl(x.subject)} — ${U.shortDate(x.date)}</a>`).join("");
     const shop=(db.shopItems||[]).concat(db.uniform||[]).filter(x=>match(x.name||"",q)).slice(0,2);
-    if(shop.length)extra+='<p class="sub">Shop & uniform</p>'+shop.map(x=>`<a href="shop.html">${hl(x.name)} — ${U.naira(x.price)}</a>`).join("");
+    if(shop.length)extra+='<p class="sub">Shop & uniform</p>'+shop.map(x=>`<a href="/shop">${hl(x.name)} — ${U.naira(x.price)}</a>`).join("");
   }catch(e){}
   const total=hits.length+(extra?extra.split("<a ").length-1:0);
   box.innerHTML=`<p class="sub">${total} result${total===1?"":"s"}</p>`
@@ -166,13 +166,13 @@ const Search={
    centre, and fixed-size actions at the right. Dedicated pages remain
    available through search and the footer without crowding the header. */
 const NAV_ITEMS=[
-  {id:"home",label:"Home",href:"index.html"},
-  {id:"about",label:"About",href:"about.html"},
-  {id:"admissions",label:"Admissions",href:"admissions.html"},
-  {id:"academics",label:"Academics",href:"academics.html"},
-  {id:"fees",label:"Fees",href:"fees.html"},
-  {id:"news",label:"News & Events",href:"news.html"},
-  {id:"contact",label:"Contact",href:"contact.html"}
+  {id:"home",label:"Home",href:"/"},
+  {id:"about",label:"About",href:"/about"},
+  {id:"admissions",label:"Admissions",href:"/admissions"},
+  {id:"academics",label:"Academics",href:"/academics"},
+  {id:"fees",label:"Fees",href:"/fees"},
+  {id:"news",label:"News & Events",href:"/news"},
+  {id:"contact",label:"Contact",href:"/contact"}
 ];
 function renderNav(current){
   const box=document.getElementById("mainNav");
@@ -189,9 +189,9 @@ function renderFooter(){
   const year=new Date().getFullYear();
   box.innerHTML=`<div class="site-footer"><div class="container">
     <div class="foot-main">
-      <div class="foot-brand"><a class="logo" href="index.html"><span>${U.esc(school.name)}</span></a><p>Creche, Nursery and Primary education in Ageva, Okene. Caring teaching, disciplined routines and strong foundations.</p></div>
-      <div class="foot-col foot-quick"><h2>Essential Links</h2><nav class="foot-quick-grid" aria-label="Essential links"><a href="about.html">About</a><a href="academics.html">Academics</a><a href="admissions.html">Admissions</a><a href="fees.html">Fees</a><a href="calendar.html">Calendar</a><a href="news.html">News</a><a href="safeguarding.html">Safeguarding</a><a href="privacy.html">Privacy</a></nav></div>
-      <div class="foot-col foot-contact"><h2>Verified Contact</h2><p><a href="tel:+2348141943478">+234 814 194 3478</a><br><a href="https://wa.me/2349063932487">WhatsApp 09063932487</a><br><a href="mailto:${U.esc(school.email)}">${U.esc(school.email)}</a></p><p>${U.esc(school.address)}</p><a class="btn btn-white btn-sm" href="contact.html#visit">Visit &amp; Directions</a></div>
+      <div class="foot-brand"><a class="logo" href="/"><span>${U.esc(school.name)}</span></a><p>Creche, Nursery and Primary education in Ageva, Okene. Caring teaching, disciplined routines and strong foundations.</p></div>
+      <div class="foot-col foot-quick"><h2>Essential Links</h2><nav class="foot-quick-grid" aria-label="Essential links"><a href="/about">About</a><a href="/academics">Academics</a><a href="/admissions">Admissions</a><a href="/fees">Fees</a><a href="/calendar">Calendar</a><a href="/news">News</a><a href="/safeguarding">Safeguarding</a><a href="/privacy">Privacy</a></nav></div>
+      <div class="foot-col foot-contact"><h2>Verified Contact</h2><p><a href="tel:+2348141943478">+234 814 194 3478</a><br><a href="https://wa.me/2349063932487">WhatsApp 09063932487</a><br><a href="mailto:${U.esc(school.email)}">${U.esc(school.email)}</a></p><p>${U.esc(school.address)}</p><a class="btn btn-white btn-sm" href="/contact#visit">Visit &amp; Directions</a></div>
     </div></div>
     <div class="foot-bottom"><div class="container foot-center foot-bottom-row"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© ${year} ${U.esc(school.name)}. All Rights Reserved.</span><span id="textSizeBtns" title="Text size"><button type="button" data-fs="s" aria-label="Small text">S</button><button type="button" data-fs="m" aria-label="Normal text" class="on">A</button><button type="button" data-fs="l" aria-label="Large text">L</button></span></div></div>
   </div>`;
@@ -526,9 +526,9 @@ function renderWeekStrip(){
   if(ws.on===false){ box.innerHTML=""; return; }
   const today=U.todayStr(), d7=new Date(Date.now()+7*864e5).toISOString().slice(0,10);
   const items=[];
-  (db.calendar||[]).filter(c=>c.date>=today&&c.date<=d7).slice(0,2).forEach(c=>items.push({d:c.date,t:c.title,u:"calendar.html"}));
-  (db.exams||[]).filter(x=>x.date&&x.date>=today&&x.date<=d7).slice(0,1).forEach(x=>items.push({d:x.date,t:"Exams: "+x.subject+" ("+x.time+")",u:"exams.html"}));
-  (db.ptaMeetings||[]).filter(m=>m.date>=today&&m.date<=d7).slice(0,1).forEach(m=>items.push({d:m.date,t:"PTA: "+m.title,u:"pta.html"}));
+  (db.calendar||[]).filter(c=>c.date>=today&&c.date<=d7).slice(0,2).forEach(c=>items.push({d:c.date,t:c.title,u:"/calendar"}));
+  (db.exams||[]).filter(x=>x.date&&x.date>=today&&x.date<=d7).slice(0,1).forEach(x=>items.push({d:x.date,t:"Exams: "+x.subject+" ("+x.time+")",u:"/exams"}));
+  (db.ptaMeetings||[]).filter(m=>m.date>=today&&m.date<=d7).slice(0,1).forEach(m=>items.push({d:m.date,t:"PTA: "+m.title,u:"/pta"}));
   items.sort((a,b)=>a.d.localeCompare(b.d));
   box.innerHTML=`<div class="week-strip clip-up"><span class="sec-tag">This Week</span>
     <div class="week-items">${items.length?items.map(i=>`<a class="week-item" href="${i.u}"><b>${U.shortDate(i.d)}</b><span>${U.esc(i.t)}</span></a>`).join(""):'<span class="week-none">A calm week — no events scheduled.</span>'}</div>
@@ -574,7 +574,7 @@ function renderBday(){
   const names=(db.teachers||[]).filter(t=>md(t.dob)===today).map(t=>t.name);
   if(db.school&&md(db.school.headDob)===today)names.unshift((db.school.headName||"Headmistress")+" (Headmistress)");
   if(!names.length)return;
-  box.innerHTML=`<div class="bday-bell clip-up"><b>Happy Birthday!</b> Today we celebrate ${names.map(n=>`<b>${U.esc(n)}</b>`).join(" & ")} - with love from the whole Treasure Academy family. <a href="birthdays.html">Send a wish</a></div>`;
+  box.innerHTML=`<div class="bday-bell clip-up"><b>Happy Birthday!</b> Today we celebrate ${names.map(n=>`<b>${U.esc(n)}</b>`).join(" & ")} - with love from the whole Treasure Academy family. <a href="/birthdays">Send a wish</a></div>`;
 }
 function renderBdayCount(){
   const box=document.getElementById("bdayCount");
@@ -597,7 +597,7 @@ function renderBdayCount(){
   });
   if(!best)return;
   const when=bestDd===1?"Tomorrow!":("in "+bestDd+" days");
-  box.innerHTML=`<a class="count-bar" href="birthdays.html"><span class="count-num">${bestDd}</span><span>${U.icon("gift",18)} Next birthday: <b>${U.esc(best.name)}</b> (${U.esc(best.role)}) — ${when}</span><span style="margin-left:auto">→</span></a>`;
+  box.innerHTML=`<a class="count-bar" href="/birthdays"><span class="count-num">${bestDd}</span><span>${U.icon("gift",18)} Next birthday: <b>${U.esc(best.name)}</b> (${U.esc(best.role)}) — ${when}</span><span style="margin-left:auto">→</span></a>`;
 }
 /* ---------- emergency banner (headmistress one-switch alert) ---------- */
 function renderEmergency(){
@@ -669,7 +669,7 @@ function renderTmSpot(){
   if(!list.length){ el.innerHTML=""; return; }
   const t=list[Math.floor(Date.now()/6048e5)%list.length]; /* rotates weekly */
   const stars="\u2605".repeat(Math.min(5,t.stars||5))+"\u2606".repeat(Math.max(0,5-(t.stars||5)));
-  el.innerHTML=`<div class="tm-spot clip-up"><div class="tms-quote">\u201C</div><p>${U.esc(t.text)}</p><div class="tms-stars">${stars}</div><div class="tms-who"><b>${U.esc(t.name)}</b> <small>${U.esc(t.role||"Parent")}</small></div><a class="tms-link" href="testimonials.html">Read all parent reviews \u2192</a></div>`;
+  el.innerHTML=`<div class="tm-spot clip-up"><div class="tms-quote">\u201C</div><p>${U.esc(t.text)}</p><div class="tms-stars">${stars}</div><div class="tms-who"><b>${U.esc(t.name)}</b> <small>${U.esc(t.role||"Parent")}</small></div><a class="tms-link" href="/testimonials">Read all parent reviews \u2192</a></div>`;
 }
 
 /* ---------- HIDDEN DEVELOPER ENTRY (batch34) — no visible link anywhere ----------
@@ -768,7 +768,7 @@ const Lightbox = {
     m.querySelector(".lb-cap").textContent = it.cap || "";
     const lc=m.querySelector(".lb-count"); if(lc)lc.remove();
     const btns = m.querySelector(".lb-btns"); btns.innerHTML = "";
-    if(it.storyId){ const a = document.createElement("a"); a.className = "btn btn-white btn-sm"; a.href = "story.html?id=" + it.storyId; a.textContent = "Full story"; btns.appendChild(a); }
+    if(it.storyId){ const a = document.createElement("a"); a.className = "btn btn-white btn-sm"; a.href = "/story?id=" + it.storyId; a.textContent = "Full story"; btns.appendChild(a); }
     const dl = document.createElement("button"); dl.className = "btn btn-mint btn-sm"; dl.textContent = "Download";
     dl.onclick = () => U.downloadFile(it.src, String(it.src).split("/").pop());
     btns.appendChild(dl);

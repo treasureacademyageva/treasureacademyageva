@@ -96,7 +96,7 @@ const contentTypes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascrip
   page.on('dialog', async (dialog) => { dialogs.push(dialog.message()); await dialog.dismiss(); });
   try {
     await page.addInitScript(() => localStorage.setItem('treasure_theme', 'dark'));
-    await page.goto(`${origin}/news/browser-safety-fixture`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/news/browser-safety-fixture`, { waitUntil: 'domcontentloaded' });
     if ((await page.locator('h1').innerText()).includes('<script>') !== true) throw new Error('Hostile title was not preserved as visible text.');
     if (await page.evaluate(() => window.__run8Xss === true)) throw new Error('Executable-looking CMS text ran in the browser.');
     if (dialogs.length) throw new Error(`Unexpected browser dialog: ${dialogs.join(', ')}`);
@@ -108,14 +108,14 @@ const contentTypes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascrip
     let severe = findings.violations.filter((finding) => ['serious', 'critical'].includes(finding.impact));
     if (severe.length) throw new Error(`News axe findings: ${severe.map((finding) => `${finding.id} (${finding.nodes.map((node) => node.target.join(' ')).join(', ')})`).join('; ')}`);
 
-    await page.goto(`${origin}/events/browser-event-fixture`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/events/browser-event-fixture`, { waitUntil: 'domcontentloaded' });
     if (!(await page.locator('.event-facts').innerText()).includes('1 November 2026 at 10:00')) throw new Error('Exact Lagos event time is absent.');
     if (!(await page.locator('[data-event-state]').innerText()).includes('days to go')) throw new Error('Event countdown fallback is absent.');
 
-    await page.goto(`${origin}/gallery`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/gallery`, { waitUntil: 'domcontentloaded' });
     if (await page.locator('.gallery-card').count() !== 1) throw new Error('Gallery was not generated from the published media relationship.');
     await page.locator('.gallery-card a').click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     if (!(await page.locator('.gallery-source').innerText()).includes('Published source')) throw new Error('Gallery source link is absent.');
     if (await page.getByText('Download approved derivative').count()) throw new Error('Disabled public downloads were visible.');
     if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)) throw new Error('Gallery detail has horizontal overflow at mobile width.');

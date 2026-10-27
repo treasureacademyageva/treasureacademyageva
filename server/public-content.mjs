@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { buildSignedCloudinaryDeliveryUrl } from './cms-media.mjs';
+import { FIXED_SITEMAP_ROUTES } from './public-routes.generated.mjs';
 
 const SITE_ORIGIN = 'https://www.treasureacademyageva.com';
 const SITE_NAME = 'Treasure Academy, Ageva';
@@ -37,13 +38,53 @@ function safeJson(value) {
   })[character]);
 }
 
+function escapeXml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'
+  })[character]);
+}
+
+function sitemapDate(value) {
+  const date = new Date(value || '');
+  return Number.isNaN(date.valueOf()) ? '' : date.toISOString().slice(0, 10);
+}
+
+export function sitemapXml(entries = [], gallery = []) {
+  const routes = new Map();
+  const add = (path, lastmod, changefreq = 'weekly', priority = 0.7) => {
+    const safe = safeInternalPath(path, '');
+    if (!safe || safe.includes('?') || safe.includes('#') || /(?:\/page\/|\/feed\.xml$|\/archive$)/.test(safe)) return;
+    const former = routes.get(safe);
+    const nextDate = String(lastmod || '');
+    if (!former || nextDate > former.lastmod) routes.set(safe, { path: safe, lastmod: nextDate, changefreq, priority });
+  };
+  FIXED_SITEMAP_ROUTES.forEach((row) => add(row.canonical, row.lastmod, row.changefreq, row.priority));
+  entries.forEach((entry) => {
+    if (!['news', 'event'].includes(String(entry?.content_type || ''))) return;
+    const path = String(entry?.canonical_path || '');
+    if (!/^\/(?:news|events)\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(path)) return;
+    add(path, sitemapDate(entry.published_at), 'weekly', 0.8);
+  });
+  const latestEntryDate = entries.map((entry) => sitemapDate(entry?.published_at)).filter(Boolean).sort().at(-1) || '';
+  if (entries.some((entry) => entry?.content_type === 'event')) add('/events', latestEntryDate, 'daily', 0.8);
+  if (gallery.length) {
+    add('/gallery', latestEntryDate, 'daily', 0.7);
+    gallery.forEach((item) => add(`/gallery/${item.gallerySlug}`, sitemapDate(item.source?.published_at), 'weekly', 0.6));
+  }
+  const body = [...routes.values()].sort((a, b) => a.path.localeCompare(b.path)).map((row) => {
+    const modified = row.lastmod ? `\n    <lastmod>${escapeXml(row.lastmod)}</lastmod>` : '';
+    return `  <url>\n    <loc>${escapeXml(absoluteUrl(row.path))}</loc>${modified}\n    <changefreq>${row.changefreq}</changefreq>\n    <priority>${Number(row.priority).toFixed(1)}</priority>\n  </url>`;
+  }).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
+}
+
 function response(body, status = 200, headers = {}) {
   return new Response(body, {
     status,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': status === 200
-        ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=60'
+        ? 'public, max-age=0, s-maxage=30, stale-while-revalidate=30'
         : 'private, no-store, max-age=0',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -307,7 +348,7 @@ function renderBlock(block, bundle, mediaEnabled) {
     return figures.length ? `<div class="content-gallery">${figures.join('')}</div>` : '';
   }
   if (block.block_type === 'verified_fact') {
-    const path = safeInternalPath(payload.source_path, '/contact.html');
+    const path = safeInternalPath(payload.source_path, '/contact');
     return `<aside class="verified-fact"><strong>Verified information</strong><p>${text}</p><a href="${escapeHtml(path)}">Open supporting source</a></aside>`;
   }
   if (block.block_type === 'table') {
@@ -396,20 +437,20 @@ function breadcrumbs(items) {
 
 function navigation(current) {
   const links = [
-    ['About', '/about.html', 'about'], ['Admissions', '/admissions.html', 'admissions'], ['Classes', '/academics.html', 'classes'],
-    ['News', '/news', 'news'], ['Events', '/events', 'events'], ['Gallery', '/gallery', 'gallery'], ['Contact', '/contact.html', 'contact']
+    ['About', '/about', 'about'], ['Admissions', '/admissions', 'admissions'], ['Classes', '/academics', 'classes'],
+    ['News', '/news', 'news'], ['Events', '/events', 'events'], ['Gallery', '/gallery', 'gallery'], ['Contact', '/contact', 'contact']
   ];
-  return `<nav class="lite-nav" aria-label="Primary navigation"><div class="container"><a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a><div class="lite-links">${links.map(([label, href, key]) => `<a href="${href}"${current === key ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</div><div class="lite-actions"><a class="lite-search" href="/search.html">Search</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admissions.html#apply">Apply</a></div></div></nav>`;
+  return `<nav class="lite-nav" aria-label="Primary navigation"><div class="container"><a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a><div class="lite-links">${links.map(([label, href, key]) => `<a href="${href}"${current === key ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</div><div class="lite-actions"><a class="lite-search" href="/search">Search</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admissions#apply">Apply</a></div></div></nav>`;
 }
 
 function footer() {
-  return `<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid"><div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>${SITE_NAME}</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p></div><div class="uf-col"><h2>Published updates</h2><nav class="uf-links" aria-label="Published content"><a href="/news">News</a><a href="/events">Events</a><a href="/events/archive">Event archive</a><a href="/gallery">Gallery</a></nav></div><div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/portal/login.html">Parent &amp; Staff Portal</a><a href="/request-centre.html">Request Centre</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/credits.html">Website credits</a></nav></div><div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p></div></div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span><span><a href="https://paragonhub-kappa.vercel.app/" target="_blank" rel="noopener">Website designed and implemented by Jibril Abdullahi Onoruoiza, Paragon Hub.</a></span></div></div></footer>`;
+  return `<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid"><div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>${SITE_NAME}</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p></div><div class="uf-col"><h2>Published updates</h2><nav class="uf-links" aria-label="Published content"><a href="/news">News</a><a href="/events">Events</a><a href="/events/archive">Event archive</a><a href="/gallery">Gallery</a></nav></div><div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/portal/login.html">Parent &amp; Staff Portal</a><a href="/request-centre">Request Centre</a><a href="/safeguarding">Safeguarding</a><a href="/privacy">Privacy</a><a href="/credits">Website credits</a></nav></div><div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p></div></div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span><span><a href="https://paragonhub-kappa.vercel.app/" target="_blank" rel="noopener">Website designed and implemented by Jibril Abdullahi Onoruoiza, Paragon Hub.</a></span></div></div></footer>`;
 }
 
 function pageShell({ title, description, canonicalPath, current, main, robots = 'index,follow,max-image-preview:large,max-snippet:-1', structured = [], image = '', imageAlt = SITE_NAME, feed = '', feedPath = '' }) {
   const canonical = absoluteUrl(canonicalPath);
   const socialImage = image || `${SITE_ORIGIN}/assets/img/og-cover.png`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><script src="/assets/js/theme-init.js?v=20261023-design1"></script><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${escapeHtml(canonical)}"><meta name="robots" content="${escapeHtml(robots)}"><meta property="og:type" content="${current === 'news-detail' ? 'article' : 'website'}"><meta property="og:site_name" content="${SITE_NAME}"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${escapeHtml(canonical)}"><meta property="og:image" content="${escapeHtml(socialImage)}"><meta property="og:image:alt" content="${escapeHtml(imageAlt)}"><meta property="og:locale" content="en_NG"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(title)}"><meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(socialImage)}"><meta name="twitter:image:alt" content="${escapeHtml(imageAlt)}">${feed ? `<link rel="alternate" type="application/rss+xml" title="${escapeHtml(feed)}" href="${escapeHtml(feedPath || canonicalPath.replace(/(?:\/page\/\d+)?$/, '/feed.xml'))}">` : ''}${structured.map((item) => `<script type="application/ld+json">${safeJson(item)}</script>`).join('')}<link rel="stylesheet" href="/assets/css/site.css?v=20261023-design1"><link rel="stylesheet" href="/assets/css/public-content.css?v=20261027-run8"></head><body><a class="skip-link" href="#main">Skip to content</a>${navigation(current.replace('-detail', ''))}${main}${footer()}<script src="/assets/js/visitor-insights.js?v=20261023-design1"></script><script src="/assets/js/public-shell.js?v=20261023-design1"></script><script src="/assets/js/public-content.js?v=20261027-run8"></script><nav class="mobile-dock" aria-label="Mobile quick navigation"><a href="/" data-dock="home"><span>Home</span></a><a href="/admissions.html" data-dock="admissions"><span>Admissions</span></a><a href="/explore.html" data-dock="explore"><span>Explore</span></a><a href="/search.html" data-dock="search"><span>Search</span></a><a href="/contact.html" data-dock="contact"><span>Contact</span></a></nav></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><script src="/assets/js/theme-init.js?v=20261023-design1"></script><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${escapeHtml(canonical)}"><meta name="robots" content="${escapeHtml(robots)}"><meta property="og:type" content="${current === 'news-detail' ? 'article' : 'website'}"><meta property="og:site_name" content="${SITE_NAME}"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${escapeHtml(canonical)}"><meta property="og:image" content="${escapeHtml(socialImage)}"><meta property="og:image:alt" content="${escapeHtml(imageAlt)}"><meta property="og:locale" content="en_NG"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(title)}"><meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(socialImage)}"><meta name="twitter:image:alt" content="${escapeHtml(imageAlt)}">${feed ? `<link rel="alternate" type="application/rss+xml" title="${escapeHtml(feed)}" href="${escapeHtml(feedPath || canonicalPath.replace(/(?:\/page\/\d+)?$/, '/feed.xml'))}">` : ''}${structured.map((item) => `<script type="application/ld+json">${safeJson(item)}</script>`).join('')}<link rel="stylesheet" href="/assets/css/site.css?v=20261023-design1"><link rel="stylesheet" href="/assets/css/public-content.css?v=20261027-run8"></head><body><a class="skip-link" href="#main">Skip to content</a>${navigation(current.replace('-detail', ''))}${main}${footer()}<script src="/assets/js/visitor-insights.js?v=20261023-design1"></script><script src="/assets/js/public-shell.js?v=20261023-design1"></script><script src="/assets/js/public-content.js?v=20261027-run8"></script><nav class="mobile-dock" aria-label="Mobile quick navigation"><a href="/" data-dock="home"><span>Home</span></a><a href="/admissions" data-dock="admissions"><span>Admissions</span></a><a href="/site-map" data-dock="explore"><span>Explore</span></a><a href="/search" data-dock="search"><span>Search</span></a><a href="/contact" data-dock="contact"><span>Contact</span></a></nav></body></html>`;
 }
 
 function publishedMeta(entry, now) {
@@ -441,7 +482,7 @@ function listPage({ type, bundles, page, totalPages, now, archive = false, media
     : isEvent ? 'Confirmed public events from Treasure Academy, Ageva, with exact Lagos dates and lifecycle status.'
       : 'Reviewed news and public updates from Treasure Academy, Ageva.';
   const cards = bundles.length ? bundles.map((bundle) => listingCard(bundle, type, now, mediaEnabled)).join('')
-    : `<div class="content-empty"><h2>No ${archive ? 'archived events' : isEvent ? 'current events' : 'CMS news'} are published</h2><p>The website will not invent dates or updates. Use the verified school contact if you need current information.</p><a class="btn btn-mint" href="/contact.html">Contact the school</a></div>`;
+    : `<div class="content-empty"><h2>No ${archive ? 'archived events' : isEvent ? 'current events' : 'CMS news'} are published</h2><p>The website will not invent dates or updates. Use the verified school contact if you need current information.</p><a class="btn btn-mint" href="/contact">Contact the school</a></div>`;
   const main = `<header class="page-hero content-hero"><div class="container"><span class="sec-tag">Verified public content</span><h1>${heading}</h1><p>${description}</p><nav class="content-tabs" aria-label="News, events and gallery"><a href="/news"${!isEvent ? ' aria-current="page"' : ''}>News</a><a href="/events"${isEvent && !archive ? ' aria-current="page"' : ''}>Events</a><a href="/events/archive"${archive ? ' aria-current="page"' : ''}>Event archive</a><a href="/gallery">Gallery</a></nav></div></header><main id="main"><section><div class="container content-wrap"><div class="content-grid">${cards}</div>${pagination(type, page, totalPages, archive)}</div></section></main>`;
   return pageShell({ title, description, canonicalPath, current: isEvent ? 'events' : 'news', main, robots: bundles.length ? 'index,follow,max-image-preview:large,max-snippet:-1' : 'noindex,follow', feed: isEvent ? 'Treasure Academy Events' : 'Treasure Academy News', feedPath: isEvent ? '/events/feed.xml' : '/news/feed.xml', structured: [breadcrumbs([{ name: 'Home', path: '/' }, { name: heading, path: base }])] });
 }
@@ -554,7 +595,7 @@ function rss(items, type) {
 }
 
 function unavailablePage() {
-  const main = '<main id="main"><section><div class="container content-empty"><h1>Published information is temporarily unavailable</h1><p>No date, event or update will be guessed. Please try again or use the verified school contact.</p><a class="btn btn-mint" href="/contact.html">Contact the school</a></div></section></main>';
+  const main = '<main id="main"><section><div class="container content-empty"><h1>Published information is temporarily unavailable</h1><p>No date, event or update will be guessed. Please try again or use the verified school contact.</p><a class="btn btn-mint" href="/contact">Contact the school</a></div></section></main>';
   return pageShell({ title: `Temporarily unavailable — ${SITE_NAME}`, description: 'Published school information is temporarily unavailable.', canonicalPath: '/', current: '', main, robots: 'noindex,nofollow,noarchive' });
 }
 
@@ -564,6 +605,7 @@ function notFoundPage() {
 }
 
 function classifyRoute(pathname) {
+  if (pathname === '/sitemap.xml') return { kind: 'sitemap', publicPath: '/sitemap.xml' };
   if (pathname === '/news') return { kind: 'list', type: 'news', page: 1, publicPath: '/news' };
   if (pathname === '/events') return { kind: 'list', type: 'event', page: 1 };
   if (pathname === '/events/archive') return { kind: 'list', type: 'event', page: 1, archive: true };
@@ -588,6 +630,7 @@ function classifyRewrite(url) {
   const marker = url.searchParams.get('route') || '';
   const slug = url.searchParams.get('slug') || '';
   const page = Number(url.searchParams.get('page') || 0);
+  if (marker === 'sitemap') return { kind: 'sitemap', publicPath: '/sitemap.xml' };
   if (marker === 'news-list') return { kind: 'list', type: 'news', page: 1, publicPath: '/news' };
   if (marker === 'events-list') return { kind: 'list', type: 'event', page: 1, publicPath: '/events' };
   if (marker === 'events-archive') return { kind: 'list', type: 'event', page: 1, archive: true, publicPath: '/events/archive' };
@@ -680,7 +723,10 @@ export async function handlePublicContent(request, overrides = {}) {
   if (!route) return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
   const publicPath = route.publicPath || url.pathname;
   if (env.PUBLIC_CMS_ENABLED !== 'true') {
-    if (route.kind === 'list' && route.type === 'news' && route.page === 1) return redirect('/news.html', 307);
+    if (route.kind === 'sitemap') {
+      const xml = sitemapXml();
+      return new Response(request.method === 'HEAD' ? null : xml, { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=30', 'X-Content-Type-Options': 'nosniff' } });
+    }
     return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
   }
   if (route.page === 1 && /^\/(news|events)\/page\/1$/.test(publicPath)) return redirect(`/${route.type === 'news' ? 'news' : 'events'}`);
@@ -693,11 +739,18 @@ export async function handlePublicContent(request, overrides = {}) {
     if (['gallery', 'gallery-detail', 'asset', 'download'].includes(route.kind) && !mediaEnabled) {
       return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
     }
+    if (route.kind === 'sitemap') {
+      const [news, events] = await Promise.all([repository.listEntries('news'), repository.listEntries('event')]);
+      const entries = [...news, ...events];
+      const gallery = mediaEnabled ? await allGallery(repository) : [];
+      const xml = sitemapXml(entries, gallery);
+      return new Response(request.method === 'HEAD' ? null : xml, { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=30', 'X-Content-Type-Options': 'nosniff' } });
+    }
     if (route.kind === 'feed') {
       const entries = await repository.listEntries(route.type);
       const visible = route.type === 'event' ? entries.filter((entry) => !eventLifecycle(entry, now).archived) : entries;
       const xml = rss(visible.slice(0, 30), route.type);
-      return new Response(request.method === 'HEAD' ? null : xml, { status: 200, headers: { 'Content-Type': 'application/rss+xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=60', 'X-Content-Type-Options': 'nosniff' } });
+      return new Response(request.method === 'HEAD' ? null : xml, { status: 200, headers: { 'Content-Type': 'application/rss+xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=30', 'X-Content-Type-Options': 'nosniff' } });
     }
     if (route.kind === 'list') {
       let entries = await repository.listEntries(route.type);
@@ -748,5 +801,5 @@ export async function handlePublicContent(request, overrides = {}) {
 }
 
 export const publicContentInternals = Object.freeze({
-  classifyRoute, mediaRowsForEntry, galleryItems, renderBlock, pageShell, rss, safeInternalPath, escapeHtml
+  classifyRoute, mediaRowsForEntry, galleryItems, renderBlock, pageShell, rss, sitemapXml, safeInternalPath, escapeHtml
 });

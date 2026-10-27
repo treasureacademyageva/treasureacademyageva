@@ -23,7 +23,7 @@ PAGES = {
     "about.html":        ("About Us", "about story history mission vision motto founder headmistress"),
     "admissions.html":   ("Admissions", "admission apply enrol enroll register registration join entry"),
     "admission-form.html": ("Admission Form", "admission form buy purchase entrance download print"),
-    "academics.html":    ("Academics", "academics class classes curriculum subjects creche nursery primary "
+    "academics.html":    ("Academics", "academics class classes curriculum subjects pre-nursery nursery primary "
                           "age group stream level grade what class school offer teach"),
     "fees.html":         ("School Fees", "fees fee payment pay cost price tuition bank transfer"),
     "exams.html":        ("Examinations", "exam exams examination timetable paper test"),
@@ -242,7 +242,7 @@ def build():
          "Treasure Academy is opposite Morak Pure-Water Factory in Ageva, Okene, Kogi State. The Contact page has current directions and public contact details.",
          "where located location address directions map visit", "contact.html", False),
         ("fact:classes", "Exact School Progression",
-         "The class progression is Creche, Pre-Nursery, Nursery 1, Nursery 2, Primary 1, Primary 2, Primary 3, Primary 4, Primary 6 and Graduate Hall. There is no Primary 5; Primary 4 progresses directly to Primary 6.",
+         "The class progression is Pre-Nursery, Nursery 1, Nursery 2, Primary 1, Primary 2, Primary 3, Primary 4, Primary 6 and Graduate Hall. There is no Primary 5; Primary 4 progresses directly to Primary 6.",
          "classes progression primary 4 primary 5 primary 6 graduate hall", "academics.html", False),
         ("fact:family", "Linked Parents and Children",
          "One parent account may link several verified children. A pupil may have at most two active parents or guardians, each with a separate account. A name and class alone never reveal a pupil or grant access.",

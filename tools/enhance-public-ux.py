@@ -13,6 +13,12 @@ VERSION = "20261023-design1"
 SKIP_SHELL = {"developer.html", "developer-review.html", "developer-operations.html"}
 STORE_PAGES = {"index.html", "contact.html"}
 SAFE_ACTION_PAGES = {"admissions.html", "contact.html"}
+CORE_SLOT_PAGES = {
+    "about.html", "academics.html", "admissions.html", "fees.html", "contact.html", "calendar.html",
+    "exams.html", "transport.html", "uniform.html", "shop.html", "pta.html", "careers.html",
+    "privacy.html", "safeguarding.html", "credits.html", "request-centre.html",
+}
+DISCOVERY_VERSION = "20261027-run10"
 BRAND_ASSETS = json.loads((ROOT / "assets" / "data" / "brand-assets.json").read_text(encoding="utf-8"))
 
 
@@ -60,7 +66,7 @@ def nav_links(rel: str, lite: bool = False) -> str:
 
 def lite_nav(rel: str) -> str:
     return f'''<nav class="lite-nav" aria-label="Primary navigation"><div class="container">
-<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a>
+<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Pre-Nursery · Nursery · Primary — Ageva</small></span></a>
 <div class="lite-links">{nav_links(rel, True)}</div>
 <div class="lite-actions"><a class="lite-search" href="/search.html">Search</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admissions.html#apply">Apply</a></div>
 </div></nav>'''
@@ -96,7 +102,7 @@ def route_bar(rel: str, title: str) -> str:
 
 def footer() -> str:
     return '''<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid">
-<div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
+<div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Pre-Nursery, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
 <div class="uf-col"><h2>Find it fast</h2><nav class="uf-links" aria-label="Popular pages"><a href="/admissions.html">Admissions</a><a href="/academics.html">Classes</a><a href="/fees.html">Fees</a><a href="/calendar.html">Term dates</a><a href="/uniform.html">Uniform</a><a href="/transport.html">Transport</a></nav></div>
 <div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/portal/login.html">Parent &amp; Staff Portal</a><a href="/portal/login.html#register">Create Parent Account</a><a href="/admissions.html#tracker">Track Application</a><a href="/request-centre.html">Request Centre</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/website-help.html">Website help</a><a href="/credits.html">Website credits</a></nav></div>
 <div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
@@ -245,6 +251,20 @@ for path in paths:
     safe_rx = r'\s*<script\b[^>]*src=["\'][^"\']*assets/js/safe-actions\.js[^"\']*["\'][^>]*></script>'
     if rel not in STORE_PAGES: text = re.sub(store_rx, "", text, flags=re.I)
     if rel not in SAFE_ACTION_PAGES: text = re.sub(safe_rx, "", text, flags=re.I)
+
+    # Run 10 discovery clients are generator-owned so rebuilt core pages cannot
+    # silently lose safe structured slots or the coarse inventory projection.
+    core_slot_rx = r'\s*<script\b[^>]*src=["\'][^"\']*assets/js/core-page-slots\.js[^"\']*["\'][^>]*></script>'
+    public_inventory_rx = r'\s*<script\b[^>]*src=["\'][^"\']*assets/js/public-inventory\.js[^"\']*["\'][^>]*></script>'
+    text = re.sub(core_slot_rx, "", text, flags=re.I)
+    text = re.sub(public_inventory_rx, "", text, flags=re.I)
+    discovery_scripts = []
+    if rel in CORE_SLOT_PAGES:
+        discovery_scripts.append(f'<script src="/assets/js/core-page-slots.js?v={DISCOVERY_VERSION}"></script>')
+    if rel == "shop.html":
+        discovery_scripts.append(f'<script src="/assets/js/public-inventory.js?v={DISCOVERY_VERSION}"></script>')
+    if discovery_scripts:
+        text = text.replace("</body>", "\n".join(discovery_scripts) + "\n</body>", 1)
 
     # One predictable primary navigation order.
     alt_classes = r'(?:utility-nav|news-nav|class-simple-nav|archive-nav|identity-nav|practice-nav|article-nav|lite-nav)'

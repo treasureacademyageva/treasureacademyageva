@@ -10,7 +10,6 @@ OUT.mkdir(exist_ok=True)
 SITE = "https://www.treasureacademyageva.com"
 
 CLASSES = [
- ("creche", "Creche", "Gentle care for our littlest treasures.", "Our Creche provides a calm, caring routine that supports early speech, movement, play and social confidence.", ["Rhymes and guided play", "Movement and early speech", "Rest and meal routines", "Kind social interaction"]),
  ("pre-nursery", "Pre-Nursery", "First steps into happy learning.", "Pre-Nursery blends play with early learning as children begin to recognise letters, numbers, colours and classroom routines.", ["Letter and number play", "Painting and building", "Rhymes and stories", "Table manners and sharing"]),
  ("nursery-1", "Nursery 1", "Sounds, letters and numbers come alive.", "Nursery 1 builds reading and writing foundations with phonics, handwriting practice and simple numeracy.", ["Phonics and reading", "Handwriting", "Simple counting", "Colouring and craft"]),
  ("nursery-2", "Nursery 2", "Confident readers, ready for Primary.", "Nursery 2 develops reading fluency, spelling and number work so children enter Primary 1 with confidence.", ["Reading fluency", "Spelling and dictation", "Addition and subtraction", "Show and tell"]),
@@ -27,9 +26,7 @@ for slug, name, tagline, about, activities in CLASSES:
     canonical = f"{SITE}/classes/{slug}.html"
     cards = "".join(f"<li>{escape(x)}</li>" for x in activities)
     wa_text = quote("Hello Treasure Academy, I want to ask about " + name + ".")
-    if slug == "creche":
-        image, webp = "stage-creche.png", ""
-    elif slug in {"pre-nursery", "nursery-1", "nursery-2"}:
+    if slug in {"pre-nursery", "nursery-1", "nursery-2"}:
         image, webp = "stage-nursery.png", "stage-nursery.webp"
     else:
         image, webp = "stage-primary.png", ""

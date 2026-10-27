@@ -1,23 +1,23 @@
 (() => {
   'use strict';
   const topicsByPath = {
-    '/admissions.html': ['admission_procedure', 'admissions', 'class_availability'],
-    '/admission-form.html': ['admission_procedure', 'admissions', 'class_availability'],
-    '/academics.html': ['class_progression'],
-    '/contact.html': ['school_hours', 'address'],
-    '/privacy.html': ['public_policy'],
-    '/safeguarding.html': ['public_policy'],
-    '/fees.html': ['fees'],
-    '/calendar.html': ['calendar'],
-    '/exams.html': ['exam_timetable'],
-    '/transport.html': ['transport'],
-    '/uniform.html': ['uniform'],
-    '/poster.html': ['uniform', 'supplies'],
-    '/shop.html': ['supplies'],
-    '/pta.html': ['pta'],
-    '/news.html': ['events', 'general_notice'],
-    '/board.html': ['general_notice'],
-    '/request-centre.html': ['general_notice']
+    '/admissions': ['admission_procedure', 'admissions', 'class_availability'],
+    '/admission-form': ['admission_procedure', 'admissions', 'class_availability'],
+    '/academics': ['class_progression'],
+    '/contact': ['school_hours', 'address'],
+    '/privacy': ['public_policy'],
+    '/safeguarding': ['public_policy'],
+    '/fees': ['fees'],
+    '/calendar': ['calendar'],
+    '/exams': ['exam_timetable'],
+    '/transport': ['transport'],
+    '/uniform': ['uniform'],
+    '/poster': ['uniform', 'supplies'],
+    '/shop': ['supplies'],
+    '/pta': ['pta'],
+    '/news': ['events', 'general_notice'],
+    '/board': ['general_notice'],
+    '/request-centre': ['general_notice']
   };
   const topics = topicsByPath[location.pathname];
   if (!topics) return;

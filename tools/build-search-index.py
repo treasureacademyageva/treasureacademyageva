@@ -21,12 +21,12 @@ EXCLUDE = {
 }
 
 KEYWORDS = {
-    "index.html": "school private school ageva okene kogi creche nursery primary home",
+    "index.html": "school private school ageva okene kogi pre-nursery nursery primary home",
     "about.html": "who we are founder story mission vision motto registration school identity",
     "admissions.html": "apply application enrol enrollment admission join register requirements documents places form",
     "admission-form.html": "request official form application safe process",
-    "academics.html": "classes curriculum learning subjects teaching assessment creche nursery primary",
-    "class.html": "choose class grade year creche nursery primary class finder",
+    "academics.html": "classes curriculum learning subjects teaching assessment pre-nursery nursery primary",
+    "class.html": "choose class grade year pre-nursery nursery primary class finder",
     "story.html": "school story history mission founder identity about",
     "fees.html": "fees tuition cost price how much payment bank transfer schedule charges",
     "contact.html": "phone whatsapp email address location where directions visit office help",

@@ -20,6 +20,9 @@
 --   supabase/migrations/20261026070000_cloudinary_media_governance.sql
 --   supabase/migrations/20261027080000_public_content_delivery.sql
 --   supabase/migrations/20261027090000_public_engagement_and_placements.sql
+--   supabase/migrations/20261027100000_verified_content_search_and_inventory.sql
+--   supabase/migrations/20261027110000_clean_routes_and_discovery_quality.sql
+--   supabase/migrations/20261027130000_current_classes_and_flexible_results.sql
 --
 -- Keep this mirror aligned whenever a versioned migration changes.
 
@@ -11267,5 +11270,1172 @@ comment on view public.public_cms_engagement_totals is
   'Published aggregate counts only; no viewer or reacting-account identity is exposed.';
 comment on view public.public_cms_approved_comments is
   'Leadership-approved current-public comments with role-safe labels and no account identity.';
+
+commit;
+
+-- ============================================================================
+-- BEGIN MIRROR: 20261027100000_verified_content_search_and_inventory.sql
+-- ============================================================================
+
+-- Treasure Academy verified-content migration, core slots, Search and safe inventory
+-- Run 10 technical boundary. This migration is additive/data-neutral: it stages no
+-- candidate, publishes no wording, reconciles no inventory and activates no gate.
+
+begin;
+
+-- ---------------------------------------------------------------------------
+-- Verified operational information: fixed public projection and stale controls
+-- ---------------------------------------------------------------------------
+
+alter table public.verified_public_information
+  add column if not exists source_path text,
+  add column if not exists source_note text,
+  add column if not exists accountable_owner text,
+  add column if not exists next_review_date date;
+
+alter table public.verified_public_information
+  drop constraint if exists verified_public_information_source_path_check,
+  add constraint verified_public_information_source_path_check check (
+    source_path is null or (
+      source_path ~ '^/[a-zA-Z0-9/_?#=&.%-]*$'
+      and source_path !~ '//'
+      and source_path !~ '(^|/)\.\.(/|$)'
+      and char_length(source_path) between 1 and 500
+    )
+  ),
+  drop constraint if exists verified_public_information_source_note_check,
+  add constraint verified_public_information_source_note_check check (
+    source_note is null or char_length(trim(source_note)) between 3 and 2000
+  ),
+  drop constraint if exists verified_public_information_owner_check,
+  add constraint verified_public_information_owner_check check (
+    accountable_owner is null or char_length(trim(accountable_owner)) between 2 and 120
+  ),
+  drop constraint if exists verified_public_information_publishable_check,
+  add constraint verified_public_information_publishable_check check (
+    status<>'published'::public.publication_status or (
+      source_path is not null and source_note is not null and accountable_owner is not null
+      and next_review_date is not null and reviewed_at is not null
+      and published_by is not null and published_at is not null
+    )
+  ) not valid;
+alter table public.verified_public_information
+  validate constraint verified_public_information_publishable_check;
+
+alter table public.public_information_events
+  add column if not exists reason text not null default 'Portal publication workflow'
+    check (char_length(trim(reason)) between 8 and 500);
+
+create or replace function public.guard_public_information()
+returns trigger
+language plpgsql
+security definer
+set search_path=''
+as $$
+begin
+  if new.title ~ '[<>]' or new.summary ~ '[<>]' or coalesce(new.detail,'') ~ '[<>]'
+     or coalesce(new.source_note,'') ~* '(password|otp|secret|token|credential|payment proof|safeguarding incident)' then
+    raise exception 'Public information contains unsupported or private material' using errcode='22023';
+  end if;
+
+  if coalesce((select auth.role()),'')<>'service_role' and session_user not in ('postgres','supabase_admin') then
+    if not (select public.is_admin()) then
+      raise exception 'Administrator publication required' using errcode='42501';
+    end if;
+    if tg_op='INSERT' then
+      new.created_by:=(select auth.uid());
+      new.published_by:=null;
+      new.published_at:=null;
+      new.reviewed_at:=null;
+      if new.status='archived'::public.publication_status then
+        raise exception 'A new publication begins as draft or published' using errcode='22023';
+      end if;
+    else
+      if new.id is distinct from old.id or new.created_by is distinct from old.created_by
+         or new.created_at is distinct from old.created_at or new.revision is distinct from old.revision then
+        raise exception 'Publication identity, ownership and revision identifiers are immutable' using errcode='42501';
+      end if;
+      if new.published_by is distinct from old.published_by or new.published_at is distinct from old.published_at
+         or new.reviewed_at is distinct from old.reviewed_at then
+        raise exception 'Publication review fields are managed by the database' using errcode='42501';
+      end if;
+      if old.status<>'draft'::public.publication_status and (
+        new.topic is distinct from old.topic or new.title is distinct from old.title
+        or new.summary is distinct from old.summary or new.detail is distinct from old.detail
+        or new.effective_from is distinct from old.effective_from
+        or new.effective_until is distinct from old.effective_until
+        or new.source_path is distinct from old.source_path
+        or new.source_note is distinct from old.source_note
+        or new.accountable_owner is distinct from old.accountable_owner
+        or new.next_review_date is distinct from old.next_review_date
+      ) then
+        raise exception 'Published information is immutable; create a new revision' using errcode='42501';
+      end if;
+      if new.status is distinct from old.status and not (
+        (old.status='draft'::public.publication_status and new.status='published'::public.publication_status)
+        or (old.status='published'::public.publication_status and new.status='archived'::public.publication_status)
+      ) then raise exception 'Invalid publication status transition' using errcode='22023'; end if;
+    end if;
+
+    if new.status='published'::public.publication_status and (tg_op='INSERT' or old.status<>new.status) then
+      if new.source_path is null or new.source_note is null or new.accountable_owner is null
+         or new.next_review_date is null or new.next_review_date<current_date then
+        raise exception 'Source, accountable owner and a current next-review date are required' using errcode='22023';
+      end if;
+      new.published_by:=(select auth.uid());
+      new.published_at:=now();
+      new.reviewed_at:=now();
+    end if;
+  end if;
+  return new;
+end $$;
+revoke all on function public.guard_public_information() from public,anon,authenticated;
+
+create trigger public_information_events_immutable
+before update or delete on public.public_information_events
+for each row execute function public.cms_reject_mutation();
+
+create trigger verified_public_information_no_delete
+before delete on public.verified_public_information
+for each row execute function public.cms_prevent_hard_delete();
+
+drop policy if exists verified_public_information_public_select on public.verified_public_information;
+revoke select on public.verified_public_information from anon;
+
+create or replace view public.public_verified_information
+with (security_invoker=false,security_barrier=true)
+as
+select id,topic,title,summary,detail,revision,source_path,
+  effective_from,effective_until,published_at,reviewed_at,next_review_date
+from public.verified_public_information
+where status='published'::public.publication_status
+  and published_at is not null and reviewed_at is not null
+  and source_path is not null
+  and (effective_from is null or effective_from<=current_date)
+  and (effective_until is null or effective_until>=current_date)
+  and next_review_date>=current_date;
+revoke all on public.public_verified_information from public;
+grant select on public.public_verified_information to anon,authenticated,service_role;
+
+-- ---------------------------------------------------------------------------
+-- Held migration candidates: text only, source-hashed and explicitly verified
+-- ---------------------------------------------------------------------------
+
+do $$ begin
+  create type public.cms_migration_status as enum ('held','verified','rejected','imported');
+exception when duplicate_object then null; end $$;
+
+create table public.public_content_migration_candidates (
+  id uuid primary key default gen_random_uuid(),
+  source_key text not null check (source_key ~ '^[a-z0-9]+(?:[._/-][a-z0-9]+)*$' and char_length(source_key) between 3 and 240),
+  source_kind text not null check (source_kind in ('repository_html','repository_data','owner_document','legacy_database')),
+  source_locator text not null check (char_length(trim(source_locator)) between 1 and 500),
+  source_sha256 text not null check (source_sha256 ~ '^[a-f0-9]{64}$'),
+  content_type public.cms_content_type not null,
+  slug text not null check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$' and char_length(slug) between 2 and 120),
+  document jsonb not null check (jsonb_typeof(document)='object' and pg_column_size(document)<=262144),
+  historical_child_media_held boolean not null default true,
+  status public.cms_migration_status not null default 'held',
+  staged_by uuid not null references public.profiles(id) on delete restrict,
+  staged_at timestamptz not null default now(),
+  verified_by uuid references public.profiles(id) on delete restrict,
+  verified_at timestamptz,
+  verification_reason text check (verification_reason is null or char_length(trim(verification_reason)) between 8 and 500),
+  imported_entry_id uuid references public.public_content_entries(id) on delete restrict,
+  imported_at timestamptz,
+  unique(source_key,source_sha256),
+  check ((status='held' and verified_by is null and verified_at is null and imported_entry_id is null and imported_at is null)
+      or (status in ('verified','rejected') and verified_by is not null and verified_at is not null and imported_entry_id is null and imported_at is null)
+      or (status='imported' and verified_by is not null and verified_at is not null and imported_entry_id is not null and imported_at is not null))
+);
+
+create table public.public_content_migration_events (
+  id bigint generated always as identity primary key,
+  candidate_id uuid not null references public.public_content_migration_candidates(id) on delete restrict,
+  actor_id uuid not null references public.profiles(id) on delete restrict,
+  action text not null check (action in ('staged','verified','rejected','imported')),
+  reason text not null check (char_length(trim(reason)) between 8 and 500),
+  created_at timestamptz not null default now()
+);
+
+create table public.public_content_revision_sources (
+  revision_id uuid not null references public.public_content_revisions(id) on delete restrict,
+  candidate_id uuid not null references public.public_content_migration_candidates(id) on delete restrict,
+  source_sha256 text not null check (source_sha256 ~ '^[a-f0-9]{64}$'),
+  linked_by uuid not null references public.profiles(id) on delete restrict,
+  linked_at timestamptz not null default now(),
+  primary key(revision_id,candidate_id)
+);
+
+create index public_content_migration_status_idx
+  on public.public_content_migration_candidates(status,staged_at desc);
+create index public_content_revision_sources_candidate_idx
+  on public.public_content_revision_sources(candidate_id);
+
+alter table public.public_content_migration_candidates enable row level security;
+alter table public.public_content_migration_events enable row level security;
+alter table public.public_content_revision_sources enable row level security;
+
+create policy public_content_migration_candidates_private_select
+on public.public_content_migration_candidates for select to authenticated
+using (public.cms_current_actor_can('view_private'));
+create policy public_content_migration_events_private_select
+on public.public_content_migration_events for select to authenticated
+using (public.cms_current_actor_can('view_private'));
+create policy public_content_revision_sources_private_select
+on public.public_content_revision_sources for select to authenticated
+using (public.cms_current_actor_can('view_private'));
+grant select on public.public_content_migration_candidates,public.public_content_migration_events,
+  public.public_content_revision_sources to authenticated;
+
+create trigger public_content_migration_events_immutable
+before update or delete on public.public_content_migration_events
+for each row execute function public.cms_reject_mutation();
+create trigger public_content_revision_sources_immutable
+before update or delete on public.public_content_revision_sources
+for each row execute function public.cms_reject_mutation();
+
+create or replace function public.cms_stage_content_candidate(
+  p_source_key text,p_source_kind text,p_source_locator text,p_source_sha256 text,
+  p_content_type public.cms_content_type,p_slug text,p_document jsonb,
+  p_historical_child_media_held boolean,p_reason text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_actor uuid:=(select auth.uid()); v_id uuid;
+begin
+  if not public.cms_current_actor_can('draft') then raise exception 'CMS drafting authority required' using errcode='42501'; end if;
+  if p_source_key !~ '^[a-z0-9]+(?:[._/-][a-z0-9]+)*$' or char_length(p_source_key) not between 3 and 240
+     or p_source_kind not in ('repository_html','repository_data','owner_document','legacy_database')
+     or char_length(trim(coalesce(p_source_locator,''))) not between 1 and 500
+     or p_source_sha256 !~ '^[a-f0-9]{64}$'
+     or char_length(trim(coalesce(p_reason,''))) not between 8 and 500 then
+    raise exception 'Invalid migration source contract' using errcode='22023';
+  end if;
+  perform public.cms_validate_document(p_content_type,p_document);
+  if coalesce(jsonb_array_length(coalesce(p_document->'media','[]'::jsonb)),0)>0
+     or exists(select 1 from jsonb_array_elements(p_document->'blocks') b where b->>'type' in ('image','video','gallery')) then
+    raise exception 'Migration candidates are text-only; historical media remains held' using errcode='22023';
+  end if;
+  insert into public.public_content_migration_candidates(
+    source_key,source_kind,source_locator,source_sha256,content_type,slug,document,
+    historical_child_media_held,staged_by
+  ) values (
+    p_source_key,p_source_kind,trim(p_source_locator),p_source_sha256,p_content_type,p_slug,p_document,
+    coalesce(p_historical_child_media_held,true),v_actor
+  ) returning id into v_id;
+  insert into public.public_content_migration_events(candidate_id,actor_id,action,reason)
+  values(v_id,v_actor,'staged',trim(p_reason));
+  return v_id;
+end $$;
+revoke all on function public.cms_stage_content_candidate(text,text,text,text,public.cms_content_type,text,jsonb,boolean,text) from public,anon;
+grant execute on function public.cms_stage_content_candidate(text,text,text,text,public.cms_content_type,text,jsonb,boolean,text) to authenticated;
+
+create or replace function public.cms_verify_content_candidate(p_candidate_id uuid,p_decision text,p_reason text)
+returns boolean
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_actor uuid:=(select auth.uid()); v_action text;
+begin
+  if not public.cms_current_actor_can('publish') then raise exception 'CMS publishing authority required' using errcode='42501'; end if;
+  if p_decision not in ('verified','rejected') or char_length(trim(coalesce(p_reason,''))) not between 8 and 500 then
+    raise exception 'A verification decision and reason are required' using errcode='22023';
+  end if;
+  update public.public_content_migration_candidates
+  set status=p_decision::public.cms_migration_status,verified_by=v_actor,verified_at=now(),verification_reason=trim(p_reason)
+  where id=p_candidate_id and status='held';
+  if not found then raise exception 'Held migration candidate required' using errcode='22023'; end if;
+  v_action:=p_decision;
+  insert into public.public_content_migration_events(candidate_id,actor_id,action,reason)
+  values(p_candidate_id,v_actor,v_action,trim(p_reason));
+  return true;
+end $$;
+revoke all on function public.cms_verify_content_candidate(uuid,text,text) from public,anon;
+grant execute on function public.cms_verify_content_candidate(uuid,text,text) to authenticated;
+
+create or replace function public.cms_import_verified_candidate(p_candidate_id uuid,p_reason text)
+returns uuid
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_actor uuid:=(select auth.uid()); v_candidate public.public_content_migration_candidates%rowtype; v_entry uuid; v_revision uuid;
+begin
+  if not public.cms_current_actor_can('draft') then raise exception 'CMS drafting authority required' using errcode='42501'; end if;
+  if char_length(trim(coalesce(p_reason,''))) not between 8 and 500 then raise exception 'Import reason required' using errcode='22023'; end if;
+  select * into v_candidate from public.public_content_migration_candidates where id=p_candidate_id for update;
+  if not found or v_candidate.status<>'verified' then raise exception 'Verified migration candidate required' using errcode='22023'; end if;
+  if exists(select 1 from public.public_content_entries where slug=v_candidate.slug) then
+    raise exception 'A CMS entry already uses this slug' using errcode='23505';
+  end if;
+  v_entry:=public.cms_create_entry(v_candidate.content_type,v_candidate.slug,v_candidate.document,trim(p_reason));
+  select current_revision_id into strict v_revision from public.public_content_entries where id=v_entry;
+  insert into public.public_content_revision_sources(revision_id,candidate_id,source_sha256,linked_by)
+  values(v_revision,p_candidate_id,v_candidate.source_sha256,v_actor);
+  update public.public_content_migration_candidates
+  set status='imported',imported_entry_id=v_entry,imported_at=now()
+  where id=p_candidate_id;
+  insert into public.public_content_migration_events(candidate_id,actor_id,action,reason)
+  values(p_candidate_id,v_actor,'imported',trim(p_reason));
+  return v_entry;
+end $$;
+revoke all on function public.cms_import_verified_candidate(uuid,text) from public,anon;
+grant execute on function public.cms_import_verified_candidate(uuid,text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Fixed safe core-page slots; no full-page raw HTML replacement
+-- ---------------------------------------------------------------------------
+
+create table public.public_core_page_slots (
+  id uuid primary key default gen_random_uuid(),
+  page_path text not null check (page_path in (
+    '/about.html','/academics.html','/admissions.html','/fees.html','/contact.html','/calendar.html',
+    '/exams.html','/transport.html','/uniform.html','/shop.html','/pta.html','/careers.html',
+    '/privacy.html','/safeguarding.html','/credits.html','/request-centre.html'
+  )),
+  mount_key text not null check (mount_key in ('notice','intro','guidance')),
+  slot_position integer not null check (slot_position between 0 and 2),
+  entry_id uuid not null references public.public_content_entries(id) on delete restrict,
+  active boolean not null default false,
+  effective_from timestamptz,
+  expires_at timestamptz,
+  created_by uuid not null references public.profiles(id) on delete restrict,
+  updated_by uuid not null references public.profiles(id) on delete restrict,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(page_path,mount_key,slot_position),
+  check (expires_at is null or effective_from is null or expires_at>effective_from)
+);
+
+create table public.public_core_page_slot_events (
+  id bigint generated always as identity primary key,
+  slot_id uuid not null references public.public_core_page_slots(id) on delete restrict,
+  entry_id uuid not null references public.public_content_entries(id) on delete restrict,
+  actor_id uuid not null references public.profiles(id) on delete restrict,
+  action text not null check (action in ('set','deactivated')),
+  page_path text not null,
+  mount_key text not null,
+  slot_position integer not null,
+  reason text not null check (char_length(trim(reason)) between 8 and 500),
+  created_at timestamptz not null default now()
+);
+
+alter table public.public_core_page_slots enable row level security;
+alter table public.public_core_page_slot_events enable row level security;
+create policy public_core_page_slots_private_select on public.public_core_page_slots for select to authenticated
+using (public.cms_current_actor_can('view_private'));
+create policy public_core_page_slot_events_private_select on public.public_core_page_slot_events for select to authenticated
+using (public.cms_current_actor_can('view_private'));
+grant select on public.public_core_page_slots,public.public_core_page_slot_events to authenticated;
+create trigger public_core_page_slot_events_immutable before update or delete on public.public_core_page_slot_events
+for each row execute function public.cms_reject_mutation();
+
+create or replace view public.public_cms_published_core_slots
+with (security_invoker=false,security_barrier=true)
+as
+select s.id,s.page_path,s.mount_key,s.slot_position,s.entry_id,e.canonical_path,e.content_type,
+  r.id as revision_id,r.title,r.summary,r.next_review_date
+from public.public_core_page_slots s
+join public.public_content_entries e on e.id=s.entry_id
+join public.public_content_revisions r on r.id=e.published_revision_id
+where s.active and (s.effective_from is null or s.effective_from<=now())
+  and (s.expires_at is null or s.expires_at>now())
+  and (r.next_review_date is null or r.next_review_date>=current_date)
+  and public.cms_revision_is_public(r.id);
+revoke all on public.public_cms_published_core_slots from public;
+grant select on public.public_cms_published_core_slots to anon,authenticated,service_role;
+
+create or replace function public.cms_set_core_page_slot(
+  p_slot_id uuid,p_page_path text,p_mount_key text,p_position integer,p_entry_id uuid,
+  p_active boolean,p_effective_from timestamptz,p_expires_at timestamptz,p_reason text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_actor uuid:=(select auth.uid()); v_id uuid;
+begin
+  if not public.cms_current_actor_can('publish') then raise exception 'CMS publishing authority required' using errcode='42501'; end if;
+  if p_page_path not in (
+    '/about.html','/academics.html','/admissions.html','/fees.html','/contact.html','/calendar.html',
+    '/exams.html','/transport.html','/uniform.html','/shop.html','/pta.html','/careers.html',
+    '/privacy.html','/safeguarding.html','/credits.html','/request-centre.html'
+  ) or p_mount_key not in ('notice','intro','guidance') or p_position not between 0 and 2
+     or p_active is null or char_length(trim(coalesce(p_reason,''))) not between 8 and 500
+     or (p_expires_at is not null and p_effective_from is not null and p_expires_at<=p_effective_from) then
+    raise exception 'Invalid core-page slot contract' using errcode='22023';
+  end if;
+  if not exists(
+    select 1 from public.public_content_entries e
+    where e.id=p_entry_id and e.content_type in ('page','announcement')
+      and public.cms_revision_is_public(e.published_revision_id)
+  ) then raise exception 'A published Page or Announcement is required' using errcode='22023'; end if;
+
+  if p_slot_id is null then
+    insert into public.public_core_page_slots(
+      page_path,mount_key,slot_position,entry_id,active,effective_from,expires_at,created_by,updated_by
+    ) values (p_page_path,p_mount_key,p_position,p_entry_id,p_active,p_effective_from,p_expires_at,v_actor,v_actor)
+    returning id into v_id;
+  else
+    update public.public_core_page_slots set page_path=p_page_path,mount_key=p_mount_key,slot_position=p_position,
+      entry_id=p_entry_id,active=p_active,effective_from=p_effective_from,expires_at=p_expires_at,
+      updated_by=v_actor,updated_at=now()
+    where id=p_slot_id returning id into v_id;
+    if v_id is null then raise exception 'Core-page slot not found' using errcode='P0002'; end if;
+  end if;
+  insert into public.public_core_page_slot_events(slot_id,entry_id,actor_id,action,page_path,mount_key,slot_position,reason)
+  values(v_id,p_entry_id,v_actor,case when p_active then 'set' else 'deactivated' end,p_page_path,p_mount_key,p_position,trim(p_reason));
+  return v_id;
+end $$;
+revoke all on function public.cms_set_core_page_slot(uuid,text,text,integer,uuid,boolean,timestamptz,timestamptz,text) from public,anon;
+grant execute on function public.cms_set_core_page_slot(uuid,text,text,integer,uuid,boolean,timestamptz,timestamptz,text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Office-authoritative public inventory projection
+-- ---------------------------------------------------------------------------
+
+alter table public.shop_variants
+  drop constraint if exists shop_variants_sellable_balance_check,
+  add constraint shop_variants_sellable_balance_check check (reserved+damaged<=on_hand) not valid;
+alter table public.shop_variants validate constraint shop_variants_sellable_balance_check;
+
+create or replace view public.public_inventory_availability
+with (security_invoker=false,security_barrier=true)
+as
+select p.id as product_id,p.product_code,p.name,p.description,p.category,
+  v.id as variant_id,v.sku,v.variant_label,v.size_label,v.eligible_classes,v.unit_price,
+  case
+    when not p.active then 'not_currently_offered'
+    when not v.active then 'temporarily_unavailable'
+    when (v.on_hand-v.reserved-v.damaged)=0 then 'out_of_stock'
+    when (v.on_hand-v.reserved-v.damaged)<=v.low_stock_threshold then 'low_stock'
+    else 'in_stock'
+  end as availability,
+  (p.active and v.active and greatest(v.on_hand-v.reserved-v.damaged,0)>0) as may_request,
+  greatest(p.updated_at,v.updated_at) as updated_at
+from public.shop_products p
+join public.shop_variants v on v.product_id=p.id
+where p.reconciled and v.reconciled;
+revoke all on public.public_inventory_availability from public,anon,authenticated;
+grant select on public.public_inventory_availability to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Published-only weighted Search and aggregate-only privacy controls
+-- ---------------------------------------------------------------------------
+
+create or replace function public.cms_block_search_text(p_type public.cms_block_type,p_payload jsonb)
+returns text
+language plpgsql
+immutable
+set search_path=''
+as $$
+declare v_text text:='';
+begin
+  if p_type in ('paragraph','heading','quote','callout','verified_fact') then
+    return coalesce(p_payload->>'text','');
+  elsif p_type in ('ordered_list','unordered_list') then
+    select coalesce(string_agg(value#>>'{}',' '),'') into v_text from jsonb_array_elements(p_payload->'items');
+    return v_text;
+  elsif p_type='table' then
+    select coalesce(string_agg(value#>>'{}',' '),'') into v_text from (
+      select value from jsonb_array_elements(p_payload->'headers')
+      union all
+      select cell from jsonb_array_elements(p_payload->'rows') r cross join lateral jsonb_array_elements(r) cell
+    ) q;
+    return v_text;
+  elsif p_type='button' then return coalesce(p_payload->>'label','');
+  elsif p_type='image' then return coalesce(p_payload->>'alt','');
+  elsif p_type='video' then return coalesce(p_payload->>'title','');
+  end if;
+  return '';
+end $$;
+revoke all on function public.cms_block_search_text(public.cms_block_type,jsonb) from public,anon,authenticated;
+grant execute on function public.cms_block_search_text(public.cms_block_type,jsonb) to service_role;
+
+create or replace view public.public_search_documents
+with (security_invoker=false,security_barrier=true)
+as
+with cms_blocks as (
+  select b.revision_id,string_agg(public.cms_block_search_text(b.block_type,b.payload),' ' order by b.block_position) as body_text
+  from public.public_cms_published_blocks b group by b.revision_id
+), cms_terms as (
+  select s.revision_id,string_agg(s.term,' ') as terms
+  from public.public_cms_published_search_terms s group by s.revision_id
+)
+select 'cms:'||e.id::text as document_id,e.content_type::text as kind,e.title,e.summary,
+  coalesce(b.body_text,'') as body_text,
+  concat_ws(' ',array_to_string(e.search_keywords,' '),t.terms) as keywords,
+  e.canonical_path as url,e.canonical_path as source_url,e.published_at,
+  e.published_at::date as reviewed_on,e.next_review_date as stale_after
+from public.public_cms_published_entries e
+left join cms_blocks b on b.revision_id=e.revision_id
+left join cms_terms t on t.revision_id=e.revision_id
+where e.next_review_date is null or e.next_review_date>=current_date
+union all
+select 'fact:'||i.id::text,'verified_information',i.title,i.summary,coalesce(i.detail,''),i.topic,
+  i.source_path,i.source_path,i.published_at,i.reviewed_at::date,i.next_review_date
+from public.public_verified_information i
+union all
+select 'inventory:'||i.variant_id::text,'inventory',i.name,
+  concat_ws(' · ',nullif(i.variant_label,''),replace(initcap(i.availability),'_',' ')),coalesce(i.description,''),
+  concat_ws(' ',i.product_code,i.sku,i.category,i.variant_label,i.size_label,array_to_string(i.eligible_classes,' ')),
+  '/shop.html','/shop.html',i.updated_at,i.updated_at::date,null::date
+from public.public_inventory_availability i;
+revoke all on public.public_search_documents from public,anon,authenticated;
+grant select on public.public_search_documents to service_role;
+
+create or replace function public.public_search_published_content(p_query text,p_limit integer default 10,p_include_inventory boolean default false)
+returns table(
+  document_id text,kind text,title text,summary text,url text,source_url text,
+  reviewed_on date,rank real
+)
+language plpgsql
+stable
+security definer
+set search_path=''
+as $$
+declare v_query text:=trim(coalesce(p_query,'')); v_ts tsquery;
+begin
+  if char_length(v_query) not between 2 and 120 or p_limit not between 1 and 20 then
+    raise exception 'Search query contract is invalid' using errcode='22023';
+  end if;
+  v_ts:=websearch_to_tsquery('english',v_query);
+  return query
+  select d.document_id,d.kind,d.title,d.summary,d.url,d.source_url,d.reviewed_on,
+    (
+      ts_rank_cd(
+        setweight(to_tsvector('english',coalesce(d.title,'')),'A') ||
+        setweight(to_tsvector('english',coalesce(d.summary,'')),'B') ||
+        setweight(to_tsvector('english',coalesce(d.keywords,'')),'C') ||
+        setweight(to_tsvector('english',coalesce(d.body_text,'')),'D'),v_ts
+      ) + case when lower(d.title)=lower(v_query) then 2 else 0 end
+    )::real as rank
+  from public.public_search_documents d
+  where (p_include_inventory or d.kind<>'inventory') and (
+    (
+      setweight(to_tsvector('english',coalesce(d.title,'')),'A') ||
+      setweight(to_tsvector('english',coalesce(d.summary,'')),'B') ||
+      setweight(to_tsvector('english',coalesce(d.keywords,'')),'C') ||
+      setweight(to_tsvector('english',coalesce(d.body_text,'')),'D')
+    ) @@ v_ts
+    or position(lower(v_query) in lower(coalesce(d.title,'')))>0
+  )
+  order by rank desc,d.title,d.url
+  limit p_limit;
+end $$;
+revoke all on function public.public_search_published_content(text,integer,boolean) from public,anon,authenticated;
+grant execute on function public.public_search_published_content(text,integer,boolean) to service_role;
+
+create table public.public_search_rate_buckets (
+  bucket_hash text primary key check (bucket_hash ~ '^[a-f0-9]{64}$'),
+  request_count integer not null default 1 check (request_count between 1 and 1000),
+  expires_at timestamptz not null,
+  updated_at timestamptz not null default now()
+);
+create table public.public_search_insights_daily (
+  observed_on date not null,
+  family text not null check (family in ('admissions','fees','location','contact','classes','learning','dates','time','uniform','transport','records','safety','careers','homework','news','identity','shop','alumni','feedback','privacy','website','other')),
+  search_count bigint not null default 0 check (search_count>=0),
+  zero_result_count bigint not null default 0 check (zero_result_count>=0 and zero_result_count<=search_count),
+  primary key(observed_on,family)
+);
+alter table public.public_search_rate_buckets enable row level security;
+alter table public.public_search_insights_daily enable row level security;
+revoke all on public.public_search_rate_buckets,public.public_search_insights_daily from public,anon,authenticated;
+
+create or replace function public.public_take_search_rate_limit(p_bucket_hash text)
+returns table(allowed boolean,retry_after_seconds integer)
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_count integer; v_expiry timestamptz;
+begin
+  if p_bucket_hash !~ '^[a-f0-9]{64}$' then raise exception 'Invalid search bucket' using errcode='22023'; end if;
+  delete from public.public_search_rate_buckets where expires_at<now();
+  insert into public.public_search_rate_buckets(bucket_hash,request_count,expires_at)
+  values(p_bucket_hash,1,now()+interval '10 minutes')
+  on conflict(bucket_hash) do update set request_count=least(public.public_search_rate_buckets.request_count+1,1000),updated_at=now()
+  returning request_count,expires_at into v_count,v_expiry;
+  return query select v_count<=30,greatest(0,ceil(extract(epoch from (v_expiry-now())))::integer);
+end $$;
+revoke all on function public.public_take_search_rate_limit(text) from public,anon,authenticated;
+grant execute on function public.public_take_search_rate_limit(text) to service_role;
+
+create or replace function public.public_record_search_outcome(p_family text,p_zero_result boolean)
+returns void
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_day date:=(now() at time zone 'Africa/Lagos')::date;
+begin
+  if p_family not in ('admissions','fees','location','contact','classes','learning','dates','time','uniform','transport','records','safety','careers','homework','news','identity','shop','alumni','feedback','privacy','website','other') then
+    raise exception 'Invalid search family' using errcode='22023';
+  end if;
+  insert into public.public_search_insights_daily(observed_on,family,search_count,zero_result_count)
+  values(v_day,p_family,1,case when p_zero_result then 1 else 0 end)
+  on conflict(observed_on,family) do update set
+    search_count=public.public_search_insights_daily.search_count+1,
+    zero_result_count=public.public_search_insights_daily.zero_result_count+case when p_zero_result then 1 else 0 end;
+end $$;
+revoke all on function public.public_record_search_outcome(text,boolean) from public,anon,authenticated;
+grant execute on function public.public_record_search_outcome(text,boolean) to service_role;
+
+create or replace function public.cms_content_review_queue()
+returns table(source_kind text,record_id uuid,title text,public_path text,review_due date,days_until_due integer,state text)
+language plpgsql
+stable
+security definer
+set search_path=''
+as $$
+begin
+  if not public.cms_current_actor_can('view_private') then raise exception 'CMS private-view authority required' using errcode='42501'; end if;
+  return query
+  select q.source_kind,q.record_id,q.title,q.public_path,q.review_due,q.days_until_due,q.state
+  from (
+    select 'cms_content'::text as source_kind,e.id as record_id,e.title,e.canonical_path as public_path,
+      e.next_review_date as review_due,(e.next_review_date-current_date)::integer as days_until_due,
+      case when e.next_review_date<current_date then 'overdue' else 'due_soon' end::text as state
+    from public.public_cms_published_entries e
+    where e.next_review_date is not null and e.next_review_date<=current_date+30
+    union all
+    select 'verified_information'::text,i.id,i.title,i.source_path,i.next_review_date,
+      (i.next_review_date-current_date)::integer,
+      case when i.next_review_date<current_date then 'overdue' else 'due_soon' end::text
+    from public.verified_public_information i
+    where i.status='published'::public.publication_status and i.next_review_date is not null and i.next_review_date<=current_date+30
+  ) q
+  order by q.review_due,q.title;
+end $$;
+revoke all on function public.cms_content_review_queue() from public,anon;
+grant execute on function public.cms_content_review_queue() to authenticated;
+
+comment on table public.public_content_migration_candidates is 'Source-hashed text-only candidates. Verification and draft import are separate audited actions; historical media remains held.';
+comment on view public.public_inventory_availability is 'Reconciled office-authoritative availability only. It creates no reservation and exposes no movement or actor.';
+comment on view public.public_search_documents is 'Published/verified/reconciled search projection; private, stale and self-search documents are excluded.';
+comment on table public.public_search_insights_daily is 'Aggregate topic and zero-result counts only; raw queries, accounts and full IP addresses are never stored.';
+
+commit;
+
+-- ============================================================================
+-- BEGIN MIRROR: 20261027110000_clean_routes_and_discovery_quality.sql
+-- ============================================================================
+
+-- Run 11: clean-route cutover for governed core slots and public discovery.
+-- Forward-only and row-preserving: existing provenance and placements are retained
+-- while former public filenames become their one-hop canonical destinations.
+
+update public.verified_public_information
+set source_path=case source_path
+  when '/about.html' then '/about'
+  when '/academics.html' then '/academics'
+  when '/admissions.html' then '/admissions'
+  when '/fees.html' then '/fees'
+  when '/contact.html' then '/contact'
+  when '/calendar.html' then '/calendar'
+  when '/exams.html' then '/exams'
+  when '/transport.html' then '/transport'
+  when '/uniform.html' then '/uniform'
+  when '/shop.html' then '/shop'
+  when '/pta.html' then '/pta'
+  when '/careers.html' then '/careers'
+  when '/privacy.html' then '/privacy'
+  when '/safeguarding.html' then '/safeguarding'
+  when '/credits.html' then '/credits'
+  when '/request-centre.html' then '/request-centre'
+  else source_path
+end
+where source_path in (
+  '/about.html','/academics.html','/admissions.html','/fees.html','/contact.html','/calendar.html',
+  '/exams.html','/transport.html','/uniform.html','/shop.html','/pta.html','/careers.html',
+  '/privacy.html','/safeguarding.html','/credits.html','/request-centre.html'
+);
+
+alter table public.public_core_page_slots
+  drop constraint public_core_page_slots_page_path_check;
+
+update public.public_core_page_slots
+set page_path=case page_path
+  when '/about.html' then '/about'
+  when '/academics.html' then '/academics'
+  when '/admissions.html' then '/admissions'
+  when '/fees.html' then '/fees'
+  when '/contact.html' then '/contact'
+  when '/calendar.html' then '/calendar'
+  when '/exams.html' then '/exams'
+  when '/transport.html' then '/transport'
+  when '/uniform.html' then '/uniform'
+  when '/shop.html' then '/shop'
+  when '/pta.html' then '/pta'
+  when '/careers.html' then '/careers'
+  when '/privacy.html' then '/privacy'
+  when '/safeguarding.html' then '/safeguarding'
+  when '/credits.html' then '/credits'
+  when '/request-centre.html' then '/request-centre'
+  else page_path
+end;
+
+alter table public.public_core_page_slots
+  add constraint public_core_page_slots_page_path_check check (page_path in (
+    '/about','/academics','/admissions','/fees','/contact','/calendar',
+    '/exams','/transport','/uniform','/shop','/pta','/careers',
+    '/privacy','/safeguarding','/credits','/request-centre'
+  ));
+
+create or replace function public.cms_set_core_page_slot(
+  p_slot_id uuid,p_page_path text,p_mount_key text,p_position integer,p_entry_id uuid,
+  p_active boolean,p_effective_from timestamptz,p_expires_at timestamptz,p_reason text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_actor uuid:=(select auth.uid()); v_id uuid;
+begin
+  if not public.cms_current_actor_can('publish') then raise exception 'CMS publishing authority required' using errcode='42501'; end if;
+  if p_page_path not in (
+    '/about','/academics','/admissions','/fees','/contact','/calendar',
+    '/exams','/transport','/uniform','/shop','/pta','/careers',
+    '/privacy','/safeguarding','/credits','/request-centre'
+  ) or p_mount_key not in ('notice','intro','guidance') or p_position not between 0 and 2
+     or p_active is null or char_length(trim(coalesce(p_reason,''))) not between 8 and 500
+     or (p_expires_at is not null and p_effective_from is not null and p_expires_at<=p_effective_from) then
+    raise exception 'Invalid core-page slot contract' using errcode='22023';
+  end if;
+  if not exists(
+    select 1 from public.public_content_entries e
+    where e.id=p_entry_id and e.content_type in ('page','announcement')
+      and public.cms_revision_is_public(e.published_revision_id)
+  ) then raise exception 'A published Page or Announcement is required' using errcode='22023'; end if;
+
+  if p_slot_id is null then
+    insert into public.public_core_page_slots(
+      page_path,mount_key,slot_position,entry_id,active,effective_from,expires_at,created_by,updated_by
+    ) values (p_page_path,p_mount_key,p_position,p_entry_id,p_active,p_effective_from,p_expires_at,v_actor,v_actor)
+    returning id into v_id;
+  else
+    update public.public_core_page_slots set page_path=p_page_path,mount_key=p_mount_key,slot_position=p_position,
+      entry_id=p_entry_id,active=p_active,effective_from=p_effective_from,expires_at=p_expires_at,
+      updated_by=v_actor,updated_at=now()
+    where id=p_slot_id returning id into v_id;
+    if v_id is null then raise exception 'Core-page slot not found' using errcode='P0002'; end if;
+  end if;
+  insert into public.public_core_page_slot_events(slot_id,entry_id,actor_id,action,page_path,mount_key,slot_position,reason)
+  values(v_id,p_entry_id,v_actor,case when p_active then 'set' else 'deactivated' end,p_page_path,p_mount_key,p_position,trim(p_reason));
+  return v_id;
+end $$;
+revoke all on function public.cms_set_core_page_slot(uuid,text,text,integer,uuid,boolean,timestamptz,timestamptz,text) from public,anon;
+grant execute on function public.cms_set_core_page_slot(uuid,text,text,integer,uuid,boolean,timestamptz,timestamptz,text) to authenticated;
+
+-- Search documents emit canonical destinations only. The view keeps its exact
+-- column contract so the existing weighted Search RPC remains valid.
+create or replace view public.public_search_documents
+with (security_invoker=false,security_barrier=true)
+as
+with cms_blocks as (
+  select b.revision_id,string_agg(public.cms_block_search_text(b.block_type,b.payload),' ' order by b.block_position) as body_text
+  from public.public_cms_published_blocks b group by b.revision_id
+), cms_terms as (
+  select s.revision_id,string_agg(s.term,' ') as terms
+  from public.public_cms_published_search_terms s group by s.revision_id
+)
+select 'cms:'||e.id::text as document_id,e.content_type::text as kind,e.title,e.summary,
+  coalesce(b.body_text,'') as body_text,
+  concat_ws(' ',array_to_string(e.search_keywords,' '),t.terms) as keywords,
+  e.canonical_path as url,e.canonical_path as source_url,e.published_at,
+  e.published_at::date as reviewed_on,e.next_review_date as stale_after
+from public.public_cms_published_entries e
+left join cms_blocks b on b.revision_id=e.revision_id
+left join cms_terms t on t.revision_id=e.revision_id
+where e.next_review_date is null or e.next_review_date>=current_date
+union all
+select 'fact:'||i.id::text,'verified_information',i.title,i.summary,coalesce(i.detail,''),i.topic,
+  i.source_path,i.source_path,i.published_at,i.reviewed_at::date,i.next_review_date
+from public.public_verified_information i
+union all
+select 'inventory:'||i.variant_id::text,'inventory',i.name,
+  concat_ws(' · ',nullif(i.variant_label,''),replace(initcap(i.availability),'_',' ')),coalesce(i.description,''),
+  concat_ws(' ',i.product_code,i.sku,i.category,i.variant_label,i.size_label,array_to_string(i.eligible_classes,' ')),
+  '/shop','/shop',i.updated_at,i.updated_at::date,null::date
+from public.public_inventory_availability i;
+revoke all on public.public_search_documents from public,anon,authenticated;
+grant select on public.public_search_documents to service_role;
+
+-- ============================================================================
+-- BEGIN MIRROR: 20261027130000_current_classes_and_flexible_results.sql
+-- ============================================================================
+
+-- Treasure Academy current class structure and flexible term assessment
+-- Date: 2026-10-27
+--
+-- Owner-approved corrections:
+--   * Pre-Nursery is now the youngest active class; Creche/Daycare is retired.
+--   * Pre-Nursery uses one examination scored over 100.
+--   * Every other active teaching class uses one class-wide term plan:
+--       - three entries: CA 15 + CA 15 + Exam 70
+--       - four entries: CA 10 + CA 10 + CA 10 + Exam 70
+-- This migration inserts no staff, pupil, guardian, score or result-comment data.
+-- Grade/position/remark arithmetic remains deliberately unset until the owner
+-- supplies the official bands and formula.
+
+begin;
+
+-- Preserve the historical class row without allowing new enrolment. Reorder the
+-- active progression so Pre-Nursery is the only routine entry class.
+update public.class_progression set sort_order = sort_order * -1;
+update public.class_progression
+set sort_order = case class_code
+  when 'Creche' then 0
+  when 'Pre-Nursery' then 10
+  when 'Nursery 1' then 20
+  when 'Nursery 2' then 30
+  when 'Primary 1' then 40
+  when 'Primary 2' then 50
+  when 'Primary 3' then 60
+  when 'Primary 4' then 70
+  when 'Primary 6' then 80
+  when 'Graduate Hall' then 90
+end,
+next_class_code = case class_code
+  when 'Creche' then null
+  when 'Pre-Nursery' then 'Nursery 1'
+  when 'Nursery 1' then 'Nursery 2'
+  when 'Nursery 2' then 'Primary 1'
+  when 'Primary 1' then 'Primary 2'
+  when 'Primary 2' then 'Primary 3'
+  when 'Primary 3' then 'Primary 4'
+  when 'Primary 4' then 'Primary 6'
+  when 'Primary 6' then 'Graduate Hall'
+  else null
+end,
+active_for_enrolment = class_code not in ('Creche','Graduate Hall'),
+routine_entry_class = class_code = 'Pre-Nursery',
+graduation_stage = class_code = 'Graduate Hall';
+
+-- Sex is a private school-record field. Existing records may remain null until
+-- the office verifies them; public projections must never expose pupil rows.
+alter table public.students add column if not exists sex text;
+do $$ begin
+  alter table public.students add constraint students_sex_check
+    check (sex is null or sex in ('male','female'));
+exception when duplicate_object then null; end $$;
+
+-- One assessment plan applies to the whole class for a session and term. This
+-- prevents subjects or individual pupils in the same class from silently using
+-- incompatible obtainable marks.
+create table if not exists public.class_term_assessment_plans (
+  id uuid primary key default gen_random_uuid(),
+  class_code text not null references public.class_progression(class_code) on delete restrict,
+  session_name text not null check (char_length(trim(session_name)) between 4 and 40),
+  term text not null check (term in ('First','Second','Third')),
+  scheme text not null check (scheme in (
+    'pre_nursery_exam_100',
+    'three_entry_15_15_70',
+    'four_entry_10_10_10_70'
+  )),
+  selected_by uuid not null references public.profiles(id) on delete restrict default auth.uid(),
+  selection_reason text check (selection_reason is null or char_length(trim(selection_reason)) between 3 and 1000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(class_code,session_name,term)
+);
+create index if not exists class_term_assessment_plans_lookup_idx
+  on public.class_term_assessment_plans(session_name,term,class_code);
+
+create table if not exists public.class_term_assessment_plan_events (
+  id bigint generated always as identity primary key,
+  plan_id uuid not null references public.class_term_assessment_plans(id) on delete cascade,
+  actor_id uuid references public.profiles(id) on delete set null,
+  action text not null check (action in ('created','changed')),
+  previous_scheme text,
+  new_scheme text not null,
+  reason text check (reason is null or char_length(trim(reason)) between 3 and 1000),
+  created_at timestamptz not null default now()
+);
+create index if not exists class_term_assessment_plan_events_plan_idx
+  on public.class_term_assessment_plan_events(plan_id,created_at desc);
+
+alter table public.grades
+  add column if not exists assessment_plan_id uuid references public.class_term_assessment_plans(id) on delete restrict,
+  add column if not exists ca3 numeric(5,2) not null default 0;
+
+-- Replace former fixed 20/20/60 limits with broad storage constraints. Exact
+-- obtainable marks are enforced against the immutable class term plan below.
+alter table public.grades drop constraint if exists grades_exam_score_check;
+alter table public.grades drop constraint if exists grades_ca1_range;
+alter table public.grades drop constraint if exists grades_ca2_range;
+do $$ begin
+  alter table public.grades add constraint grades_ca1_nonnegative check (ca1 between 0 and 100);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter table public.grades add constraint grades_ca2_nonnegative check (ca2 between 0 and 100);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter table public.grades add constraint grades_ca3_nonnegative check (ca3 between 0 and 100);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter table public.grades add constraint grades_exam_nonnegative check (exam_score between 0 and 100);
+exception when duplicate_object then null; end $$;
+create index if not exists grades_assessment_plan_idx on public.grades(assessment_plan_id);
+
+create or replace function public.guard_class_term_assessment_plan()
+returns trigger
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare
+  v_role public.app_role;
+  v_actor uuid := (select auth.uid());
+begin
+  if new.class_code='Pre-Nursery' and new.scheme<>'pre_nursery_exam_100' then
+    raise exception 'Pre-Nursery uses one examination over 100' using errcode='23514';
+  end if;
+  if new.class_code<>'Pre-Nursery' and new.scheme='pre_nursery_exam_100' then
+    raise exception 'The examination-only scheme belongs only to Pre-Nursery' using errcode='23514';
+  end if;
+  if not exists(select 1 from public.class_progression c where c.class_code=new.class_code and c.active_for_enrolment=true) then
+    raise exception 'An active teaching class is required' using errcode='23514';
+  end if;
+
+  if coalesce((select auth.role()),'')='service_role' or session_user in ('postgres','supabase_admin') then
+    if new.selected_by is null then raise exception 'Assessment-plan selector is required' using errcode='23502'; end if;
+  else
+    v_role:=public.current_user_role();
+    if not (v_role='admin'::public.app_role or public.teacher_can_manage_class(new.class_code)) then
+      raise exception 'The assigned class teacher or school leadership must select the term assessment plan' using errcode='42501';
+    end if;
+    new.selected_by:=v_actor;
+  end if;
+
+  if tg_op='UPDATE' then
+    if new.class_code is distinct from old.class_code
+       or new.session_name is distinct from old.session_name
+       or new.term is distinct from old.term then
+      raise exception 'Assessment-plan class, session and term are immutable' using errcode='42501';
+    end if;
+    if new.scheme is distinct from old.scheme and exists(
+      select 1 from public.grades g where g.assessment_plan_id=old.id
+    ) then
+      raise exception 'A term assessment plan cannot change after score entry begins' using errcode='55000';
+    end if;
+    if new.scheme is distinct from old.scheme and char_length(trim(coalesce(new.selection_reason,'')))<3 then
+      raise exception 'A reason is required to change an assessment plan' using errcode='22023';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.guard_class_term_assessment_plan() from public,anon,authenticated;
+
+drop trigger if exists class_term_assessment_plans_guard on public.class_term_assessment_plans;
+create trigger class_term_assessment_plans_guard
+before insert or update on public.class_term_assessment_plans
+for each row execute function public.guard_class_term_assessment_plan();
+
+drop trigger if exists class_term_assessment_plans_touch on public.class_term_assessment_plans;
+create trigger class_term_assessment_plans_touch
+before update on public.class_term_assessment_plans
+for each row execute function public.portal_touch_updated_at();
+
+create or replace function public.audit_class_term_assessment_plan()
+returns trigger language plpgsql security definer set search_path='' as $$
+begin
+  if tg_op='INSERT' then
+    insert into public.class_term_assessment_plan_events(plan_id,actor_id,action,new_scheme,reason)
+    values(new.id,new.selected_by,'created',new.scheme,new.selection_reason);
+  elsif new.scheme is distinct from old.scheme then
+    insert into public.class_term_assessment_plan_events(plan_id,actor_id,action,previous_scheme,new_scheme,reason)
+    values(new.id,new.selected_by,'changed',old.scheme,new.scheme,new.selection_reason);
+  end if;
+  return new;
+end $$;
+revoke all on function public.audit_class_term_assessment_plan() from public,anon,authenticated;
+
+drop trigger if exists class_term_assessment_plans_audit on public.class_term_assessment_plans;
+create trigger class_term_assessment_plans_audit
+after insert or update on public.class_term_assessment_plans
+for each row execute function public.audit_class_term_assessment_plan();
+
+create or replace function public.guard_grade_assessment_limits()
+returns trigger
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare
+  v_plan public.class_term_assessment_plans%rowtype;
+  v_class text;
+  v_score_changed boolean;
+begin
+  select s.class_code into v_class from public.students s where s.id=new.student_id and s.active=true;
+  if v_class is null then raise exception 'An active pupil is required' using errcode='23514'; end if;
+  select * into v_plan from public.class_term_assessment_plans p
+   where p.id=new.assessment_plan_id
+     and p.class_code=v_class and p.session_name=new.session_name and p.term=new.term;
+  if not found then
+    raise exception 'Select the matching class term assessment plan before entering scores' using errcode='23514';
+  end if;
+
+  if v_plan.scheme='pre_nursery_exam_100' then
+    if new.ca1<>0 or new.ca2<>0 or new.ca3<>0 or new.exam_score<0 or new.exam_score>100 then
+      raise exception 'Pre-Nursery accepts Examination 0-100 and no CA scores' using errcode='23514';
+    end if;
+  elsif v_plan.scheme='three_entry_15_15_70' then
+    if new.ca1<0 or new.ca1>15 or new.ca2<0 or new.ca2>15 or new.ca3<>0 or new.exam_score<0 or new.exam_score>70 then
+      raise exception 'Three-entry scores must be CA1 0-15, CA2 0-15 and Examination 0-70' using errcode='23514';
+    end if;
+  elsif v_plan.scheme='four_entry_10_10_10_70' then
+    if new.ca1<0 or new.ca1>10 or new.ca2<0 or new.ca2>10 or new.ca3<0 or new.ca3>10 or new.exam_score<0 or new.exam_score>70 then
+      raise exception 'Four-entry scores must be CA1 0-10, CA2 0-10, CA3 0-10 and Examination 0-70' using errcode='23514';
+    end if;
+  else
+    raise exception 'Unsupported assessment scheme' using errcode='23514';
+  end if;
+
+  if tg_op='UPDATE' then
+    if new.assessment_plan_id is distinct from old.assessment_plan_id then
+      raise exception 'A result assessment plan is immutable' using errcode='42501';
+    end if;
+    v_score_changed := new.ca1 is distinct from old.ca1 or new.ca2 is distinct from old.ca2
+      or new.ca3 is distinct from old.ca3 or new.exam_score is distinct from old.exam_score;
+    if v_score_changed and old.workflow_status not in ('draft'::public.result_workflow_status,'returned'::public.result_workflow_status) then
+      raise exception 'Only draft or returned scores may change' using errcode='42501';
+    end if;
+    if v_score_changed and coalesce((select auth.role()),'')<>'service_role'
+       and session_user not in ('postgres','supabase_admin')
+       and old.recorded_by is distinct from (select auth.uid()) then
+      raise exception 'Reviewers return score corrections to the class teacher' using errcode='42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.guard_grade_assessment_limits() from public,anon,authenticated;
+
+drop trigger if exists grades_assessment_limits on public.grades;
+create trigger grades_assessment_limits
+before insert or update on public.grades
+for each row execute function public.guard_grade_assessment_limits();
+
+-- The earlier workflow trigger intentionally remains the authority for entry,
+-- independent review, publication and locking. This final trigger includes CA3
+-- in its compatibility total after that workflow trigger has run.
+create or replace function public.set_grade_assessment_total()
+returns trigger language plpgsql security definer set search_path='' as $$
+begin
+  new.continuous_assessment:=new.ca1+new.ca2+new.ca3;
+  return new;
+end $$;
+revoke all on function public.set_grade_assessment_total() from public,anon,authenticated;
+
+drop trigger if exists grades_zz_assessment_total on public.grades;
+create trigger grades_zz_assessment_total
+before insert or update on public.grades
+for each row execute function public.set_grade_assessment_total();
+
+alter table public.class_term_assessment_plans enable row level security;
+alter table public.class_term_assessment_plan_events enable row level security;
+revoke all on table public.class_term_assessment_plans,public.class_term_assessment_plan_events from public,anon;
+grant select,insert,update on table public.class_term_assessment_plans to authenticated;
+grant select on table public.class_term_assessment_plan_events to authenticated;
+grant all on table public.class_term_assessment_plans,public.class_term_assessment_plan_events to service_role;
+grant all on sequence public.class_term_assessment_plan_events_id_seq to service_role;
+
+create policy class_term_assessment_plans_select on public.class_term_assessment_plans
+for select to authenticated using (
+  public.is_admin() or public.teacher_can_manage_class(class_code)
+  or exists(
+    select 1 from public.students s join public.student_guardians g on g.student_id=s.id
+     where s.class_code=class_term_assessment_plans.class_code
+       and g.parent_id=(select auth.uid()) and g.active=true
+       and exists(select 1 from public.grades r where r.student_id=s.id
+         and r.assessment_plan_id=class_term_assessment_plans.id and r.published_at is not null)
+  )
+);
+create policy class_term_assessment_plans_insert on public.class_term_assessment_plans
+for insert to authenticated with check (public.is_admin() or public.teacher_can_manage_class(class_code));
+create policy class_term_assessment_plans_update on public.class_term_assessment_plans
+for update to authenticated using (public.is_admin() or public.teacher_can_manage_class(class_code))
+with check (public.is_admin() or public.teacher_can_manage_class(class_code));
+create policy class_term_assessment_plan_events_select on public.class_term_assessment_plan_events
+for select to authenticated using (
+  exists(select 1 from public.class_term_assessment_plans p where p.id=plan_id
+    and (public.is_admin() or public.teacher_can_manage_class(p.class_code)))
+);
+
+-- Keep the established function signature for older clients while moving the
+-- routine youngest-class boundary from retired Creche to Pre-Nursery.
+create or replace function public.server_add_existing_pupil(
+  p_full_name text,p_class_code text,p_session_name text,
+  p_admission_number text default null,p_initial_baseline boolean default false
+)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare v_actor uuid:=(select auth.uid()); v_student uuid;
+begin
+  if not public.is_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
+  if char_length(trim(coalesce(p_full_name,''))) not between 2 and 120
+     or char_length(trim(coalesce(p_session_name,''))) not between 4 and 40
+     or not public.is_active_school_class(p_class_code) then
+    raise exception 'Invalid pupil roster details' using errcode='22023';
+  end if;
+  if p_initial_baseline and not coalesce((select c.baseline_open from public.enrolment_cutover_control c where c.singleton=true),false) then
+    raise exception 'Initial all-class cutover is closed' using errcode='42501';
+  end if;
+  if not p_initial_baseline and trim(p_class_code)<>'Pre-Nursery' then
+    raise exception 'Routine fresh roster entry is limited to Pre-Nursery; use admission or promotion for other classes' using errcode='22023';
+  end if;
+  insert into public.students(admission_number,full_name,class_code,parent_id,admission_status,active)
+  values(nullif(trim(p_admission_number),''),trim(p_full_name),trim(p_class_code),null,'admitted',true)
+  returning id into v_student;
+  insert into public.student_enrolments(student_id,session_name,class_code,source,recorded_by)
+  values(v_student,trim(p_session_name),trim(p_class_code),case when p_initial_baseline then 'initial_baseline' else 'office_entry' end,v_actor);
+  return jsonb_build_object('student_id',v_student);
+end $$;
+revoke all on function public.server_add_existing_pupil(text,text,text,text,boolean) from public,anon;
+grant execute on function public.server_add_existing_pupil(text,text,text,text,boolean) to authenticated;
+
+create or replace function public.server_add_existing_pupil_with_sex(
+  p_full_name text,p_sex text,p_class_code text,p_session_name text,
+  p_admission_number text default null,p_initial_baseline boolean default false
+)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare v_actor uuid:=(select auth.uid()); v_student uuid;
+begin
+  if not public.is_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
+  if p_sex not in ('male','female')
+     or char_length(trim(coalesce(p_full_name,''))) not between 2 and 120
+     or char_length(trim(coalesce(p_session_name,''))) not between 4 and 40
+     or not public.is_active_school_class(p_class_code) then
+    raise exception 'Invalid pupil roster details' using errcode='22023';
+  end if;
+  if p_initial_baseline and not coalesce((select c.baseline_open from public.enrolment_cutover_control c where c.singleton=true),false) then
+    raise exception 'Initial all-class cutover is closed' using errcode='42501';
+  end if;
+  if not p_initial_baseline and trim(p_class_code)<>'Pre-Nursery' then
+    raise exception 'Routine fresh roster entry is limited to Pre-Nursery; use admission or promotion for other classes' using errcode='22023';
+  end if;
+  insert into public.students(admission_number,full_name,sex,class_code,parent_id,admission_status,active)
+  values(nullif(trim(p_admission_number),''),trim(p_full_name),p_sex,trim(p_class_code),null,'admitted',true)
+  returning id into v_student;
+  insert into public.student_enrolments(student_id,session_name,class_code,source,recorded_by)
+  values(v_student,trim(p_session_name),trim(p_class_code),case when p_initial_baseline then 'initial_baseline' else 'office_entry' end,v_actor);
+  return jsonb_build_object('student_id',v_student);
+end $$;
+revoke all on function public.server_add_existing_pupil_with_sex(text,text,text,text,text,boolean) from public,anon;
+grant execute on function public.server_add_existing_pupil_with_sex(text,text,text,text,text,boolean) to authenticated;
+
+comment on table public.class_term_assessment_plans is 'One owner-approved score-entry structure per class, session and term; immutable once score entry begins.';
+comment on column public.students.sex is 'Private office-verified pupil sex used for school records and result headers; never a public roster field.';
+comment on column public.grades.ca3 is 'Third continuous-assessment entry; zero for Pre-Nursery and three-entry plans.';
+comment on column public.grades.assessment_plan_id is 'Exact class-wide term assessment plan controlling obtainable marks.';
 
 commit;

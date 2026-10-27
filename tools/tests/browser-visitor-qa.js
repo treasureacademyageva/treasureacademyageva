@@ -20,9 +20,12 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
    const page=await context.newPage();
    const errors=[];const failed=[];
    page.on('pageerror',e=>errors.push(e.message));
-   page.on('requestfailed',r=>{if(r.url().startsWith(BASE))failed.push(r.url()+' '+(r.failure()?.errorText||''));});
+   page.on('requestfailed',r=>{const reason=r.failure()?.errorText||'';if(r.url().startsWith(BASE)&&reason!=='net::ERR_ABORTED')failed.push(r.url()+' '+reason);});
    const response=await page.goto(new URL(rel,BASE).href,{waitUntil:'domcontentloaded',timeout:15000});
-   await page.waitForTimeout(80);
+   await page.locator('img').evaluateAll(images=>images.forEach(image=>{image.loading='eager';}));
+   await page.waitForLoadState('load',{timeout:10000});
+   await page.waitForFunction(()=>[...document.images].every(image=>image.complete),null,{timeout:10000});
+   await page.waitForTimeout(20);
    const metrics=await page.evaluate(()=>({
      title:document.title,
      h1:[...document.querySelectorAll('h1')].filter(x=>{const s=getComputedStyle(x),r=x.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0}).length,
@@ -30,13 +33,15 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
      dock:document.querySelector('.mobile-dock')?getComputedStyle(document.querySelector('.mobile-dock')).display:'missing',
      headerHeight:(document.querySelector('.lite-nav')||document.querySelector('.navbar'))?.getBoundingClientRect().height||0,
      actionTop:document.querySelector('.route-actions a,.hero-ctas a,.smart-search-card input,.explore-intro input')?.getBoundingClientRect().top??9999,
-     bodyText:(document.body.innerText||'').trim().length
+     bodyText:(document.body.innerText||'').trim().length,
+     brokenImages:[...document.images].filter(image=>image.complete&&image.naturalWidth===0).map(image=>image.currentSrc||image.src)
    }));
    ok(`${viewport.name} ${rel} returns below 400`,response&&response.status()<400,String(response&&response.status()));
    ok(`${viewport.name} ${rel} has visible h1`,metrics.h1===1,String(metrics.h1));
    ok(`${viewport.name} ${rel} has no horizontal overflow`,metrics.overflow<=2,String(metrics.overflow));
    ok(`${viewport.name} ${rel} has no runtime errors`,errors.length===0,errors.join(' | '));
    ok(`${viewport.name} ${rel} has no failed local resources`,failed.length===0,failed.join(' | '));
+   ok(`${viewport.name} ${rel} has no broken rendered images`,metrics.brokenImages.length===0,metrics.brokenImages.join(' | '));
    ok(`${viewport.name} ${rel} renders meaningful content`,metrics.bodyText>80,String(metrics.bodyText));
    if(viewport.width<960){
     ok(`${viewport.name} ${rel} shows five-action dock`,metrics.dock==='grid',metrics.dock);
@@ -50,12 +55,12 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
  fs.mkdirSync(OUT,{recursive:true});
  const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,colorScheme:'light'});
  for(const rel of ['index.html','explore.html','search.html','admissions.html','fees.html','classes/primary-1.html']){
-  const page=await context.newPage();await page.goto(new URL(rel,BASE).href,{waitUntil:'networkidle'});await page.screenshot({path:path.join(OUT,rel.replaceAll('/','-').replace('.html','')+'-mobile.png'),fullPage:true});await page.close();
+  const page=await context.newPage();await page.goto(new URL(rel,BASE).href,{waitUntil:'domcontentloaded'});await page.screenshot({path:path.join(OUT,rel.replaceAll('/','-').replace('.html','')+'-mobile.png'),fullPage:true});await page.close();
  }
  const homeSearch=await context.newPage();
  await homeSearch.goto(new URL('index.html',BASE).href,{waitUntil:'domcontentloaded'});
  await homeSearch.keyboard.press('Tab');const firstFocus=await homeSearch.evaluate(()=>document.activeElement&&document.activeElement.classList.contains('skip-link'));await homeSearch.keyboard.press('Enter');await homeSearch.waitForTimeout(20);ok('keyboard users can skip the repeated header and move focus to main content',firstFocus&&await homeSearch.evaluate(()=>document.activeElement&&document.activeElement.id)==='main');
- await homeSearch.fill('#homeQuery','school dress');await homeSearch.click('.home-finder button[type="submit"]');await homeSearch.waitForURL(/search\.html$/);
+ await homeSearch.fill('#homeQuery','school dress');await homeSearch.click('.home-finder button[type="submit"]');await homeSearch.waitForURL(/\/search$/);
  ok('homepage search transfers privately without a query-string leak',await homeSearch.inputValue('#smartQuery')==='school dress'&&!homeSearch.url().includes('?'));
  await homeSearch.close();
  const search=await context.newPage();
@@ -71,7 +76,7 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
  await help.click('#previewDiagnostics');
  const diagnosticText=await help.locator('#diagnosticPreview').innerText();
  ok('website problem report can preview a safe diagnostic code',/^Safe diagnostic code: TAUX2-/.test(diagnosticText));
- await help.selectOption('#problemType',{label:'Writing was unclear'});await help.selectOption('#problemGoal',{label:'Fees or payment guidance'});await Promise.all([help.waitForURL(/request-centre\.html\?type=website_problem/),help.click('#problemForm button[type="submit"]')]);
+ await help.selectOption('#problemType',{label:'Writing was unclear'});await help.selectOption('#problemGoal',{label:'Fees or payment guidance'});await Promise.all([help.waitForURL(/\/request-centre\?type=website_problem/),help.click('#problemForm button[type="submit"]')]);
  const reportDraft=(await help.inputValue('[name="subject"]'))+'\n'+(await help.inputValue('[name="message"]'));
  ok('website report carries only broad categories into the trackable Request Centre',/Website problem: Writing was unclear/.test(reportDraft)&&/Problem category: Writing was unclear/.test(reportDraft)&&/Task area: Fees or payment guidance/.test(reportDraft)&&/Safe diagnostic code: TAUX2-/.test(reportDraft)&&!/I was trying to:|What happened:/.test(reportDraft));
  const contact=await context.newPage();await contact.goto(new URL('contact.html',BASE).href,{waitUntil:'domcontentloaded'});

@@ -76,7 +76,7 @@ const contentTypes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascrip
   page.on('dialog', async (dialog) => { dialogs.push(dialog.message()); await dialog.dismiss(); });
   try {
     await page.addInitScript(() => localStorage.setItem('treasure_theme', 'dark'));
-    await page.goto(`${origin}${entry.canonical_path}`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}${entry.canonical_path}`, { waitUntil: 'domcontentloaded' });
     if (await page.locator('[data-view-count]').innerText() !== '12') throw new Error('Server aggregate view count was not rendered.');
     if (await page.locator('[data-like-count]').innerText() !== '4') throw new Error('Server aggregate like count was not rendered.');
     if (!(await page.locator('.content-comment').innerText()).includes('<img src=x onerror=')) throw new Error('Executable-looking comment did not remain visible text.');

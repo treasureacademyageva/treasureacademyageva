@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 27 October 2026 — pre-Run-9 cross-run audit and Run 9 local acceptance
-**Overall status:** Runs 1–9 are complete at their accepted repository/disposable-local boundaries. Run 9 reuses the twelfth Function for privacy-safe aggregate views, signed-in removable likes, gated premoderated comments and shared CMS homepage placements. Production still serves unchanged Run 4 commit `a552618`; Runs 5–9 source/SQL have not been pushed or applied and no content/media/engagement/placement row, import, Cloudinary request/upload or public activation occurred. All CMS/public/media/engagement/comment/placement gates remain false; the three new Production engagement/comment/placement values were safely preconfigured as encrypted `false` without a deployment. Provider smoke, Production migration/source release, verified content import and every activation remain separate controlled boundaries. Stage 9 account claims remains unauthorised, so production claims, admission tracking and the Paragon relay remain false.
+**Last updated:** 27 October 2026 — Run 12 safe-boundary acceptance
+**Overall status:** Runs 1–12 are complete at their accepted repository/disposable-local or read-only preservation boundaries. Run 11 adds one governed 56-route clean-path registry, one-hop redirects, canonical/internal/Search/sitemap agreement, a published-only dynamic sitemap, final link/duplicate/a11y/performance/cache controls and an authenticated encrypted backup/restore drill. Run 12 pins that accepted source and the preserved Production rollback boundary, passes 10/10 local gate/relay checks and 10/10 GET-only live preservation probes, and re-confirms the promoted Vercel source plus exact Supabase counts. Production still serves unchanged Run 4 commit `a552618`; Runs 5–11 source/SQL have not been pushed or applied and no content/media/engagement/placement/candidate/inventory row, import, Cloudinary request/upload, message or public activation occurred. All CMS/public/media/engagement/comment/placement/Search/core-slot/inventory/account/admission/relay gates remain false. Production release and external Meta/Render completion are explicitly held rather than falsely accepted. Provider smoke, Production migration/source release, field verification/content import and every activation remain separate controlled boundaries.
 
 ## Status key
 
@@ -27,9 +27,9 @@
 | 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `DONE` locally — independent gate, lazy bundle, accepted RPC-only mutations, structured preview/editor, full workflow/media/access UI and complete SQL/browser/security regression passed; no Production release or activation |
 | 8 | Dynamic public News, Events and Gallery | Server-rendered listing/detail routes, lifecycle/countdowns, read time, media relationships, Gallery source links, safe downloads, feeds and structured data | Run 7 | `DONE` locally — one consolidated Function, additive delivery projection, SSR routes, stable opaque Gallery IDs, metadata/feeds and network-only caching accepted; three exact Vercel Production gates exist encrypted as false; no deployment, SQL, content import or activation |
 | 9 | Engagement and shared placements | Privacy-safe views, signed-in likes, gated premoderated comments, homepage placements and related content; popularity isolated from operations | Run 8 | `DONE` locally — additive RLS/RPC migration, consolidated dispatcher, accessible public/CMS UI, audited placements and adversarial SQL/API/browser acceptance; no Production release or activation |
-| 10 | Verified content migration and Search cutover | Verified text/core sections/repeated facts/search projections migrated; sensitive historical media held; parity proven before coded authority is retired | Runs 8–9 | `READY` for safe technical work; verified real content/operational facts and historical child media remain held |
-| 11 | Clean routes, discovery and final quality | One-hop `.html` redirects, canonical/link updates, dynamic sitemap, human site map, duplicate controls, a11y/performance/security/backup/restore evidence | Run 10 | `BLOCKED` |
-| 12 | Production acceptance and provider completion | Production preservation proof, rollback evidence and probes; account/admission gates opened only after separate acceptances; Meta relay only after every external gate passes | Run 11 and external provider gates | `BLOCKED` |
+| 10 | Verified content migration and Search cutover | Verified text/core sections/repeated facts/search projections migrated; sensitive historical media held; parity proven before coded authority is retired | Runs 8–9 | `DONE` locally — data-neutral migration, deterministic 14-candidate held manifest, controlled staging, stale controls, safe slots, source-backed Search, coarse inventory and full SQL/API/browser acceptance; no real staging/import/reconciliation, Production release or activation |
+| 11 | Clean routes, discovery and final quality | One-hop `.html` redirects, canonical/link updates, dynamic sitemap, human site map, duplicate controls, a11y/performance/security/backup/restore evidence | Run 10 | `DONE` locally — 56 reviewed mappings, 31 fixed sitemap routes, published-only dynamic sitemap, final quality budgets and authenticated 112-table restore drill accepted; no Production release |
+| 12 | Production acceptance and provider completion | Production preservation proof, rollback evidence and probes; account/admission gates opened only after separate acceptances; Meta relay only after every external gate passes | Run 11 and external provider gates | `DONE` at the safe local/read-only boundary — 10/10 local relay/readiness and 10/10 Production preservation probes pass; Production release, every activation and external Meta/Render completion remain `HOLD` |
 
 ## Run 1 acceptance ledger
 
@@ -225,6 +225,68 @@
 | Production boundary | Same promoted Run 4 source; three Run 9 Production values safely added only as encrypted exact `false` without deployment; no push, SQL, row/import, Cloudinary request/upload or activation | Preserved |
 | Evidence and rollback | `RUN-09-PUBLIC-ENGAGEMENT-ACCEPTANCE-EVIDENCE.md`; `RUN-09-PUBLIC-ENGAGEMENT-ROLLBACK-PLAN.md` | Recorded |
 
+## Run 10 local acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| Additive verified-content migration | `20261027100000_verified_content_search_and_inventory.sql`; held/source-linked migration, current information, safe slots, coarse inventory, Search privacy and stale queue | Pass locally; data-neutral and not Production-applied |
+| Deterministic migration manifest | `tools/build-content-migration-manifest.py`; 14 exact-source SHA-256, text-only, verification-required candidates | Pass; all held, six historical News media relationships explicitly held, zero import |
+| Controlled staging | Protected CMS parses a bounded generated manifest and stages one candidate through `cms_stage_content_candidate`; verification/import/publication remain separate | Pass; mechanism accepted, no database candidate staged |
+| Current operational information | Source path, private verification note, accountable owner and current next-review date required; fixed public view excludes stale/expired/future records | Pass |
+| Safe core-page slots | 16 allowlisted pages; fixed mounts/positions; published Page/Announcement only; unknown block fields stripped; DOM-only client | Pass; gate false and zero slot rows |
+| Search authority path | Same-origin explicit-submit POST, 2–120 chars, private-query pre-DB refusal, local-path citations, no self-index, distinct no-answer/private/rate/unavailable states | Pass; enabled-service failure never uses coded fallback |
+| Search privacy and abuse | Rotating HMAC bucket, 30/10-minute limit, bounded counter, expired cleanup, aggregate family/zero-result only | Pass; no raw-query/full-IP/user-agent/actor storage |
+| Inventory projection | Both product and variant reconciled; office ledger derives five coarse states; public API strips balances, movements, prices and actors | Pass; no real reconciliation or public row |
+| Protected controls | Candidate/source/audit/freshness/slot CMS UI plus public coarse-state preview in existing Inventory workspace | Pass |
+| Generator durability | Content build owns Run 10 CSS, exactly one core client on 16/16 pages and one inventory client on Shop | Pass after repeated full build |
+| Function/routing boundary | Three rewrites dispatch through `api/public-content.mjs`; API inventory stays exactly 12/12 | Pass |
+| Focused/API tests | Runs 8–10 Node route/security/content tests **27/27** | Pass |
+| Browser acceptance | Explicit-submit/no-query-URL Search, citations/states, Search/core/inventory XSS, mobile/dark/axe | Pass |
+| Database regression | **16/16** migrations, **10/10** rollback-safe SQL suites and read-only postflight | Pass |
+| Complete regression | Production audit **16/16**; visitor UX **45/45**; answers **10/10**; portal/security **87/87**; bootstrap **12/12**; Run 4–7 TAP **34/34**; chatbot **11/11**; answer coverage **20/20**; visitor browser **1447/1447**; all accessibility and specialised browser suites | Pass |
+| Vercel safe state | Three Run 10 Production gates encrypted exact `false`; Search pepper Sensitive; no deployment | Preserved |
+| Production boundary | Same promoted Run 4 source; no push, deployment, SQL, content staging/import, inventory reconciliation, Cloudinary operation or activation | Preserved |
+| Evidence and rollback | `RUN-10-VERIFIED-CONTENT-SEARCH-INVENTORY-ACCEPTANCE-EVIDENCE.md`; `RUN-10-VERIFIED-CONTENT-SEARCH-INVENTORY-ROLLBACK-PLAN.md` | Recorded |
+
+## Run 11 local acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| Governed route inventory | `config/public-routes.json`: 56 unique source/canonical dispositions, 31 reviewed fixed indexable routes | Pass |
+| Deterministic compiler | HTML canonical/link, Search/KB destination, generated server registry, sitemap and Vercel routing compilation; two full builds byte-identical | Pass |
+| One-hop routing | Every former public filename has one permanent destination; generated destinations do not redirect again; `/class` and `/explore` aliases exact | Pass locally; not deployed |
+| Dynamic route order | Sitemap and dynamic News/feed/pagination/detail routes precede static rewrites; disabled `/news` returns a real 404 without a loop | Pass |
+| Canonical/discovery agreement | All 56 pages match canonical/OG; Search and KB use clean routes; sitemap has 31 unique clean URLs and excludes private/noindex/alias/filter/pagination/archive states | Pass |
+| Dynamic sitemap | Fixed routes plus current published News/Events/eligible Gallery only; gate-off fixed sitemap remains available; lifecycle removal proven | Pass locally |
+| Human site map | Joining, learning, family, school, community and help groups with crawlable clean links | Pass |
+| Database clean paths | Migration 17 preserves rows, maps governed paths and replaces slot/Search contracts without weakening grants/RLS/definer path | Pass locally; not Production-applied |
+| Link/duplicate/structured-data quality | Clean-route-aware full static audit; no exact duplicate normalised main content; all JSON-LD parses | Pass |
+| Accessibility/performance | Mobile/dark + desktop/day clean-route browser acceptance, zero severe axe findings, DOM <2.5s, transfer <1.75MiB, CLS <0.1 | Pass locally |
+| Cache withdrawal | Dynamic content/sitemap not precached; 30-second shared freshness; Run 11 service-worker identity and private exclusions | Pass |
+| Backup and full restore | AES-256/PBKDF2 + independent HMAC encrypt-then-MAC; byte-identical decrypt; 112 public/112 RLS tables and sentinel restored | Pass in disposable local PostgreSQL |
+| Database regression | 17/17 migrations, 11/11 rollback-safe SQL suites and read-only postflight | Pass |
+| Complete regression | Audit 16/16; UX 45/45; portal/security 87/87; public content 27/27; visitor browser 1618/1618; all specialised accessibility/browser suites | Pass |
+| Production boundary | Same promoted Run 4 source/deployment; no push, deployment, SQL, row/import, provider call, message or gate activation | Preserved |
+| Evidence and rollback | `RUN-11-CLEAN-ROUTES-DISCOVERY-QUALITY-ACCEPTANCE-EVIDENCE.md`; matching rollback plan | Recorded |
+
+## Run 12 safe-boundary acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| Release boundary manifest | `config/run12-release-boundary.json` pins accepted Run 11 source, Production source/deployment, Supabase project, 17 exact-false release gates and three separate acceptance tracks | Pass |
+| Local relay/readiness tests | Ephemeral Ed25519 signing, mocked HTTPS verification, exact gate isolation, minimal payload, fail-closed provider handling, browser-config baseline, read-only probe boundary and Function ceiling | **10/10** pass; zero external traffic |
+| Production preservation probes | Bounded unauthenticated GET only: homepage, discovery files, exact public config, disabled endpoints, random real 404 and one-hop canonical-host redirect | **10/10** pass |
+| Vercel rollback proof | Connected read-only inspection: project `prj_ZE21arjfWmtX6hjASAIaMgHDJO43`; deployment `dpl_DLjZRSt67DAxHhsBYprfhYeJV2h2` is `READY/PROMOTED`, aliases assigned, source `a552618e40791a592cb9e586b2963d61ed46ad2c` | Confirmed; no Vercel mutation |
+| Domain state | Vercel reports `misconfigured=false`; HTTPS and apex one-hop redirect pass, but external DNS also returns an `ipStatus=required-change` recommendation | Operational; separate owner-authorised DNS review recorded, no DNS change |
+| Supabase health | Project `biyizitalhylkwtshrqt`; Auth, database, pooler, Realtime service, REST and Storage health endpoints reported healthy | Confirmed read-only |
+| Supabase preservation counts | 105 public/RLS tables, 136 policies, 143 functions, 2 Auth users, 0 storage objects, `school_data=1`, 4 claim rows, 0 live claim challenges, 0 live bootstrap authorisations | Exact repeated baseline; no mutation |
+| Production migration ledger | 18 applied migrations ending at `20261026040507_fix_owner_bootstrap_pgcrypto_schema`; Runs 5–11 absent | Preserved |
+| Existing portal baseline | Portal/registration/office true; developer bootstrap and school-account claims false | Preserved; accepted capabilities were not disabled |
+| Claim/admission isolation | Account-claim and admission exact-true gates are independent; closed handlers stop before Supabase/provider access; relay cannot bypass callers | Pass locally; both Production gates remain false |
+| Automatic relay boundary | Local approved-recipient fixture ending `2487` used only with mocked fetch; line ending `6650` never used; manual dispatcher retained | Pass locally; no message/provider contact and external acceptance remains hold |
+| Production boundary | No push, deployment, SQL, row, challenge, OTP, environment change, provider/Cloudinary call or activation | Preserved |
+| Evidence and rollback | `RUN-12-PRODUCTION-READINESS-AND-PROVIDER-HOLD-EVIDENCE.md`; matching rollback plan | Recorded |
+
 ## Permanent preservation rules
 
 1. Never rerun the first seven production migrations. Future database work is additive.
@@ -252,10 +314,13 @@
 | Public CMS publication | `PUBLIC_CMS_ENABLED=false` exists encrypted in Production; Run 8 renderer accepted locally but not deployed or Production-applied | Gate-off Runs 5–8 SQL/source release, protected portal/provider acceptance, verified content import/parity and a separate exact activation decision |
 | Public transformed media | `PUBLIC_CMS_MEDIA_ENABLED=false` exists encrypted in Production; generated Gallery/proxy accepted locally | Governed media/provider smoke acceptance, eligible reviewed relationships and a separate activation after the master public gate |
 | Public derivative downloads | `PUBLIC_CMS_DOWNLOADS_ENABLED=false` exists encrypted in Production; every asset additionally needs current `download` placement | Media/public-route acceptance plus explicit per-relationship permission; originals and bulk child-media downloads remain prohibited |
-| Public engagement | Exact default false through `PUBLIC_CMS_ENGAGEMENT_ENABLED`; Run 9 accepted locally | Gate-off Runs 5–9 Production SQL/source release, privacy smoke and a separate activation decision after the master public gate |
+| Public engagement | Exact default false through `PUBLIC_CMS_ENGAGEMENT_ENABLED`; Run 9 accepted locally | Gate-off Runs 5–10 Production SQL/source release, privacy smoke and a separate activation decision after the master public gate |
 | Public comments | Exact default false through `PUBLIC_CMS_COMMENTS_ENABLED`; subordinate to public CMS plus engagement; Run 9 accepted locally | Active leadership moderation coverage, signed-in Production smoke, abuse/rollback probe and separate explicit activation |
 | CMS homepage placements | Exact default false through `PUBLIC_CMS_PLACEMENTS_ENABLED`; Run 9 placement workflow accepted locally | Verified imported content, authorised audited slots, homepage parity and a separate activation decision |
-| Governed CMS media | `CMS_MEDIA_ENABLED=false`; Run 6 service and Run 7 library accepted locally; dedicated credentials privately stored; no Cloudinary request/upload | Separately authorised Runs 5–9 Production SQL/source release with gates false, then neutral generated-fixture smoke evidence and an independent activation decision |
+| Database-backed public Search | Production `PUBLIC_CMS_SEARCH_ENABLED=false`; Run 10 source/citations/privacy accepted locally | Gate-off Runs 5–10 release, verified current content and Search parity, protected rate/privacy smoke and separate activation |
+| Safe core-page slots | Production `PUBLIC_CMS_CORE_SLOTS_ENABLED=false`; Run 10 fixed mounts and DOM-only renderer accepted locally | Verified imported Page/Announcement records, audited slots, static parity and separate activation |
+| Public inventory availability | Production `PUBLIC_INVENTORY_ENABLED=false`; Run 10 coarse projection/client accepted locally | Office-confirmed catalogue and balances, privacy/output smoke and separate activation; never guess quantities or prices |
+| Governed CMS media | `CMS_MEDIA_ENABLED=false`; Run 6 service and Run 7 library accepted locally; dedicated credentials privately stored; no Cloudinary request/upload | Separately authorised Runs 5–10 Production SQL/source release with gates false, then neutral generated-fixture smoke evidence and an independent activation decision |
 | Media downloads | Off by default | Asset-level permission and metadata-safe derivative proven |
 | External/generative AI | Off | Separate privacy review and explicit owner approval; retrieval-first remains default |
 | Paragon automatic OTP relay | Off | Meta/Render template, sender, webhook, direct test and signed relay gates all pass |
@@ -265,7 +330,7 @@
 
 The school-owned Cloudinary account, dedicated key/private Vercel storage, manual-only indefinite retention, two accepted leadership reviewers, gate-off Run 7 protected workspace and gate-off Runs 8–9 public renderer and engagement/placement controls are resolved at their local/private-handoff boundaries. The remaining external holds are not local source defects:
 
-- a neutral generated non-child provider smoke test after an authorised gate-off Runs 5–9 database/source acceptance;
+- a neutral generated non-child provider smoke test after an authorised gate-off Runs 5–10 database/source acceptance;
 - separate manual admission-tracking acceptance window;
 - a future private receiving number for Jibril if the owner later supplies one;
 - private Meta and Render dashboard completion.

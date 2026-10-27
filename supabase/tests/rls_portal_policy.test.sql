@@ -65,12 +65,19 @@ values
   ('10000000-0000-4000-8000-000000000001', 'Primary 1', '*'),
   ('10000000-0000-4000-8000-000000000006', 'Primary 2', '*');
 
-insert into public.grades (student_id, subject, session_name, term, continuous_assessment, exam_score, recorded_by, published_at, workflow_status)
+insert into public.class_term_assessment_plans(id,class_code,session_name,term,scheme,selected_by)
 values
-  ('20000000-0000-4000-8000-000000000001', 'Mathematics', '2099/2100', 'First', 30, 50, '10000000-0000-4000-8000-000000000002', now(), 'published'),
-  ('20000000-0000-4000-8000-000000000001', 'English', '2099/2100', 'First', 31, 51, '10000000-0000-4000-8000-000000000001', null, 'draft'),
-  ('20000000-0000-4000-8000-000000000002', 'Mathematics', '2099/2100', 'First', 32, 52, '10000000-0000-4000-8000-000000000001', now(), 'published'),
-  ('20000000-0000-4000-8000-000000000001', 'English', '2099/2100', 'Second', 30, 50, '10000000-0000-4000-8000-000000000001', null, 'submitted');
+  ('51000000-0000-4000-8000-000000000001','Primary 1','2099/2100','First','three_entry_15_15_70','10000000-0000-4000-8000-000000000001'),
+  ('51000000-0000-4000-8000-000000000002','Primary 1','2099/2100','Second','three_entry_15_15_70','10000000-0000-4000-8000-000000000001'),
+  ('52000000-0000-4000-8000-000000000001','Primary 2','2099/2100','First','three_entry_15_15_70','10000000-0000-4000-8000-000000000001'),
+  ('52000000-0000-4000-8000-000000000002','Primary 2','2099/2100','Second','three_entry_15_15_70','10000000-0000-4000-8000-000000000001');
+
+insert into public.grades (student_id, assessment_plan_id, subject, session_name, term, ca1, ca2, exam_score, recorded_by, published_at, workflow_status)
+values
+  ('20000000-0000-4000-8000-000000000001','51000000-0000-4000-8000-000000000001','Mathematics','2099/2100','First',15,15,50,'10000000-0000-4000-8000-000000000002',now(),'published'),
+  ('20000000-0000-4000-8000-000000000001','51000000-0000-4000-8000-000000000001','English','2099/2100','First',15,15,51,'10000000-0000-4000-8000-000000000001',null,'draft'),
+  ('20000000-0000-4000-8000-000000000002','52000000-0000-4000-8000-000000000001','Mathematics','2099/2100','First',15,15,52,'10000000-0000-4000-8000-000000000001',now(),'published'),
+  ('20000000-0000-4000-8000-000000000001','51000000-0000-4000-8000-000000000002','English','2099/2100','Second',15,15,50,'10000000-0000-4000-8000-000000000001',null,'submitted');
 
 insert into public.payments (id, student_id, session_name, term, description, amount, method, status, monnify_payment_reference)
 values
@@ -139,8 +146,8 @@ select pg_temp.assert_true((select count(*) = 1 from public.students), 'Teacher 
 select pg_temp.assert_true((select count(*) = 1 from public.grades), 'Teacher must read assigned subject only');
 select pg_temp.assert_true((select count(*) = 0 from public.payments), 'Teacher must not read payments');
 
-insert into public.grades (student_id, subject, session_name, term, ca1, ca2, exam_score, recorded_by)
-values ('20000000-0000-4000-8000-000000000001', 'Mathematics', '2099/2100', 'Second', 10, 10, 40, '10000000-0000-4000-8000-000000000002');
+insert into public.grades (student_id, assessment_plan_id, subject, session_name, term, ca1, ca2, exam_score, recorded_by)
+values ('20000000-0000-4000-8000-000000000001','51000000-0000-4000-8000-000000000002','Mathematics','2099/2100','Second',10,10,40,'10000000-0000-4000-8000-000000000002');
 update public.grades set workflow_status = 'submitted'
  where student_id = '20000000-0000-4000-8000-000000000001'
    and subject = 'Mathematics' and term = 'Second';
@@ -157,8 +164,8 @@ select pg_temp.assert_true((select count(*) = 1 from public.homework_assignments
 do $$
 begin
   begin
-    insert into public.grades (student_id, subject, session_name, term, continuous_assessment, exam_score, recorded_by)
-    values ('20000000-0000-4000-8000-000000000001', 'English', '2099/2100', 'Second', 20, 40, '10000000-0000-4000-8000-000000000002');
+    insert into public.grades (student_id, assessment_plan_id, subject, session_name, term, ca1, ca2, exam_score, recorded_by)
+    values ('20000000-0000-4000-8000-000000000001','51000000-0000-4000-8000-000000000002','English','2099/2100','Second',10,10,40,'10000000-0000-4000-8000-000000000002');
     raise exception 'RLS TEST FAILED: teacher inserted unassigned subject';
   exception when insufficient_privilege or check_violation then null;
   end;
@@ -207,20 +214,28 @@ update public.grades set workflow_status = 'approved'
  where student_id = '20000000-0000-4000-8000-000000000001'
    and subject = 'English' and term = 'Second';
 -- The Assistant also retains an independently assigned My Class workspace.
-insert into public.grades (student_id, subject, session_name, term, ca1, ca2, exam_score, recorded_by)
-values ('20000000-0000-4000-8000-000000000002', 'Mathematics', '2099/2100', 'Second', 11, 12, 43, '10000000-0000-4000-8000-000000000006');
+insert into public.grades (student_id, assessment_plan_id, subject, session_name, term, ca1, ca2, exam_score, recorded_by)
+values ('20000000-0000-4000-8000-000000000002','52000000-0000-4000-8000-000000000002','Mathematics','2099/2100','Second',11,12,43,'10000000-0000-4000-8000-000000000006');
 update public.grades set workflow_status = 'submitted'
  where student_id = '20000000-0000-4000-8000-000000000002'
    and subject = 'Mathematics' and term = 'Second';
 update public.students set admission_status = 'under_review'
  where id = '20000000-0000-4000-8000-000000000002';
-insert into public.verified_public_information(topic, title, summary, status, revision)
-values ('calendar', 'Fictional calendar notice', 'Fictional staging-only publication.', 'published', 'TA-INFO-20990110-ABC234');
+insert into public.verified_public_information(
+  topic,title,summary,status,revision,source_path,source_note,accountable_owner,next_review_date
+) values (
+  'calendar','Fictional calendar notice','Fictional staging-only publication.','published','TA-INFO-20990110-ABC234',
+  '/calendar.html','Fictional SQL acceptance source.','School leadership','2099-12-31'
+);
 do $$
 begin
   begin
-    insert into public.verified_public_information(topic, title, summary, status, revision)
-    values ('calendar', 'Conflicting calendar notice', 'Must not become a second current answer.', 'published', 'TA-INFO-20990110-XYZ789');
+    insert into public.verified_public_information(
+      topic,title,summary,status,revision,source_path,source_note,accountable_owner,next_review_date
+    ) values (
+      'calendar','Conflicting calendar notice','Must not become a second current answer.','published','TA-INFO-20990110-XYZ789',
+      '/calendar.html','Fictional conflict acceptance source.','School leadership','2099-12-31'
+    );
     raise exception 'RLS TEST FAILED: two published revisions exist for one public-information topic';
   exception when unique_violation then null;
   end;

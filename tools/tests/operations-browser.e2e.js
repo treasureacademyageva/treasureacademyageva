@@ -28,7 +28,7 @@ const BASE = process.env.TA_TEST_BASE || 'http://127.0.0.1:4173/';
     }) });
   });
 
-  const response = await page.goto(new URL('request-centre.html?type=fee_schedule', BASE).href, { waitUntil: 'networkidle' });
+  const response = await page.goto(new URL('request-centre.html?type=fee_schedule', BASE).href, { waitUntil: 'domcontentloaded' });
   assert(response && response.status() < 400, 'Request Centre returns a document');
   assert.equal(await page.getByRole('heading', { level: 1, name: 'Request & Verification Centre' }).count(), 1, 'one Request Centre H1');
   assert.equal(await page.getByLabel('Request type').inputValue(), 'fee_schedule', 'workflow link preselects request type');
@@ -62,7 +62,7 @@ const BASE = process.env.TA_TEST_BASE || 'http://127.0.0.1:4173/';
 
   const galleryContext = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const galleryPage = await galleryContext.newPage();
-  await galleryPage.goto(new URL('index.html', BASE).href, { waitUntil: 'networkidle' });
+  await galleryPage.goto(new URL('index.html', BASE).href, { waitUntil: 'domcontentloaded' });
   const gallery = await galleryPage.locator('.gal-grid .gal').evaluateAll((nodes) => ({
     count: nodes.length,
     visible: nodes.filter((node) => getComputedStyle(node).display !== 'none' && node.getBoundingClientRect().width > 0).length

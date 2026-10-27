@@ -31,7 +31,12 @@ const WHATSAPP_NUMBER = '2349063932487';
 const app = document.querySelector('#portal-app');
 const bootStatus = document.querySelector('#portal-status');
 const themeToggle = document.querySelector('#theme-toggle');
-const SCHOOL_CLASSES = ['Creche', 'Pre-Nursery', 'Nursery 1', 'Nursery 2', 'Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 6'];
+const SCHOOL_CLASSES = ['Pre-Nursery', 'Nursery 1', 'Nursery 2', 'Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 6'];
+const ASSESSMENT_SCHEMES = Object.freeze({
+  pre_nursery_exam_100: { label: 'Pre-Nursery: Examination 100', ca1: 0, ca2: 0, ca3: 0, exam: 100, entries: 1 },
+  three_entry_15_15_70: { label: 'Three entries: CA 15 + CA 15 + Examination 70', ca1: 15, ca2: 15, ca3: 0, exam: 70, entries: 3 },
+  four_entry_10_10_10_70: { label: 'Four entries: CA 10 + CA 10 + CA 10 + Examination 70', ca1: 10, ca2: 10, ca3: 10, exam: 70, entries: 4 }
+});
 
 const state = {
   supabase: null,
@@ -39,7 +44,7 @@ const state = {
   profile: null,
   data: {},
   cms: emptyCmsState(),
-  features: { registration: false, accountClaim: false, office: false, cms: false, media: false, engagement: false, comments: false, placements: false },
+  features: { registration: false, accountClaim: false, office: false, cms: false, media: false, engagement: false, comments: false, placements: false, publicSearch: false, coreSlots: false, publicInventory: false },
   tab: 'overview',
   hubTab: 'term-bills',
   admissionContinuations: [],
@@ -256,7 +261,7 @@ function renderMaintenance() {
         h('p', { text: 'The former portal and its history are being preserved. Sign-in remains paused while the existing Supabase records are inventoried and placed behind secure parent, teacher and administrator access.' }),
         alertBox('info', 'Preserve first, then reconnect', 'Nothing should be overwritten or retired until the owner-controlled backup, record mapping and access tests are complete.'),
         h('div', { class: 'button-row' },
-          h('a', { class: 'button', href: '/index.html' }, h('span', { text: 'Return to website' })),
+          h('a', { class: 'button', href: '/' }, h('span', { text: 'Return to website' })),
           h('a', { class: 'button button--secondary', href: `https://wa.me/${WHATSAPP_NUMBER}` }, h('span', { text: 'Contact the school' }))
         )
       ),
@@ -658,11 +663,12 @@ async function loadPortalData() {
   const role = state.profile.role;
   const staff = role === 'teacher' || role === 'admin';
   const studentColumns = role === 'admin'
-    ? 'id,admission_number,full_name,class_code,parent_id,admission_status,active'
-    : 'id,admission_number,full_name,class_code,admission_status,active';
+    ? 'id,admission_number,full_name,sex,class_code,parent_id,admission_status,active'
+    : 'id,admission_number,full_name,sex,class_code,admission_status,active';
   const common = [
     role === 'parent' ? rpcCall('parent_portal_students') : fetchRows('students', studentColumns, 'full_name'),
-    fetchRows('grades', 'id,student_id,subject,session_name,term,ca1,ca2,continuous_assessment,exam_score,teacher_comment,recorded_by,workflow_status,submitted_at,reviewed_by,reviewed_at,review_note,published_by,published_at,locked_at', 'subject'),
+    fetchRows('grades', 'id,student_id,assessment_plan_id,subject,session_name,term,ca1,ca2,ca3,continuous_assessment,exam_score,teacher_comment,recorded_by,workflow_status,submitted_at,reviewed_by,reviewed_at,review_note,published_by,published_at,locked_at', 'subject'),
+    fetchRows('class_term_assessment_plans', 'id,class_code,session_name,term,scheme,selected_by,selection_reason,created_at,updated_at', 'class_code'),
     fetchRows('payments', 'id,student_id,session_name,term,description,amount,currency,method,status,paid_at,created_at', 'created_at'),
     staff ? fetchRows('teacher_class_assignments', 'id,teacher_id,class_code,subject,active,assignment_kind,session_name,started_on,ended_on,ended_reason,replaces_assignment_id,approved_by,approved_at,handover_note', 'class_code') : Promise.resolve([]),
     staff ? fetchRows('attendance_sessions', 'id,class_code,attendance_date,status,marked_by,submitted_at,locked_by,locked_at,created_at', 'attendance_date') : Promise.resolve([]),
@@ -684,7 +690,7 @@ async function loadPortalData() {
     fetchRows('account_audit_log', 'id,actor_id,target_profile_id,action,reason_code,detail,created_at', 'created_at'),
     fetchRows('website_requests', 'id,request_reference,request_type,status,submitter_name,phone_e164,email,class_code,subject,message,source,sensitive,registered_by,assigned_to,public_note,private_note,submitted_at,updated_at,resolved_at', 'submitted_at'),
     fetchRows('website_request_events', 'id,request_id,actor_id,action,previous_status,new_status,public_note,created_at', 'created_at'),
-    fetchRows('verified_public_information', 'id,topic,title,summary,detail,status,revision,effective_from,effective_until,created_by,published_by,published_at,reviewed_at,updated_at', 'updated_at'),
+    fetchRows('verified_public_information', 'id,topic,title,summary,detail,status,revision,effective_from,effective_until,source_path,source_note,accountable_owner,next_review_date,created_by,published_by,published_at,reviewed_at,updated_at', 'updated_at'),
     fetchRows('public_information_events', 'id,information_id,actor_id,previous_status,new_status,revision,created_at', 'created_at'),
     fetchRows('leadership_section_records', 'id,section,title,detail,status,created_by,created_at,updated_at', 'updated_at'),
     fetchRows('leadership_section_events', 'id,record_id,actor_id,action,previous_status,new_status,created_at', 'created_at'),
@@ -692,10 +698,10 @@ async function loadPortalData() {
   ] : Array.from({ length: 13 }, () => Promise.resolve([]));
 
   const values = await Promise.all([...common, ...adminOnly]);
-  const [students, grades, payments, assignments, attendanceSessions, attendanceEntries, homework, staffNotices, dutyRoster, resultAudit,
+  const [students, grades, assessmentPlans, payments, assignments, attendanceSessions, attendanceEntries, homework, staffNotices, dutyRoster, resultAudit,
     admissionApplications, admissionApplicationEvents,
     profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit, websiteRequests, requestAudit, publicInformation, publicInformationAudit, leadershipRecords, leadershipAudit, assignmentChanges] = values;
-  state.data = { students, grades, payments, assignments, attendanceSessions, attendanceEntries, homework, staffNotices, dutyRoster, resultAudit,
+  state.data = { students, grades, assessmentPlans, payments, assignments, attendanceSessions, attendanceEntries, homework, staffNotices, dutyRoster, resultAudit,
     admissionApplications, admissionApplicationEvents,
     profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit, websiteRequests, requestAudit, publicInformation, publicInformationAudit, leadershipRecords, leadershipAudit, assignmentChanges };
   if (state.features.office) await loadOfficeData();
@@ -964,11 +970,11 @@ function roleOverview() {
     alertBox('info', 'Admission decisions stay separate', 'Payment status never changes a pupil’s admission status. Only an authorised administrator can record an admission decision.'),
     role === 'parent' ? h('div', { class: 'quick-links' },
       h('a', { href: '#add-child', onClick: (event) => { event.preventDefault(); state.tab = 'add-child'; renderAuthenticated(); } }, icon('pupils'), h('span', {}, h('strong', { text: 'Add a child' }), h('small', { text: 'Connect an existing pupil or apply for a new pupil' }))),
-      h('a', { href: '/admissions.html' }, icon('pupils'), h('span', {}, h('strong', { text: 'Admissions' }), h('small', { text: 'Requirements and next steps' }))),
+      h('a', { href: '/admissions' }, icon('pupils'), h('span', {}, h('strong', { text: 'Admissions' }), h('small', { text: 'Requirements and next steps' }))),
       state.features.office && state.profile.parent_stage !== 'applicant'
         ? h('a', { href: '#fees-hub', onClick: (event) => { event.preventDefault(); state.tab = 'fees-hub'; renderAuthenticated(); } }, icon('payments'), h('span', {}, h('strong', { text: 'Fees, materials & transport' }), h('small', { text: 'Open private bills, orders, receipts and requests' })))
-        : h('a', { href: '/fees.html' }, icon('payments'), h('span', {}, h('strong', { text: 'Fees' }), h('small', { text: 'See public payment guidance' }))),
-      h('a', { href: '/contact.html' }, icon('user'), h('span', {}, h('strong', { text: 'Contact' }), h('small', { text: 'Reach the verified school channels' })))
+        : h('a', { href: '/fees' }, icon('payments'), h('span', {}, h('strong', { text: 'Fees' }), h('small', { text: 'See public payment guidance' }))),
+      h('a', { href: '/contact' }, icon('user'), h('span', {}, h('strong', { text: 'Contact' }), h('small', { text: 'Reach the verified school channels' })))
     ) : null
   );
 }
@@ -1115,76 +1121,162 @@ function addChildView() {
   );
 }
 
+function assessmentScheme(planId) {
+  const plan = (state.data.assessmentPlans || []).find((item) => item.id === planId);
+  return { plan, limits: ASSESSMENT_SCHEMES[plan?.scheme] || null };
+}
+
+function assessmentPlanForm() {
+  const classCodes = state.profile.role === 'admin' ? SCHOOL_CLASSES : myClassCodes();
+  if (!classCodes.length) return null;
+  const message = formMessage();
+  const classField = h('select', { name: 'class_code', required: true }, h('option', { value: '', text: 'Choose a class', disabled: true, selected: true }));
+  classCodes.forEach((value) => classField.append(h('option', { value, text: value })));
+  const schemeField = h('select', { name: 'scheme', required: true });
+  const refreshSchemes = () => {
+    const allowed = classField.value === 'Pre-Nursery'
+      ? ['pre_nursery_exam_100']
+      : ['three_entry_15_15_70', 'four_entry_10_10_10_70'];
+    replace(schemeField,
+      h('option', { value: '', text: classField.value ? 'Choose the class-wide term scheme' : 'Choose a class first', disabled: true, selected: true }),
+      allowed.map((value) => h('option', { value, text: ASSESSMENT_SCHEMES[value].label }))
+    );
+  };
+  classField.addEventListener('change', refreshSchemes);
+  refreshSchemes();
+  const form = h('form', { class: 'data-form', onSubmit: async (event) => {
+    event.preventDefault(); if (!form.reportValidity()) return;
+    const submit = form.querySelector('[type=submit]'); submit.disabled = true;
+    const values = new FormData(form);
+    try {
+      const payload = {
+        class_code: values.get('class_code'),
+        session_name: String(values.get('session_name') || '').trim(),
+        term: values.get('term'),
+        scheme: values.get('scheme'),
+        selection_reason: String(values.get('selection_reason') || '').trim() || null
+      };
+      const { error } = await state.supabase.from('class_term_assessment_plans')
+        .upsert(payload, { onConflict: 'class_code,session_name,term' });
+      if (error) throw error;
+      setFormMessage(message, 'The class-wide term assessment plan was saved. It becomes immutable when the first score is entered.');
+      await refreshAfterMutation();
+    } catch { setFormMessage(message, friendlyError(), true); }
+    finally { submit.disabled = false; }
+  } },
+    controlField('Class', classField),
+    textInput('session_name', 'Academic session', { placeholder: '2026/2027', maxlength: '40' }),
+    selectInput('term', 'Term', ['First', 'Second', 'Third'], { placeholder: 'Choose a term' }),
+    controlField('Score-entry structure', schemeField, 'One structure applies to every pupil and subject in this class for the selected term.'),
+    controlField('Reason (required only when changing an unused plan)', h('textarea', { name: 'selection_reason', maxlength: '1000', rows: '3', required: false }), 'A plan cannot change after score entry begins.'),
+    message, primaryButton('Save class term plan', { type: 'submit', icon: 'results' })
+  );
+  return h('details', { class: 'form-panel' }, h('summary', { text: 'Choose the class term score structure' }), form);
+}
+
 function resultsTable() {
-  return table(['Pupil', 'Subject', 'Session / term', 'CA1', 'CA2', 'Exam', 'Total', 'Workflow'], state.data.grades.map((grade) => [
-    nameForStudent(grade.student_id), grade.subject, `${grade.session_name} · ${grade.term}`,
-    `${Number(grade.ca1)}/20`, `${Number(grade.ca2)}/20`, `${Number(grade.exam_score)}/60`,
-    `${Number(grade.ca1) + Number(grade.ca2) + Number(grade.exam_score)}/100`, badge(grade.workflow_status)
-  ]), 'Results and review status. Scroll horizontally if needed.');
+  return table(['Pupil', 'Subject', 'Session / term', 'CA1 obtained / obtainable', 'CA2 obtained / obtainable', 'CA3 obtained / obtainable', 'Exam obtained / obtainable', 'Term total', 'Workflow'], state.data.grades.map((grade) => {
+    const { limits } = assessmentScheme(grade.assessment_plan_id);
+    const max = limits || { ca1: 0, ca2: 0, ca3: 0, exam: 0 };
+    const total = Number(grade.ca1) + Number(grade.ca2) + Number(grade.ca3 || 0) + Number(grade.exam_score);
+    const score = (value, obtainable) => obtainable ? `${Number(value)}/${obtainable}` : 'Not used';
+    return [nameForStudent(grade.student_id), grade.subject, `${grade.session_name} · ${grade.term}`,
+      score(grade.ca1, max.ca1), score(grade.ca2, max.ca2), score(grade.ca3, max.ca3), score(grade.exam_score, max.exam), `${total}/100`, badge(grade.workflow_status)];
+  }), 'Score-entry records and review status. The final pupil result layout is separate from this staff entry table.');
 }
 
 function gradeForm() {
   const pupils = myClassStudents();
+  const plans = (state.data.assessmentPlans || []).filter((plan) => (
+    state.profile.role === 'admin' || myClassCodes().includes(plan.class_code)
+  ));
   if (!pupils.length) return emptyState('No pupils in My Class', 'The Headmistress must assign the correct class scope before results can be entered.');
+  if (!plans.length) return emptyState('Choose a class term plan first', 'Select the class-wide score structure before entering any pupil score.');
+
   const message = formMessage();
+  const planSelect = h('select', { name: 'assessment_plan_id', required: true }, h('option', { value: '', text: 'Choose class, session and term', disabled: true, selected: true }));
+  plans.forEach((plan) => planSelect.append(h('option', { value: plan.id, text: `${plan.class_code} — ${plan.session_name} — ${plan.term} — ${ASSESSMENT_SCHEMES[plan.scheme]?.label || plan.scheme}` })));
+  const pupilSelect = h('select', { name: 'student_id', required: true });
+  const scoreStatus = h('p', { class: 'field__hint', text: 'Choose a class term plan to load obtainable marks.' });
+  const scoreInputs = ['ca1', 'ca2', 'ca3', 'exam_score'].reduce((result, name) => {
+    result[name] = h('input', { name, type: 'number', min: '0', max: '0', step: '0.01', inputmode: 'decimal', required: true, value: '0' });
+    return result;
+  }, {});
+  const scoreFields = {
+    ca1: controlField('CA1', scoreInputs.ca1), ca2: controlField('CA2', scoreInputs.ca2),
+    ca3: controlField('CA3', scoreInputs.ca3), exam_score: controlField('Examination', scoreInputs.exam_score)
+  };
+  const updatePlanControls = () => {
+    const { plan, limits } = assessmentScheme(planSelect.value);
+    const matching = pupils.filter((student) => student.class_code === plan?.class_code);
+    replace(pupilSelect, h('option', { value: '', text: matching.length ? 'Choose a pupil' : 'No pupil in this class', disabled: true, selected: true }),
+      matching.map((student) => h('option', { value: student.id, text: `${student.full_name} — ${student.class_code}` })));
+    if (!limits) return;
+    [['ca1', limits.ca1], ['ca2', limits.ca2], ['ca3', limits.ca3], ['exam_score', limits.exam]].forEach(([name, maximum]) => {
+      const input = scoreInputs[name];
+      input.max = String(maximum); input.value = '0'; input.disabled = maximum === 0;
+      const label = scoreFields[name].querySelector('label');
+      label.textContent = `${name === 'exam_score' ? 'Examination' : name.toUpperCase()} (0–${maximum})`;
+    });
+    scoreStatus.textContent = limits.entries === 1
+      ? 'Pre-Nursery: one examination in Week 12, scored over 100. CA fields are disabled.'
+      : limits.entries === 3
+        ? 'Three entries: Week 4 CA 15, Week 8 CA 15 and Week 12 examination 70.'
+        : 'Four entries: Week 3 CA 10, Week 6 CA 10, Week 9 CA 10 and Week 12 examination 70.';
+  };
+  planSelect.addEventListener('change', updatePlanControls);
+  updatePlanControls();
+
   const form = h('form', { class: 'data-form', onSubmit: async (event) => {
-    event.preventDefault();
-    if (!form.reportValidity()) return;
-    const submit = form.querySelector('[type=submit]');
-    submit.disabled = true;
+    event.preventDefault(); if (!form.reportValidity()) return;
+    const submit = form.querySelector('[type=submit]'); submit.disabled = true;
     const values = new FormData(form);
+    const { plan } = assessmentScheme(values.get('assessment_plan_id'));
     try {
+      if (!plan) throw new Error('assessment_plan');
       const payload = {
-        student_id: values.get('student_id'),
-        subject: String(values.get('subject') || '').trim(),
-        session_name: String(values.get('session_name') || '').trim(),
-        term: values.get('term'),
-        ca1: Number(values.get('ca1')),
-        ca2: Number(values.get('ca2')),
-        exam_score: Number(values.get('exam_score')),
+        student_id: values.get('student_id'), assessment_plan_id: plan.id,
+        subject: String(values.get('subject') || '').trim(), session_name: plan.session_name, term: plan.term,
+        ca1: Number(values.get('ca1') || 0), ca2: Number(values.get('ca2') || 0), ca3: Number(values.get('ca3') || 0),
+        exam_score: Number(values.get('exam_score') || 0),
         teacher_comment: String(values.get('teacher_comment') || '').trim() || null,
         workflow_status: values.get('workflow_status')
       };
-      const existing = state.data.grades.find((grade) => (
-        grade.student_id === payload.student_id
-        && grade.subject === payload.subject
-        && grade.session_name === payload.session_name
-        && grade.term === payload.term
-      ));
+      const existing = state.data.grades.find((grade) => grade.student_id === payload.student_id
+        && grade.subject === payload.subject && grade.session_name === payload.session_name && grade.term === payload.term);
       const mutation = existing
-        ? state.supabase.from('grades').update({
-            ca1: payload.ca1, ca2: payload.ca2, exam_score: payload.exam_score,
-            teacher_comment: payload.teacher_comment, workflow_status: payload.workflow_status
-          }).eq('id', existing.id)
+        ? state.supabase.from('grades').update({ ca1: payload.ca1, ca2: payload.ca2, ca3: payload.ca3,
+            exam_score: payload.exam_score, teacher_comment: payload.teacher_comment, workflow_status: payload.workflow_status }).eq('id', existing.id)
         : state.supabase.from('grades').insert(payload);
-      const { error } = await mutation;
-      if (error) throw error;
-      setFormMessage(message, payload.workflow_status === 'submitted' ? 'Result submitted for review. It can no longer be edited unless returned.' : 'Draft result saved.');
-      form.reset();
+      const { error } = await mutation; if (error) throw error;
+      setFormMessage(message, payload.workflow_status === 'submitted' ? 'Result submitted for independent leadership review.' : 'Draft score entry saved.');
+      const mode = values.get('entry_mode');
+      ['ca1','ca2','ca3','exam_score'].forEach((name) => { scoreInputs[name].value = '0'; });
+      form.querySelector('[name="teacher_comment"]').value = '';
+      if (mode === 'subject') pupilSelect.value = '';
+      else form.querySelector('[name="subject"]').value = '';
       await refreshAfterMutation();
-    } catch {
-      setFormMessage(message, friendlyError(), true);
-    } finally { submit.disabled = false; }
+    } catch { setFormMessage(message, friendlyError(), true); }
+    finally { submit.disabled = false; }
   } },
-    selectInput('student_id', 'Pupil', pupils.map((student) => ({ value: student.id, label: `${student.full_name} — ${student.class_code}` })), { placeholder: 'Choose a pupil' }),
+    selectInput('entry_mode', 'Entry order', [
+      { value: 'subject', label: 'By subject — keep the subject and move through pupil names' },
+      { value: 'pupil', label: 'By pupil name — keep the pupil and move through subjects' }
+    ]),
+    controlField('Class term assessment plan', planSelect),
+    controlField('Pupil', pupilSelect),
     textInput('subject', 'Subject', { maxlength: '80' }),
-    textInput('session_name', 'Academic session', { placeholder: '2026/2027', maxlength: '20' }),
-    selectInput('term', 'Term', ['First', 'Second', 'Third'], { placeholder: 'Choose a term' }),
-    h('div', { class: 'score-grid' },
-      textInput('ca1', 'CA1 (0–20)', { type: 'number', min: '0', max: '20', step: '0.01', inputmode: 'decimal' }),
-      textInput('ca2', 'CA2 (0–20)', { type: 'number', min: '0', max: '20', step: '0.01', inputmode: 'decimal' }),
-      textInput('exam_score', 'Exam (0–60)', { type: 'number', min: '0', max: '60', step: '0.01', inputmode: 'decimal' })
-    ),
+    scoreStatus,
+    h('div', { class: 'score-grid' }, scoreFields.ca1, scoreFields.ca2, scoreFields.ca3, scoreFields.exam_score),
     controlField('Teacher comment (optional)', h('textarea', { name: 'teacher_comment', maxlength: '500', rows: '4' }), 'Do not include diagnoses or unrelated private family information.'),
     selectInput('workflow_status', 'Save action', [
       { value: 'draft', label: 'Save staff-only draft' },
       { value: 'submitted', label: 'Submit for leadership review' }
     ]),
-    alertBox('info', 'Review before publication', 'The Assistant Headmistress reviews submitted results. Only the Headmistress can publish an approved result.'),
-    message,
-    primaryButton('Save result', { type: 'submit', icon: 'results' })
+    alertBox('info', 'Entry and final result are different', 'This is the secure score-entry workspace. Parents receive the separately formatted result only after independent review and Headmistress publication.'),
+    message, primaryButton('Save score entry', { type: 'submit', icon: 'results' })
   );
-  return h('details', { class: 'form-panel' }, h('summary', { text: 'Add or update a draft result' }), form);
+  return h('details', { class: 'form-panel', open: true }, h('summary', { text: 'Enter scores by subject or pupil name' }), form);
 }
 
 function resultWorkflowForm() {
@@ -1237,10 +1329,11 @@ function resultWorkflowForm() {
 
 function resultsView() {
   const staff = state.profile.role === 'teacher' || state.profile.role === 'admin';
-  return section('Results', staff ? 'CA1 is 20, CA2 is 20 and the examination is 60. Database workflow permissions separate entry, review and publication.' : 'Only results published by the Headmistress are visible here.',
+  return section('Results', staff ? 'Pre-Nursery uses one examination over 100. Every other class uses one approved class-wide term plan: 15 + 15 + 70 or 10 + 10 + 10 + 70. Entry, independent review and publication remain separate.' : 'Only results published by the Headmistress are visible here.',
+    staff ? assessmentPlanForm() : null,
     staff ? gradeForm() : null,
     resultWorkflowForm(),
-    resultsTable() || emptyState('No results available', staff ? 'Use the form above when a draft is ready.' : 'Published results will appear after school review.')
+    resultsTable() || emptyState('No results available', staff ? 'Choose the class term plan, then enter staff-only draft scores.' : 'Published results will appear after school review.')
   );
 }
 
@@ -1572,7 +1665,9 @@ function publicInformationView() {
       const { error } = await state.supabase.from('verified_public_information').insert({
         topic: values.get('topic'), title: String(values.get('title')).trim(), summary: String(values.get('summary')).trim(),
         detail: String(values.get('detail') || '').trim() || null, status: 'draft', revision: randomRevision(),
-        effective_from: values.get('effective_from') || null, effective_until: values.get('effective_until') || null
+        effective_from: values.get('effective_from') || null, effective_until: values.get('effective_until') || null,
+        source_path: String(values.get('source_path')).trim(), source_note: String(values.get('source_note')).trim(),
+        accountable_owner: String(values.get('accountable_owner')).trim(), next_review_date: values.get('next_review_date')
       });
       if (error) throw error;
       setFormMessage(message, 'Publication draft saved. Archive any current revision for this topic before publishing the reviewed replacement.');
@@ -1584,8 +1679,11 @@ function publicInformationView() {
     textInput('title', 'Public title', { maxlength: '160' }),
     controlField('Short verified summary', h('textarea', { name: 'summary', maxlength: '600', rows: '3', required: true })),
     controlField('Full details (optional)', h('textarea', { name: 'detail', maxlength: '6000', rows: '6' })),
+    h('div', { class: 'form-grid' }, textInput('source_path', 'Supporting public page', { maxlength: '500', placeholder: '/calendar' }), textInput('accountable_owner', 'Accountable office or role', { maxlength: '120', placeholder: 'School leadership' })),
+    controlField('Private source verification note', h('textarea', { name: 'source_note', maxlength: '2000', rows: '3', required: true }), 'Record what was checked and by whom; do not include passwords, payment evidence or safeguarding details.'),
     h('div', { class: 'form-grid' }, textInput('effective_from', 'Effective from (optional)', { type: 'date', required: false }), textInput('effective_until', 'Effective until (optional)', { type: 'date', required: false })),
-    alertBox('warning', 'Review before publishing', 'New information is saved as a draft. Either administrator may publish it from the separate revision action after archiving any current revision for the same topic. Do not use this area for pupil records, payment approval or admission decisions.'),
+    textInput('next_review_date', 'Next review date', { type: 'date' }),
+    alertBox('warning', 'Review before publishing', 'New information is saved as a draft. Publication requires a supporting page, source note, accountable role and current review date. Either administrator may publish it after archiving any current revision for the same topic. Do not use this area for pupil records, payment approval or admission decisions.'),
     message, primaryButton('Save public-information draft', { type: 'submit', icon: 'publish' })
   );
   const manageable = state.data.publicInformation.filter((item) => ['draft', 'published'].includes(item.status));
@@ -1617,13 +1715,13 @@ function publicInformationView() {
     alertBox('info', 'Revision control', 'Published wording is immutable and each topic can have only one published revision. Archive the current revision before publishing its reviewed replacement.'),
     actionMessage, primaryButton('Record publication action', { type: 'submit', icon: 'publish', disabled: !manageable.length })
   );
-  const rows = [...state.data.publicInformation].reverse().map((item) => [titleCase(item.topic), item.title, item.revision, badge(item.status), item.published_by ? nameForProfile(item.published_by) : 'Not published', item.effective_until ? formatDate(item.effective_until) : 'Open']);
-  return section('Public Information', 'Create versioned, date-aware operational information for the website. Publication decisions are independent and audit-recorded.',
+  const rows = [...state.data.publicInformation].reverse().map((item) => [titleCase(item.topic), item.title, item.revision, badge(item.status), item.source_path || 'Source required', item.published_by ? nameForProfile(item.published_by) : 'Not published', item.next_review_date ? formatDate(item.next_review_date) : 'Review required', item.effective_until ? formatDate(item.effective_until) : 'Open']);
+  return section('Public Information', 'Create source-backed, versioned and date-aware operational information for the website. Publication decisions are independent and audit-recorded.',
     h('div', { class: 'details-grid' },
       h('details', { class: 'form-panel' }, h('summary', { text: 'Create a verified publication' }), form),
       h('details', { class: 'form-panel' }, h('summary', { text: 'Publish or archive a revision' }), actionForm)
     ),
-    table(['Topic', 'Title', 'Revision', 'Status', 'Publisher', 'Until'], rows, 'Verified public information') || emptyState('No publication records', 'Create a verified publication when operational information is ready.')
+    table(['Topic', 'Title', 'Revision', 'Status', 'Source', 'Publisher', 'Review due', 'Until'], rows, 'Verified public information') || emptyState('No publication records', 'Create a verified publication when operational information is ready.')
   );
 }
 
@@ -1708,8 +1806,9 @@ function studentAdminForms() {
     const submit = addForm.querySelector('[type=submit]'); submit.disabled = true;
     const values = new FormData(addForm);
     try {
-      const { error } = await state.supabase.rpc('server_add_existing_pupil', {
+      const { error } = await state.supabase.rpc('server_add_existing_pupil_with_sex', {
         p_full_name: String(values.get('full_name')).trim(),
+        p_sex: values.get('sex'),
         p_class_code: values.get('class_code'),
         p_session_name: String(values.get('session_name')).trim(),
         p_admission_number: String(values.get('admission_number') || '').trim() || null,
@@ -1722,14 +1821,15 @@ function studentAdminForms() {
     finally { submit.disabled = false; }
   } },
     textInput('full_name', 'Name on the school register', { maxlength: '120' }),
+    selectInput('sex', 'Sex on the school register', [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }], { placeholder: 'Choose the verified school record' }),
     selectInput('class_code', 'Current class', SCHOOL_CLASSES, { placeholder: 'Choose the pupil’s class' }),
     textInput('session_name', 'Enrolment session', { maxlength: '40', placeholder: '2026/2027' }),
-    textInput('admission_number', 'Admission number (optional)', { maxlength: '40', required: false, hint: 'Leave blank where the historical number is not available. Never invent one.' }),
+    textInput('admission_number', 'Admission number (optional)', { maxlength: '40', required: false, hint: 'Leave blank until the exact official numbering format and starting sequence are approved. Never invent one.' }),
     selectInput('initial_baseline', 'Roster entry type', [
       { value: 'yes', label: 'Initial all-class cutover (one-time baseline)' },
-      { value: 'no', label: 'Routine fresh entry (Creche only)' }
+      { value: 'no', label: 'Routine fresh entry (Pre-Nursery only)' }
     ], { placeholder: 'Choose why this pupil is being entered' }),
-    alertBox('info', 'Existing pupil roster', 'Initial cutover accepts every active class. After cutover, routine fresh roster entries are Creche only; higher-class entries require the admission workflow. Pupil identity is never replaced.'),
+    alertBox('info', 'Existing pupil roster', 'Initial cutover accepts every active class. After cutover, routine fresh roster entries begin in Pre-Nursery; higher-class entries require the admission workflow. Pupil identity is never replaced.'),
     !state.features.office ? alertBox('info', 'Staged feature', 'Permanent enrolment history must be activated only after migrations and cutover checks pass.') : null,
     addMessage, primaryButton('Add existing pupil', { type: 'submit', icon: 'pupils', disabled: !state.features.office })
   );
@@ -2946,8 +3046,17 @@ function inventoryAdminView() {
   const catalogueStatusRows = [...(state.data.catalogStatusEvents || [])].reverse().slice(0, 100).map((item) => [formatDate(item.created_at), products.find((product) => product.id === item.product_id)?.name || 'Product', variants.find((variant) => variant.id === item.variant_id)?.sku || 'Variant', item.previous_active == null ? 'New' : item.previous_active ? 'Active' : 'Inactive', item.new_active ? 'Active' : 'Inactive', nameForProfile(item.actor_id), item.reason]);
   const expectedLegacyCounts = { shop_items: 25, uniform_items: 8 };
   const legacyCounts = ['shop_items', 'uniform_items'].map((source) => { const rows = (state.data.legacyReconciliation || []).filter((item) => item.source_table === source); const expected = expectedLegacyCounts[source]; return [source, expected, rows.length, rows.filter((item) => item.status === 'owner_verified').length, Math.max(expected - rows.length, 0), rows.length === expected ? 'Row count reconciled' : 'Incomplete — do not activate remaining values']; });
+  const publicInventoryRows = variants.filter((variant) => variant.reconciled === true).flatMap((variant) => {
+    const product = products.find((item) => item.id === variant.product_id);
+    if (!product || product.reconciled !== true) return [];
+    const available = Math.max(Number(variant.on_hand) - Number(variant.reserved) - Number(variant.damaged), 0);
+    const coarseState = product.active !== true ? 'Not currently offered' : variant.active !== true ? 'Temporarily unavailable' : available === 0 ? 'Out of stock' : available <= Number(variant.low_stock_threshold) ? 'Low stock' : 'In stock';
+    return [[product.name, variant.variant_label, variant.sku, coarseState, (variant.eligible_classes || []).join(', ') || 'General']];
+  });
   return section('Inventory & Orders', 'Variant stock, immutable movements, demand, procurement, fulfilment, returns and exchanges.',
+    alertBox(state.features.publicInventory ? 'info' : 'warning', state.features.publicInventory ? 'Public coarse availability is active' : 'Public inventory gate is closed', state.features.publicInventory ? 'Only both reconciled product/variant pairs appear publicly. The public service derives a coarse availability label from office-confirmed balances and never exposes quantity, movement, actor or price fields.' : 'No product is exposed by the Run 10 public inventory service. Reconcile records and balances here first; gate activation remains a separate accepted release decision.'),
     h('div', { class: 'details-grid' }, h('details', { class: 'form-panel' }, h('summary', { text: 'Create an inactive product' }), productForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Create an inactive size or variant' }), variantForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Map a preserved shop or uniform row' }), reconcileForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Verify and activate a product variant' }), verifyForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Activate or deactivate a catalogue variant' }), catalogueStatusForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Record a manual stock adjustment' }), adjustmentForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Release a paid order to its handover route' }), orderForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Confirm parent or guardian office collection' }), fulfilOrderForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Cancel an unpaid order and release stock' }), cancelOrderForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Release expired unpaid reservations' }), expiryForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Review out-of-stock demand' }), restockForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Inspect a return or exchange' }), returnForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Create a procurement batch' }), procurementForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Add a procurement line' }), procurementLineForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Receive procured stock' }), receiptForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Cancel an unreceived procurement batch' }), cancelProcurementForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Open a full stocktake' }), stocktakeForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Record a physical stocktake count' }), countForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Close a counted stocktake' }), closeForm), h('details', { class: 'form-panel' }, h('summary', { text: 'Cancel an open stocktake' }), cancelStocktakeForm)),
+    h('h2', { class: 'subheading', text: 'Public coarse-availability preview' }), table(['Product', 'Variant', 'SKU', 'Public state', 'Eligible classes'], publicInventoryRows, 'Public coarse inventory availability preview') || emptyState('No reconciled public availability candidates', 'A product and its variant must both be office-reconciled before they can appear. The public gate is controlled separately.'),
     h('h2', { class: 'subheading', text: 'Low-stock alerts' }), table(['Product', 'Variant', 'SKU', 'On hand', 'Reserved', 'Available', 'Threshold'], lowRows, 'Low-stock inventory alerts') || emptyState('No low-stock alerts', 'Active reconciled variants appear here at or below their threshold.'),
     h('h2', { class: 'subheading', text: 'Preserved catalogue reconciliation' }), table(['Former source', 'Expected', 'Mapped', 'Owner verified', 'Unmapped', 'Control status'], legacyCounts, 'Legacy catalogue reconciliation counts'),
     h('h2', { class: 'subheading', text: 'Catalogue status audit' }), table(['Date', 'Product', 'Variant', 'From', 'To', 'Actor', 'Reason'], catalogueStatusRows, 'Catalogue activation audit') || emptyState('No catalogue status events', 'Verification, activation and deactivation events appear here.'),
@@ -3060,6 +3169,9 @@ async function start() {
     state.features.engagement = config.publicEngagementEnabled === true;
     state.features.comments = config.commentsEnabled === true;
     state.features.placements = config.placementsEnabled === true;
+    state.features.publicSearch = config.publicSearchEnabled === true;
+    state.features.coreSlots = config.coreSlotsEnabled === true;
+    state.features.publicInventory = config.publicInventoryEnabled === true;
     if (state.features.cms) {
       try { await loadCmsBundle(); }
       catch { state.features.cms = false; }
@@ -3093,7 +3205,7 @@ async function start() {
     replace(app, h('section', { class: 'loading-card', 'aria-labelledby': 'portal-error-title' },
       h('h1', { id: 'portal-error-title', text: 'Portal temporarily unavailable' }),
       alertBox('error', 'Secure service not reached', 'No information was submitted. Try again later or contact the school.'),
-      h('a', { class: 'button', href: '/contact.html', text: 'Open contact information' })
+      h('a', { class: 'button', href: '/contact', text: 'Open contact information' })
     ));
     setStatus('Portal temporarily unavailable.', true);
   }

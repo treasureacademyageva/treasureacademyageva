@@ -11,6 +11,9 @@ SITE="https://www.treasureacademyageva.com"
 CORE={"index.html","about.html","academics.html","admissions.html","fees.html","calendar.html","news.html","safeguarding.html","privacy.html","contact.html"}
 PRIVATE={"developer.html","developer-review.html","developer-operations.html","404.html","receipt.html"}
 EXPECTED_NOINDEX={"admission-form.html","birthdays.html","board.html","class.html","holiday.html","homework.html","lost-found.html","openday.html","photo-day.html","poster.html","reading.html","receipt.html","search.html","shop.html","story.html","support.html","testimonials.html","volunteer.html"}
+ROUTE_REGISTRY=json.loads((ROOT/'config/public-routes.json').read_text())
+SOURCE_TO_CANONICAL={row['source']:row['canonical'] for row in ROUTE_REGISTRY['routes']}
+CANONICAL_TO_SOURCE={row['canonical']:row['source'] for row in ROUTE_REGISTRY['routes']}
 
 class Doc(HTMLParser):
     def __init__(self):
@@ -60,6 +63,9 @@ def resolve_link(page:Path,href:str):
     else:
         path=(page.parent/Path(unquote(u.path))).relative_to(ROOT).as_posix() if u.path else relative(page)
     if path.endswith('/'):path+='index.html'
+    clean='/' + path
+    if clean in CANONICAL_TO_SOURCE:
+        path=CANONICAL_TO_SOURCE[clean].lstrip('/')
     return ROOT/path
 
 def meta_value(doc,name=None,prop=None):
@@ -128,7 +134,8 @@ def main():
             canonical=''
             for tag,a in doc.tags:
                 if tag=='link' and a.get('rel')=='canonical':canonical=a.get('href','')
-            expected_canonical=SITE+('/' if rel=='index.html' else '/'+rel)
+            expected_path=SOURCE_TO_CANONICAL.get('/'+rel, '/' if rel=='index.html' else '/'+rel)
+            expected_canonical=SITE+expected_path
             if not canonical:fail(f'{rel}: missing canonical')
             elif canonical!=expected_canonical:fail(f'{rel}: canonical {canonical} does not match {expected_canonical}')
             elif canonical in canon:fail(f'{rel}: duplicate canonical also used by {canon[canonical]}: {canonical}')
@@ -156,8 +163,9 @@ def main():
     # Required architecture and content.
     for p in CORE:
         if p not in docs:fail(f'missing core page {p}')
-    for slug in ('creche','pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-6'):
+    for slug in ('pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-6'):
         if f'classes/{slug}.html' not in docs:fail(f'missing static class page {slug}')
+    if 'classes/creche.html' in docs:fail('retired Crèche must not be published as an active class page')
     if 'classes/primary-5.html' in docs:fail('Primary 5 must not be published as an active class page')
     if 'news/2026-2027-admissions-open.html' not in docs:fail('missing crawlable admissions article')
     index=(ROOT/'index.html').read_text()
@@ -226,11 +234,15 @@ def main():
     for loc in locs:
         parsed=urlsplit(loc)
         if parsed.scheme!='https' or parsed.netloc!='www.treasureacademyageva.com':fail(f'sitemap uses non-canonical host or scheme: {loc}')
-        rel=unquote(parsed.path).lstrip('/') or 'index.html'
-        if not (ROOT/rel).is_file():fail(f'sitemap URL has no deployable file: {loc}')
-    required_sitemap_paths={f'classes/{name}.html' for name in ('creche','pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-6')}
-    if 'classes/primary-5.html' in {urlsplit(loc).path.lstrip('/') for loc in locs}:fail('sitemap must not publish Primary 5')
-    required_sitemap_paths.add('news/2026-2027-admissions-open.html')
+        clean=parsed.path or '/'
+        source=CANONICAL_TO_SOURCE.get(clean)
+        rel=source.lstrip('/') if source else (unquote(clean).lstrip('/') or 'index.html')
+        if not (ROOT/rel).is_file():fail(f'sitemap URL has no deployable file or clean rewrite: {loc}')
+    required_sitemap_paths={f'classes/{name}' for name in ('pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-6')}
+    indexed_class_paths={urlsplit(loc).path.lstrip('/') for loc in locs}
+    if 'classes/creche' in indexed_class_paths:fail('sitemap must not publish retired Crèche')
+    if 'classes/primary-5' in indexed_class_paths:fail('sitemap must not publish Primary 5')
+    required_sitemap_paths.add('news/2026-2027-admissions-open')
     actual_paths={urlsplit(loc).path.lstrip('/') for loc in locs}
     for rel in sorted(required_sitemap_paths-actual_paths):fail(f'sitemap nested path missing: {rel}')
     # Validate the staging-only CMS model and fail-closed starter boundaries.

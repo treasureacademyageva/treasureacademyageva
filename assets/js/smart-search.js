@@ -1,4 +1,4 @@
-/* Meaning-aware, typo-tolerant, on-device search. No AI API or query upload. */
+/* Gate-aware Search: reviewed local fallback before cutover; bounded same-origin POST after cutover. */
 (function () {
   "use strict";
   var INDEX = window.TA_SEARCH_INDEX || [];
@@ -15,7 +15,7 @@
     {id:"fees",label:"Fees & payments",terms:"fee fees tuition cost costs costing price prices priced pricing payment payments pay paid paying money amount amounts charge charges charged transfer bank receipt receipts invoice",phrases:["how much","school charges","bank details","payment proof","fee schedule"]},
     {id:"location",label:"Location & visits",terms:"location locate located address where whereabouts direction directions directional map maps visit visiting visitor campus site office landmark",phrases:["how to get","where is","come to school","school address","plan a visit"]},
     {id:"contact",label:"Contact & help",terms:"phone phones call calling contact contacts contacted number numbers whatsapp message messaging email reach reaching help support enquiry inquiry ask question",phrases:["talk to","speak with","get in touch","school office"]},
-    {id:"classes",label:"Classes & placement",terms:"class classes grade grades grading level levels stage stages placement creche daycare preschool prenursery nursery primary pupil pupils student students",phrases:["which class","class level","age group","school level"]},
+    {id:"classes",label:"Classes & placement",terms:"class classes grade grades grading level levels stage stages placement preschool prenursery nursery primary pupil pupils student students",phrases:["which class","class level","age group","school level"]},
     {id:"learning",label:"Learning",terms:"learn learns learned learnt learning learner learners teach teaches teaching teacher teachers lesson lessons subject subjects curriculum curricula education educational academic academics numeracy literacy phonics reading read mathematics science",phrases:["what children learn","school work","learning programme","teaching method"]},
     {id:"dates",label:"Dates & calendar",terms:"calendar date dates dated term terms resumption resume holiday holidays break breaks closing closure reopen reopening event events when timetable schedule scheduled",phrases:["term date","school calendar","back to school","school opens","school closes"]},
     {id:"time",label:"Opening times",terms:"open opening opens close closes closed closing hour hours time times weekday weekdays monday friday morning afternoon",phrases:["school hours","opening time","closing time","school day"]},
@@ -149,15 +149,15 @@
   }
 
   var ANSWERS = {
-    location:{title:"Treasure Academy is in Ageva, Okene",text:"The campus is opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State. Call before visiting, especially during holidays or breaks.",actions:[["Plan a visit","contact.html#visit"],["Call the school","tel:+2348141943478"]]},
-    admissions:{title:"Start admission through the verified school office",text:"The school serves Creche, Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6. Confirm availability and documents with the office; payment details appear only in the signed-in portal or official invoice.",actions:[["Admission steps","admissions.html#apply"],["Create an admission request","request-centre.html?type=admission"]]},
-    fees:{title:"Request the current written fee schedule",text:"Fees depend on class and term. Ask the verified office for the written schedule and confirm the bank account before transferring.",actions:[["Fee guidance","fees.html"],["Request current fees","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20please%20send%20the%20current%20written%20fee%20schedule."]]},
-    contact:{title:"Use a verified school contact",text:"Call +234 814 194 3478, WhatsApp 09063932487, or email treasuregroupofschool@gmail.com. You must tap Send in the chosen service.",actions:[["Contact options","contact.html"],["Call now","tel:+2348141943478"]]},
-    classes:{title:"Classes run from Creche to Primary 6",text:"Explore Creche, Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6. The office confirms placement and availability.",actions:[["Explore classes","academics.html"],["Ask about a class","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20I%20want%20to%20ask%20about%20a%20class."]]},
-    records:{title:"Use the secure parent and staff portal",text:"Parents with a school-issued account can view linked children, published results and payment records. Staff access is limited by role and class assignment. If secure login is not yet active, contact the verified office.",actions:[["Secure portal","portal/login.html"],["Create an account-help request","request-centre.html?type=account_help"]]},
-    time:{title:"Published school-day guidance",text:"The published guidance is Monday to Friday, 7:30am–3:00pm. Confirm holiday, break and special-day arrangements before visiting.",actions:[["Visit information","contact.html#visit"],["Calendar guidance","calendar.html"]]},
-    safety:{title:"Raise a safeguarding concern promptly",text:"Speak to the Headmistress or a teacher, call the school, or use verified WhatsApp. Do not place a child’s sensitive information in public search.",actions:[["Safeguarding guidance","safeguarding.html"],["Call the school","tel:+2348141943478"]]},
-    website:{title:"Get help with the website",text:"If a page is unclear, missing or not working, send a voluntary problem report. The report can include safe device and page diagnostics, never form values or raw search text.",actions:[["Report a website problem","website-help.html"],["Browse all pages","explore.html"]]}
+    location:{title:"Treasure Academy is in Ageva, Okene",text:"The campus is opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State. Call before visiting, especially during holidays or breaks.",actions:[["Plan a visit","/contact#visit"],["Call the school","tel:+2348141943478"]]},
+    admissions:{title:"Start admission through the verified school office",text:"The school serves Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6. Confirm availability and documents with the office; payment details appear only in the signed-in portal or official invoice.",actions:[["Admission steps","/admissions#apply"],["Create an admission request","/request-centre?type=admission"]]},
+    fees:{title:"Request the current written fee schedule",text:"Fees depend on class and term. Ask the verified office for the written schedule and confirm the bank account before transferring.",actions:[["Fee guidance","/fees"],["Request current fees","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20please%20send%20the%20current%20written%20fee%20schedule."]]},
+    contact:{title:"Use a verified school contact",text:"Call +234 814 194 3478, WhatsApp 09063932487, or email treasuregroupofschool@gmail.com. You must tap Send in the chosen service.",actions:[["Contact options","/contact"],["Call now","tel:+2348141943478"]]},
+    classes:{title:"Classes run from Pre-Nursery to Primary 6",text:"Explore Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6. The office confirms placement and availability.",actions:[["Explore classes","/academics"],["Ask about a class","https://wa.me/2349063932487?text=Hello%20Treasure%20Academy%2C%20I%20want%20to%20ask%20about%20a%20class."]]},
+    records:{title:"Use the secure parent and staff portal",text:"Parents with a school-issued account can view linked children, published results and payment records. Staff access is limited by role and class assignment. If secure login is not yet active, contact the verified office.",actions:[["Secure portal","portal/login.html"],["Create an account-help request","/request-centre?type=account_help"]]},
+    time:{title:"Published school-day guidance",text:"The published guidance is Monday to Friday, 7:30am–3:00pm. Confirm holiday, break and special-day arrangements before visiting.",actions:[["Visit information","/contact#visit"],["Calendar guidance","/calendar"]]},
+    safety:{title:"Raise a safeguarding concern promptly",text:"Speak to the Headmistress or a teacher, call the school, or use verified WhatsApp. Do not place a child’s sensitive information in public search.",actions:[["Safeguarding guidance","/safeguarding"],["Call the school","tel:+2348141943478"]]},
+    website:{title:"Get help with the website",text:"If a page is unclear, missing or not working, send a voluntary problem report. The report can include safe device and page diagnostics, never form values or raw search text.",actions:[["Report a website problem","/website-help"],["Browse all pages","/site-map"]]}
   };
   var ANSWER_ORDER = ["safety","records","fees","admissions","location","time","classes","contact","website"];
   function directAnswer(query) {
@@ -186,7 +186,9 @@
   }
   var previousSearch = false;
   var currentFamily = "other";
-  function renderResults(query, submitted) {
+  var remoteSearchActive = null;
+  var searchGateReady = Promise.resolve();
+  function renderLocalResults(query, submitted) {
     var q = String(query || "").trim(), analysis = analyze(q), family = analysis.families[0] || null;
     currentFamily = family ? family.id : "other";
     var answer = directAnswer(q);
@@ -204,7 +206,7 @@
       previousSearch = true;
     }
     if (!ranked.length) {
-      resultsBox.innerHTML = '<div class="search-empty"><h2>No useful page yet</h2><p>Try one or two broader words. You can also <a href="explore.html">browse every section</a> or <a href="website-help.html">report what you could not find</a>.</p></div>';
+      resultsBox.innerHTML = '<div class="search-empty"><h2>No useful page yet</h2><p>Try one or two broader words. You can also <a href="/site-map">browse every section</a> or <a href="/website-help">report what you could not find</a>.</p></div>';
       return;
     }
     resultsBox.innerHTML = ranked.map(function (entry) {
@@ -214,19 +216,82 @@
       link.addEventListener("click", function () { if (window.TA_VISITOR_INSIGHTS) TA_VISITOR_INSIGHTS.record("search_result", {family:currentFamily}); });
     });
   }
-  function run(query, updateUrl, submitted) {
+  function renderRemote(payload, query, submitted) {
+    currentFamily = String(payload.family || "other");
+    var rows = Array.isArray(payload.results) ? payload.results : [];
+    if (payload.answer) {
+      var sources = Array.isArray(payload.answer.sources) ? payload.answer.sources : [];
+      renderAnswer({
+        title: payload.answer.title,
+        text: payload.answer.text + (payload.answer.reviewedOn ? " Reviewed " + payload.answer.reviewedOn + "." : ""),
+        actions: sources.map(function (source) { return ["Supporting source: " + source.title, source.url]; }),
+        verified: true
+      });
+    } else if (payload.state === "private") {
+      renderAnswer({ title: "Private information requires secure sign-in", text: payload.message, actions: [["Open secure portal", "/portal/login.html"], ["Read privacy guidance", "/privacy"]], verified: true });
+    } else renderAnswer(null);
+
+    status.textContent = payload.message || (rows.length + " published source" + (rows.length === 1 ? "" : "s") + " found.");
+    if (submitted && window.TA_VISITOR_INSIGHTS) {
+      TA_VISITOR_INSIGHTS.record(previousSearch ? "search_refine" : "search", {family:currentFamily,resultCount:rows.length,hasAnswer:!!payload.answer});
+      previousSearch = true;
+    }
+    if (!rows.length) {
+      var heading = payload.state === "rate_limited" ? "Please wait" : payload.state === "unavailable" ? "Search is temporarily unavailable" : "No verified answer found";
+      resultsBox.innerHTML = '<div class="search-empty"><h2>' + esc(heading) + '</h2><p>' + esc(payload.message || "This information has not been verified or published yet. Treasure Academy Search will not guess.") + ' <a href="/site-map">Browse the site map</a> or <a href="/contact">contact the school</a>.</p></div>';
+      return;
+    }
+    resultsBox.innerHTML = rows.map(function (entry) {
+      var reviewed = entry.reviewedOn ? " · reviewed " + entry.reviewedOn : "";
+      return '<a class="search-result" href="' + esc(entry.url) + '" data-search-result><span><h2>' + highlight(entry.title, query) + '</h2><p>' + highlight(entry.summary, query) + '</p><span class="result-meta">' + esc(String(entry.kind || "page").replace(/_/g, " ") + reviewed) + '</span></span><span class="arrow" aria-hidden="true">→</span></a>';
+    }).join("");
+  }
+
+  var searchGeneration = 0;
+  async function run(query, updateUrl, submitted) {
+    query = String(query || "").trim();
     input.value = query;
-    renderResults(query, submitted);
     if (updateUrl) {
-      try { history.replaceState(null, "", "search.html"); } catch (error) {}
+      try { history.replaceState(null, "", "/search"); } catch (error) {}
+    }
+    if (query.length < 2) { renderLocalResults(query, submitted); return; }
+    var generation = ++searchGeneration;
+    if (remoteSearchActive === null) {
+      status.textContent = "Checking current Search availability…";
+      await searchGateReady;
+      if (generation !== searchGeneration) return;
+    }
+    if (remoteSearchActive === false) { renderLocalResults(query, submitted); return; }
+    status.textContent = "Searching current published information…";
+    try {
+      var response = await fetch('/api/public/search', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        credentials: 'same-origin',
+        body: JSON.stringify({ query: query })
+      });
+      if (generation !== searchGeneration) return;
+      if (response.status === 404) { renderLocalResults(query, submitted); return; }
+      var payload = await response.json().catch(function () { return null; });
+      if (!payload) throw new Error('Invalid Search response');
+      if (!response.ok && !['rate_limited', 'unavailable'].includes(payload.state)) throw new Error('Search request failed');
+      renderRemote(payload, query, submitted);
+    } catch (error) {
+      if (generation !== searchGeneration) return;
+      renderRemote({ state: 'unavailable', message: 'Search is temporarily unavailable. You can still browse the site map or contact the school.', results: [] }, query, submitted);
     }
   }
 
   form.addEventListener("submit", function (event) { event.preventDefault(); run(input.value.trim(), true, true); });
-  var timer;
   input.addEventListener("input", function () {
-    clearTimeout(timer);
-    timer = setTimeout(function () { renderResults(input.value.trim(), false); }, 120);
+    searchGeneration += 1;
+    var query = input.value.trim();
+    if (!query) { renderLocalResults("", false); return; }
+    if (remoteSearchActive === false) { renderLocalResults(query, false); return; }
+    renderAnswer(null);
+    resultsBox.innerHTML = "";
+    status.textContent = query.length < 2 ? "Enter at least two characters." : "Press Search to check current published information.";
   });
   document.querySelectorAll("[data-query]").forEach(function (button) {
     button.addEventListener("click", function () { run(button.dataset.query || "", true, true); input.focus(); });
@@ -235,17 +300,30 @@
   try {
     initial = sessionStorage.getItem("taa_pending_search") || "";
     sessionStorage.removeItem("taa_pending_search");
-    if (!initial) initial = new URLSearchParams(location.search).get("q") || "";
-    if (location.search) history.replaceState(null, "", "search.html");
+    // Public Search never reads a raw query from the URL. This also clears old
+    // bookmarked query strings before any search request is made.
+    if (location.search) history.replaceState(null, "", "/search");
   } catch (error) {}
-  run(initial, false, !!initial);
+  if (!initial) renderLocalResults("", false);
+  searchGateReady = fetch('/api/portal-config', { headers: { Accept: 'application/json' }, cache: 'no-store' })
+    .then(function (response) { return response.ok ? response.json() : Promise.reject(new Error('Config unavailable')); })
+    .then(function (config) {
+      remoteSearchActive = config.publicSearchEnabled === true;
+      if (initial) run(initial, false, true);
+      else if (input.value.trim() && remoteSearchActive === false) renderLocalResults(input.value.trim(), false);
+    })
+    .catch(function () {
+      remoteSearchActive = false;
+      if (initial) run(initial, false, true);
+      else if (input.value.trim()) renderLocalResults(input.value.trim(), false);
+    });
   if (window.TAVerifiedAnswers && typeof window.TAVerifiedAnswers.load === "function") {
     fetch('/api/public-information', {headers:{Accept:'application/json'},cache:'no-store'})
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (payload) {
         if (!payload || !Array.isArray(payload.items)) return;
         window.TAVerifiedAnswers.load(payload.items);
-        renderResults(input.value.trim(), false);
+        if (input.value.trim().length < 2) renderLocalResults(input.value.trim(), false);
       }).catch(function () {});
   }
 })();

@@ -27,7 +27,7 @@ ok('results, applications and receipts scrubbed',d.results.length===0&&d.registr
 ok('graduate profiles and endorsements scrubbed',d.graduates.length===0&&d.testimonials.length===0&&d.supportPledges.length===0);
 ok('unverified fees, routes and uniform data scrubbed',Object.keys(d.school.fees).length===0&&d.transportRoutes.length===0&&d.uniform.length===0);
 ok('old staff and contact details scrubbed',d.staffWall.length===0&&d.formerTeachers.length===0&&d.school.headName==='Mrs. Salihu Nanahawa'&&d.whatsapp.length===1&&d.whatsapp[0].phone==='2349063932487');
-ok('published news resets to reviewed public archive',d.newsEvents.length===9&&d.newsEvents[0].link==='news/2026-2027-admissions-open.html');
+ok('published news resets to reviewed clean public archive',d.newsEvents.length===9&&d.newsEvents[0].link==='/news/2026-2027-admissions-open');
 ok('fresh seed has no authentication records',f.admins.length===0&&f.teachers.length===0&&f.pupils.length===0);
 ok('retired browser authentication code absent',!store.includes('const Auth ='));
 ok('public default bank details are empty',f.school.bank.name===''&&f.school.bank.number===''&&f.school.bank.holder==='');

@@ -18,16 +18,11 @@ async function handle(request) {
   if (!url || !publishableKey) return jsonResponse(503, { error: 'Public information is temporarily unavailable.' });
   try {
     const { createClient } = await import('@supabase/supabase-js');
-    // Deliberately use the anonymous client so the published-only RLS policy is
-    // a second boundary in addition to the explicit projection and filters.
+    // Deliberately use the anonymous client against the fixed current-only view;
+    // the base relation and its private verification fields remain inaccessible.
     const client = createClient(url, publishableKey, { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } });
-    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-    const { data, error } = await client.from('verified_public_information')
-      .select('topic,title,summary,detail,revision,effective_from,effective_until,published_at')
-      .eq('status', 'published')
-      .not('published_at', 'is', null)
-      .or(`effective_from.is.null,effective_from.lte.${today}`)
-      .or(`effective_until.is.null,effective_until.gte.${today}`)
+    const { data, error } = await client.from('public_verified_information')
+      .select('topic,title,summary,detail,revision,source_path,effective_from,effective_until,published_at,reviewed_at,next_review_date')
       .order('published_at', { ascending: false })
       .limit(30);
     if (error) throw error;

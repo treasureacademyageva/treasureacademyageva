@@ -154,7 +154,9 @@ export function emptyCmsState(error = false) {
     },
     entries: [], revisions: [], blocks: [], tags: [], tagLinks: [], searchTerms: [],
     media: [], contentMedia: [], publicationEvents: [], approvals: [], findings: [],
-    moderationComments: [], commentEvents: [], siteSlots: [], siteSlotEvents: [], capabilityRows: [], capabilityEvents: []
+    moderationComments: [], commentEvents: [], siteSlots: [], siteSlotEvents: [],
+    migrationCandidates: [], migrationEvents: [], revisionSources: [], coreSlots: [], coreSlotEvents: [], reviewQueue: [],
+    capabilityRows: [], capabilityEvents: []
   };
 }
 
@@ -197,8 +199,18 @@ export async function loadCmsWorkspaceData(supabase) {
     rows(supabase, 'public_content_quality_findings', 'id,entry_id,revision_id,finding_code,severity,status,detail,created_at,resolved_at,resolved_by,resolution_reason', { order: 'created_at', limit: 500 }),
     rows(supabase, 'public_site_content_slots', 'id,slot_key,entry_id,slot_position,active,effective_from,expires_at,created_by,created_at,updated_at', { order: 'slot_key', ascending: true, limit: 50 }),
     rows(supabase, 'public_site_slot_events', 'id,slot_id,entry_id,actor_id,action,slot_key,slot_position,reason,created_at', { order: 'created_at', limit: 300 }),
-    rows(supabase, 'public_comment_moderation_events', 'id,comment_id,actor_id,previous_status,new_status,reason,created_at', { order: 'created_at', limit: 500 })
+    rows(supabase, 'public_comment_moderation_events', 'id,comment_id,actor_id,previous_status,new_status,reason,created_at', { order: 'created_at', limit: 500 }),
+    rows(supabase, 'public_content_migration_candidates', 'id,source_key,source_kind,source_locator,source_sha256,content_type,slug,historical_child_media_held,status,staged_by,staged_at,verified_by,verified_at,verification_reason,imported_entry_id,imported_at', { order: 'staged_at', limit: 300 }),
+    rows(supabase, 'public_content_migration_events', 'id,candidate_id,actor_id,action,reason,created_at', { order: 'created_at', limit: 500 }),
+    rows(supabase, 'public_content_revision_sources', 'revision_id,candidate_id,source_sha256,linked_by,linked_at', { order: 'linked_at', limit: 500 }),
+    rows(supabase, 'public_core_page_slots', 'id,page_path,mount_key,slot_position,entry_id,active,effective_from,expires_at,created_by,updated_by,created_at,updated_at', { order: 'page_path', ascending: true, limit: 200 }),
+    rows(supabase, 'public_core_page_slot_events', 'id,slot_id,entry_id,actor_id,action,page_path,mount_key,slot_position,reason,created_at', { order: 'created_at', limit: 500 })
   ]);
+
+  let reviewQueue = [];
+  const reviewResult = await supabase.rpc('cms_content_review_queue');
+  if (reviewResult.error) throw reviewResult.error;
+  reviewQueue = reviewResult.data || [];
 
   let moderationComments = [];
   if (capabilities.comment_moderate) {
@@ -216,11 +228,14 @@ export async function loadCmsWorkspaceData(supabase) {
     ]);
   }
 
-  const [entries, revisions, blocks, tags, tagLinks, searchTerms, media, contentMedia, publicationEvents, approvals, findings, siteSlots, siteSlotEvents, commentEvents] = common;
+  const [entries, revisions, blocks, tags, tagLinks, searchTerms, media, contentMedia, publicationEvents, approvals, findings,
+    siteSlots, siteSlotEvents, commentEvents, migrationCandidates, migrationEvents, revisionSources, coreSlots, coreSlotEvents] = common;
   return {
     available: true, error: false, capabilities, entries, revisions, blocks, tags, tagLinks,
     searchTerms, media, contentMedia, publicationEvents, approvals, findings,
-    moderationComments, commentEvents, siteSlots, siteSlotEvents, capabilityRows, capabilityEvents
+    moderationComments, commentEvents, siteSlots, siteSlotEvents,
+    migrationCandidates, migrationEvents, revisionSources, coreSlots, coreSlotEvents, reviewQueue,
+    capabilityRows, capabilityEvents
   };
 }
 
@@ -1170,6 +1185,169 @@ function placementsPanel(context) {
   );
 }
 
+function migrationPanel(context) {
+  const { cms } = context.state;
+  let stagingForm = null;
+  if (cms.capabilities.draft) {
+    let manifestCandidates = [];
+    const form = el('form', { class: 'data-form' });
+    const fileInput = input('manifest', '', { type: 'file', accept: 'application/json,.json', required: true });
+    const candidateSelect = select('candidate', [{ value: '', label: 'Load the generated held manifest first' }], '', { disabled: true, required: true });
+    const summary = notice('info', 'No manifest loaded', 'Choose the generated run10-held-candidates.json file. Loading it locally does not send or stage anything.');
+    const output = messageNode();
+    const submit = button('Stage selected held candidate', null, { type: 'submit', disabled: true });
+    const resetManifest = (message, error = false) => {
+      manifestCandidates = [];
+      replace(candidateSelect, el('option', { value: '', text: 'Load the generated held manifest first' }));
+      candidateSelect.disabled = true; submit.disabled = true;
+      summary.replaceChildren(
+        el('span', { 'aria-hidden': 'true', text: error ? '×' : 'i' }),
+        el('div', {}, el('strong', { text: error ? 'Manifest rejected' : 'No manifest loaded' }), el('p', { text: message }))
+      );
+      summary.className = `alert alert--${error ? 'error' : 'info'}`;
+    };
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (!file) { resetManifest('Choose the generated run10-held-candidates.json file.'); return; }
+      try {
+        if (file.size > 512 * 1024) throw new Error('The manifest exceeds the 512 KiB staging limit.');
+        const manifest = JSON.parse(await file.text());
+        if (manifest?.version !== 1 || manifest?.all_candidates_held !== true || !Array.isArray(manifest?.candidates)
+            || manifest.candidates.length < 1 || manifest.candidates.length > 200
+            || manifest.candidate_count !== manifest.candidates.length) throw new Error('The file is not a supported held-candidate manifest.');
+        if (manifest.candidates.some((item) => item?.verification_status !== 'held' || item?.verification_required !== true
+            || item?.media_imported !== false || !/^[a-f0-9]{64}$/.test(item?.source_sha256 || '')
+            || !item?.document || !Array.isArray(item.document.blocks)
+            || (item.document.media && item.document.media.length))) throw new Error('Every candidate must remain held, text-only and source-hashed.');
+        manifestCandidates = manifest.candidates;
+        replace(candidateSelect, el('option', { value: '', text: 'Choose one held candidate' }), ...manifestCandidates.map((item, index) => el('option', { value: index, text: `${item.content_type}: ${item.document.title} — ${item.source_locator}` })));
+        candidateSelect.disabled = false; submit.disabled = false;
+        summary.className = 'alert alert--warning';
+        summary.replaceChildren(
+          el('span', { 'aria-hidden': 'true', text: '!' }),
+          el('div', {}, el('strong', { text: `${manifestCandidates.length} held candidates loaded locally` }), el('p', { text: 'Staging one record preserves held status. It does not verify, import or publish the wording.' }))
+        );
+      } catch (error) { resetManifest(error.message || 'The manifest could not be read.', true); }
+    });
+    form.append(
+      notice('warning', 'Controlled staging only', 'Use only the deterministic repository-generated manifest. Select one record at a time and give an immutable staging reason. Verification and draft import remain separate decisions.'),
+      field('Held migration manifest', fileInput, 'The file is parsed in this browser and is sent only when you stage the selected candidate.'),
+      summary,
+      field('Held candidate', candidateSelect),
+      field('Immutable staging reason', textarea('reason', '', { required: true, minlength: '8', maxlength: '500' })),
+      output, submit
+    );
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      runMutation(submit, output, async () => {
+        const values = new FormData(form);
+        const candidate = manifestCandidates[Number(values.get('candidate'))];
+        if (!candidate) throw new Error('Choose a candidate from the loaded held manifest.');
+        await context.rpc('cms_stage_content_candidate', {
+          p_source_key: candidate.source_key, p_source_kind: candidate.source_kind,
+          p_source_locator: candidate.source_locator, p_source_sha256: candidate.source_sha256,
+          p_content_type: candidate.content_type, p_slug: candidate.slug, p_document: candidate.document,
+          p_historical_child_media_held: candidate.historical_child_media_held !== false,
+          p_reason: String(values.get('reason')).trim()
+        });
+        await context.refresh('One source-hashed candidate was staged as held. It was not verified, imported or published.');
+      });
+    });
+    stagingForm = form;
+  }
+
+  const candidateCards = cms.migrationCandidates.map((candidate) => {
+    let action = null;
+    if (candidate.status === 'held' && cms.capabilities.publish) {
+      action = actionForm('Verify or reject source', [
+        field('Decision', select('decision', [{ value: 'verified', label: 'Verified for draft import' }, { value: 'rejected', label: 'Reject this candidate' }], 'verified')),
+        field('Immutable verification reason', textarea('reason', '', { required: true, minlength: '8', maxlength: '500' }))
+      ], 'Record source decision', async (values) => {
+        await context.rpc('cms_verify_content_candidate', { p_candidate_id: candidate.id, p_decision: values.get('decision'), p_reason: String(values.get('reason')).trim() });
+        await context.refresh('The source-verification decision was recorded. No content was published.');
+      });
+    } else if (candidate.status === 'verified' && cms.capabilities.draft) {
+      action = actionForm('Import as an ordinary draft', [
+        field('Immutable import reason', textarea('reason', '', { required: true, minlength: '8', maxlength: '500' }), 'Import retains the source hash and still requires the normal independent review and publication workflow.')
+      ], 'Import verified text as draft', async (values) => {
+        await context.rpc('cms_import_verified_candidate', { p_candidate_id: candidate.id, p_reason: String(values.get('reason')).trim() });
+        await context.refresh('Verified text was imported as a draft. It is not public.');
+      });
+    }
+    return el('article', { class: 'cms-entry-card' },
+      el('div', {}, el('p', { class: 'eyebrow', text: `${titleCase(candidate.source_kind)} · ${candidate.content_type}` }),
+        el('h3', { text: candidate.slug }), el('p', { text: candidate.source_locator }),
+        el('p', { text: `SHA-256 ${candidate.source_sha256}` }),
+        candidate.historical_child_media_held ? notice('warning', 'Historical media held', 'This candidate carries text only. No historical image or video relationship can be imported through this workflow.') : null),
+      el('div', { class: 'cms-entry-card__meta' }, badge(candidate.status), el('span', { text: displayDate(candidate.staged_at, true) })),
+      action
+    );
+  });
+
+  let coreForm = null;
+  if (cms.capabilities.publish) {
+    const published = cms.entries.filter((entry) => entry.workflow_status === 'published' && entry.published_revision_id && ['page', 'announcement'].includes(entry.content_type));
+    const choices = [{ value: '', label: 'Create a new slot' }, ...cms.coreSlots.map((slot) => ({ value: slot.id, label: `${slot.page_path} · ${titleCase(slot.mount_key)} ${Number(slot.slot_position) + 1}` }))];
+    const pagePaths = ['/about', '/academics', '/admissions', '/fees', '/contact', '/calendar', '/exams', '/transport', '/uniform', '/shop', '/pta', '/careers', '/privacy', '/safeguarding', '/credits', '/request-centre'];
+    const form = el('form', { class: 'data-form' });
+    const slotSelect = select('slot_id', choices, '');
+    const pageSelect = select('page_path', pagePaths, '/about');
+    const mountSelect = select('mount_key', ['notice', 'intro', 'guidance'], 'guidance');
+    const positionSelect = select('slot_position', [{ value: '0', label: 'Position 1' }, { value: '1', label: 'Position 2' }, { value: '2', label: 'Position 3' }], '0');
+    const entrySelect = select('entry_id', published.map((entry) => ({ value: entry.id, label: `${revisionForEntry(cms, entry, entry.published_revision_id)?.title || entry.slug} — ${entry.canonical_path}` })), '');
+    const sync = () => {
+      const current = cms.coreSlots.find((slot) => slot.id === slotSelect.value);
+      if (!current) return;
+      pageSelect.value = current.page_path; mountSelect.value = current.mount_key; positionSelect.value = String(current.slot_position); entrySelect.value = current.entry_id;
+      form.querySelector('[name="active"]').checked = current.active === true;
+    };
+    slotSelect.addEventListener('change', sync);
+    const output = messageNode();
+    const submit = button('Record core-page slot', null, { type: 'submit', disabled: !published.length });
+    form.append(notice('info', 'Fixed safe mounts only', 'Core slots accept only already-published Page or Announcement records on an allowlisted page and render structured blocks without raw HTML.'),
+      field('Existing slot (optional)', slotSelect), field('Core page', pageSelect), field('Mount', mountSelect), field('Position', positionSelect), field('Published content', entrySelect),
+      checkbox('active', 'Slot active', true),
+      field('Optional effective time — Africa/Lagos', input('effective_from', '', { type: 'datetime-local' })),
+      field('Optional expiry time — Africa/Lagos', input('expires_at', '', { type: 'datetime-local' })),
+      field('Immutable placement reason', textarea('reason', '', { required: true, minlength: '8', maxlength: '500' })), output, submit);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      runMutation(submit, output, async () => {
+        const values = new FormData(form);
+        if (!values.get('entry_id')) throw new Error('Choose an already-published Page or Announcement.');
+        await context.rpc('cms_set_core_page_slot', {
+          p_slot_id: values.get('slot_id') || null, p_page_path: values.get('page_path'), p_mount_key: values.get('mount_key'),
+          p_position: Number(values.get('slot_position')), p_entry_id: values.get('entry_id'), p_active: values.get('active') === 'on',
+          p_effective_from: lagosIso(values.get('effective_from')) || null, p_expires_at: lagosIso(values.get('expires_at')) || null,
+          p_reason: String(values.get('reason')).trim()
+        });
+        await context.refresh('The audited core-page slot decision was recorded.');
+      });
+    });
+    coreForm = form;
+  }
+
+  return el('div', { class: 'cms-panel' },
+    notice(context.state.features.publicSearch ? 'info' : 'warning', context.state.features.publicSearch ? 'Database Search gate active' : 'Database Search gate closed', context.state.features.publicSearch ? 'Search uses current published projections and source links.' : 'The existing local fallback remains authoritative until verified content and Search parity are accepted.'),
+    notice(context.state.features.coreSlots ? 'info' : 'warning', context.state.features.coreSlots ? 'Core-page slots active' : 'Core-page slots gate closed', context.state.features.coreSlots ? 'Effective reviewed slots can appear on allowlisted core pages.' : 'No database core slot is displayed while the gate is closed.'),
+    notice(context.state.features.publicInventory ? 'info' : 'warning', context.state.features.publicInventory ? 'Public inventory availability active' : 'Public inventory gate closed', context.state.features.publicInventory ? 'Only reconciled office-authoritative availability states are eligible.' : 'No legacy product, route or quantity is treated as current public availability.'),
+    el('h3', { text: 'Controlled manifest staging' }),
+    stagingForm || notice('warning', 'Draft authority required', 'Only an accepted CMS drafter can stage a source-hashed candidate. Staging remains held and cannot publish content.'),
+    el('h3', { text: 'Source-hashed migration candidates' }),
+    candidateCards.length ? el('div', { class: 'cms-entry-list' }, candidateCards) : empty('No staged candidates', 'The held repository manifest creates no database row. Candidates appear only after a separately controlled staging action.'),
+    el('h3', { text: 'Stale-content review queue' }),
+    table(['Due', 'State', 'Kind', 'Title', 'Public path'], cms.reviewQueue.map((item) => [displayDate(item.review_due), badge(item.state), titleCase(item.source_kind), item.title, item.public_path || '—']), 'Stale-content review queue') || empty('No review due within 30 days', 'Published CMS and verified-information review dates are checked automatically.'),
+    el('h3', { text: 'Safe core-page slots' }), coreForm || notice('warning', 'Publication authority required', 'Only an accepted CMS publisher can set or deactivate a core-page slot.'),
+    table(['Page', 'Mount', 'Position', 'Content', 'State', 'Expires'], cms.coreSlots.map((slot) => {
+      const entry = cms.entries.find((item) => item.id === slot.entry_id);
+      return [slot.page_path, titleCase(slot.mount_key), Number(slot.slot_position) + 1, entry?.canonical_path || 'Former content', badge(slot.active ? 'active' : 'inactive'), displayDate(slot.expires_at, true)];
+    }), 'Core-page slot records') || empty('No core-page slots', 'Existing static guidance remains visible until reviewed source-backed slots are prepared and separately activated.'),
+    el('h3', { text: 'Migration and core-slot audit' }),
+    table(['Date', 'Candidate', 'Action', 'Actor', 'Reason'], [...cms.migrationEvents].reverse().map((item) => [displayDate(item.created_at, true), item.candidate_id, badge(item.action), profileName(context, item.actor_id), item.reason]), 'Content migration audit') || empty('No migration events', 'Staging, verification, rejection and draft import are retained independently.'),
+    table(['Date', 'Page', 'Mount', 'Position', 'Action', 'Actor', 'Reason'], [...cms.coreSlotEvents].reverse().map((item) => [displayDate(item.created_at, true), item.page_path, titleCase(item.mount_key), Number(item.slot_position) + 1, badge(item.action), profileName(context, item.actor_id), item.reason]), 'Core-page slot audit') || empty('No core-slot events', 'Every set or deactivation decision will appear here.')
+  );
+}
+
 function auditPanel(context) {
   const { cms } = context.state;
   return el('div', { class: 'cms-panel' },
@@ -1200,6 +1378,7 @@ export function renderCmsWorkspace(context) {
   ];
   if (cms.capabilities.comment_moderate) panels.push(['comments', 'Comments']);
   if (cms.capabilities.publish) panels.push(['placements', 'Homepage']);
+  panels.push(['migration', 'Migration & freshness']);
   panels.push(['audit', 'Audit']);
   if (cms.capabilities.administer) panels.push(['access', 'Access']);
   if (!panels.some(([key]) => key === ui.panel)) ui.panel = 'content';
@@ -1211,6 +1390,7 @@ export function renderCmsWorkspace(context) {
   else if (ui.panel === 'media') panel = mediaPanel(workspaceContext);
   else if (ui.panel === 'comments') panel = commentsPanel(workspaceContext);
   else if (ui.panel === 'placements') panel = placementsPanel(workspaceContext);
+  else if (ui.panel === 'migration') panel = migrationPanel(workspaceContext);
   else if (ui.panel === 'audit') panel = auditPanel(workspaceContext);
   else if (ui.panel === 'access') panel = accessPanel(workspaceContext);
   else panel = contentPanel(workspaceContext);

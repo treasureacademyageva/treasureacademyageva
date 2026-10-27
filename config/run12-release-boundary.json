@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-27",
+  "run11AcceptedCommit": "f61a074be8a86058ca14c6fd452be351688e9a48",
+  "preservedProduction": {
+    "sourceCommit": "a552618e40791a592cb9e586b2963d61ed46ad2c",
+    "deploymentId": "dpl_DLjZRSt67DAxHhsBYprfhYeJV2h2",
+    "supabaseProjectRef": "biyizitalhylkwtshrqt",
+    "browserConfig": {
+      "enabled": true,
+      "developerBootstrapEnabled": false,
+      "registrationEnabled": true,
+      "accountClaimEnabled": false,
+      "officeEnabled": true
+    }
+  },
+  "releaseMode": "gate-off-only-until-separate-acceptance",
+  "requiredFalseGates": [
+    "PORTAL_ACCOUNT_CLAIM_ENABLED",
+    "ADMISSION_TRACKING_ENABLED",
+    "CMS_PORTAL_ENABLED",
+    "CMS_MEDIA_ENABLED",
+    "PUBLIC_CMS_ENABLED",
+    "PUBLIC_CMS_MEDIA_ENABLED",
+    "PUBLIC_CMS_DOWNLOADS_ENABLED",
+    "PUBLIC_CMS_ENGAGEMENT_ENABLED",
+    "PUBLIC_CMS_COMMENTS_ENABLED",
+    "PUBLIC_CMS_PLACEMENTS_ENABLED",
+    "PUBLIC_CMS_SEARCH_ENABLED",
+    "PUBLIC_CMS_CORE_SLOTS_ENABLED",
+    "PUBLIC_INVENTORY_ENABLED",
+    "DEVELOPER_MANUAL_BOOTSTRAP_ENABLED",
+    "PARAGON_OTP_RELAY_ENABLED",
+    "MONNIFY_WEBHOOK_ENABLED",
+    "MONNIFY_OWNER_VERIFIED"
+  ],
+  "separateAcceptances": {
+    "schoolAccountClaims": {
+      "gate": "PORTAL_ACCOUNT_CLAIM_ENABLED",
+      "status": "hold",
+      "reason": "Stage 9 has not been authorised; accepted manual dispatcher remains the fallback"
+    },
+    "admissionTrackingOtp": {
+      "gate": "ADMISSION_TRACKING_ENABLED",
+      "status": "hold",
+      "reason": "Requires its own owner-authorised private acceptance after school-account claims"
+    },
+    "automaticParagonRelay": {
+      "gate": "PARAGON_OTP_RELAY_ENABLED",
+      "status": "external-hold",
+      "requirements": [
+        "private Render APP_SECRET configured",
+        "permanent live PHONE_NUMBER_ID corrected",
+        "redeploy completed and unsigned webhook returns 403",
+        "treasure_academy_authentication en_US template approved",
+        "one owner-authorised direct delivery to the number ending 2487",
+        "delivery webhook evidence accepted",
+        "one signed relay test accepted"
+      ],
+      "manualFallbackRequired": true,
+      "forbiddenTestRecipientSuffix": "6650"
+    }
+  },
+  "rollback": {
+    "source": "promote the preserved READY deployment before any gate activation",
+    "database": "keep gates false; correct forward only after preservation comparison; restore only through an authorised incident procedure",
+    "stopOnUnexpectedCountDecrease": true,
+    "encryptedRestoreRequiredBeforeMigration": true
+  }
+}

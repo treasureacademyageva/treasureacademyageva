@@ -252,7 +252,7 @@
         '<div class="fld"><label for="taRclass">Class applying for</label>' +
           '<select id="taRclass" required>' +
             "<option value=''>Select a class</option>" +
-            ["Creche", "Pre-Nursery", "Nursery 1", "Nursery 2", "Primary 1", "Primary 2",
+            ["Pre-Nursery", "Nursery 1", "Nursery 2", "Primary 1", "Primary 2",
              "Primary 3", "Primary 4", "Primary 6"]
               .map(function (c) { return "<option>" + c + "</option>"; }).join("") +
           "</select></div>" +
@@ -374,30 +374,30 @@
 
   /* ---------- navigation drawer ---------- */
   var TOP_LINKS = [
-    { href: "index.html",   label: "Home",        icon: "ta-star" },
-    { href: "news.html",    label: "News & Events",  icon: "ta-calendar" },
-    { href: "about.html",   label: "About Us",    icon: "ta-book" },
-    { href: "contact.html", label: "Contact Us",  icon: "ta-chat" },
-    { href: "admissions.html", label: "Admissions", icon: "ta-cap" }
+    { href: "/",   label: "Home",        icon: "ta-star" },
+    { href: "/news",    label: "News & Events",  icon: "ta-calendar" },
+    { href: "/about",   label: "About Us",    icon: "ta-book" },
+    { href: "/contact", label: "Contact Us",  icon: "ta-chat" },
+    { href: "/admissions", label: "Admissions", icon: "ta-cap" }
   ];
   var MORE_LINKS = [
-    { href: "academics.html",    label: "Academics",        icon: "ta-book" },
-    { href: "fees.html",         label: "School Fees",      icon: "ta-shield" },
-    { href: "calendar.html",     label: "Term Calendar",    icon: "ta-calendar" },
-    { href: "alumni.html",       label: "Staff & Alumni",   icon: "ta-cap" },
-    { href: "uniform.html",      label: "Uniform",          icon: "ta-shirt" },
-    { href: "transport.html",    label: "Transport",        icon: "ta-bus" },
-    { href: "volunteer.html",    label: "Volunteer",        icon: "ta-star" },
-    { href: "homework.html",     label: "Homework Board",   icon: "ta-book" },
-    { href: "lost-found.html",   label: "Lost & Found",     icon: "ta-chat" },
-    { href: "photo-day.html",    label: "Photo Day",        icon: "ta-star" },
-    { href: "openday.html",      label: "Open Day",         icon: "ta-calendar" },
-    { href: "reading.html",      label: "Reading Corner",   icon: "ta-book" },
-    { href: "testimonials.html", label: "Testimonials",     icon: "ta-star" },
-    { href: "support.html",      label: "Support the School", icon: "ta-pledge" },
-    { href: "pta.html",          label: "PTA",              icon: "ta-pledge" },
-    { href: "careers.html",      label: "Careers",          icon: "ta-cap" },
-    { href: "search.html",       label: "Search",           icon: "ta-chat" }
+    { href: "/academics",    label: "Academics",        icon: "ta-book" },
+    { href: "/fees",         label: "School Fees",      icon: "ta-shield" },
+    { href: "/calendar",     label: "Term Calendar",    icon: "ta-calendar" },
+    { href: "/alumni",       label: "Staff & Alumni",   icon: "ta-cap" },
+    { href: "/uniform",      label: "Uniform",          icon: "ta-shirt" },
+    { href: "/transport",    label: "Transport",        icon: "ta-bus" },
+    { href: "/volunteer",    label: "Volunteer",        icon: "ta-star" },
+    { href: "/homework",     label: "Homework Board",   icon: "ta-book" },
+    { href: "/lost-found",   label: "Lost & Found",     icon: "ta-chat" },
+    { href: "/photo-day",    label: "Photo Day",        icon: "ta-star" },
+    { href: "/openday",      label: "Open Day",         icon: "ta-calendar" },
+    { href: "/reading",      label: "Reading Corner",   icon: "ta-book" },
+    { href: "/testimonials", label: "Testimonials",     icon: "ta-star" },
+    { href: "/support",      label: "Support the School", icon: "ta-pledge" },
+    { href: "/pta",          label: "PTA",              icon: "ta-pledge" },
+    { href: "/careers",      label: "Careers",          icon: "ta-cap" },
+    { href: "/search",       label: "Search",           icon: "ta-chat" }
   ];
 
   function icon(id) {
@@ -419,7 +419,7 @@
 
   function openDrawer() {
     if (document.getElementById("taDrawer")) return;
-    var here = (location.pathname.split("/").pop() || "index.html");
+    var here = (location.pathname.split("/").pop() || "/");
 
     function row(l) {
       var cur = l.href === here ? ' aria-current="page"' : "";
@@ -465,7 +465,7 @@
             sessionStorage.removeItem("treasure_session_v1"); } catch (e) {}
       toast("You have been logged out.");
       closeDrawer();
-      setTimeout(function () { location.href = base() + "index.html"; }, 400);
+      setTimeout(function () { location.href = base() + "/"; }, 400);
     });
     var lg = d.querySelector("#taDrawerLogin");
     if (lg) lg.addEventListener("click", function () { closeDrawer(); setTimeout(openLogin, 260); });

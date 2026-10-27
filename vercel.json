@@ -24,6 +24,301 @@
       "permanent": true
     },
     {
+      "source": "/about.html",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/academics.html",
+      "destination": "/academics",
+      "permanent": true
+    },
+    {
+      "source": "/admission-form.html",
+      "destination": "/admission-form",
+      "permanent": true
+    },
+    {
+      "source": "/admissions.html",
+      "destination": "/admissions",
+      "permanent": true
+    },
+    {
+      "source": "/alumni.html",
+      "destination": "/alumni",
+      "permanent": true
+    },
+    {
+      "source": "/anthem.html",
+      "destination": "/anthem",
+      "permanent": true
+    },
+    {
+      "source": "/birthdays.html",
+      "destination": "/birthdays",
+      "permanent": true
+    },
+    {
+      "source": "/board.html",
+      "destination": "/board",
+      "permanent": true
+    },
+    {
+      "source": "/calendar.html",
+      "destination": "/calendar",
+      "permanent": true
+    },
+    {
+      "source": "/careers.html",
+      "destination": "/careers",
+      "permanent": true
+    },
+    {
+      "source": "/class.html",
+      "destination": "/classes",
+      "permanent": true
+    },
+    {
+      "source": "/classes/nursery-1.html",
+      "destination": "/classes/nursery-1",
+      "permanent": true
+    },
+    {
+      "source": "/classes/nursery-2.html",
+      "destination": "/classes/nursery-2",
+      "permanent": true
+    },
+    {
+      "source": "/classes/pre-nursery.html",
+      "destination": "/classes/pre-nursery",
+      "permanent": true
+    },
+    {
+      "source": "/classes/primary-1.html",
+      "destination": "/classes/primary-1",
+      "permanent": true
+    },
+    {
+      "source": "/classes/primary-2.html",
+      "destination": "/classes/primary-2",
+      "permanent": true
+    },
+    {
+      "source": "/classes/primary-3.html",
+      "destination": "/classes/primary-3",
+      "permanent": true
+    },
+    {
+      "source": "/classes/primary-4.html",
+      "destination": "/classes/primary-4",
+      "permanent": true
+    },
+    {
+      "source": "/classes/primary-6.html",
+      "destination": "/classes/primary-6",
+      "permanent": true
+    },
+    {
+      "source": "/contact.html",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/credits.html",
+      "destination": "/credits",
+      "permanent": true
+    },
+    {
+      "source": "/elearning.html",
+      "destination": "/elearning",
+      "permanent": true
+    },
+    {
+      "source": "/exams.html",
+      "destination": "/exams",
+      "permanent": true
+    },
+    {
+      "source": "/explore.html",
+      "destination": "/site-map",
+      "permanent": true
+    },
+    {
+      "source": "/fees.html",
+      "destination": "/fees",
+      "permanent": true
+    },
+    {
+      "source": "/holiday.html",
+      "destination": "/holiday",
+      "permanent": true
+    },
+    {
+      "source": "/homework.html",
+      "destination": "/homework",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/lost-found.html",
+      "destination": "/lost-found",
+      "permanent": true
+    },
+    {
+      "source": "/news.html",
+      "destination": "/news",
+      "permanent": true
+    },
+    {
+      "source": "/news/2017-first-graduation-ceremony.html",
+      "destination": "/news/2017-first-graduation-ceremony",
+      "permanent": true
+    },
+    {
+      "source": "/news/2018-second-graduation-ceremony.html",
+      "destination": "/news/2018-second-graduation-ceremony",
+      "permanent": true
+    },
+    {
+      "source": "/news/2019-third-graduation-ceremony.html",
+      "destination": "/news/2019-third-graduation-ceremony",
+      "permanent": true
+    },
+    {
+      "source": "/news/2020-fourth-graduation-ceremony.html",
+      "destination": "/news/2020-fourth-graduation-ceremony",
+      "permanent": true
+    },
+    {
+      "source": "/news/2021-fifth-graduation-ceremony.html",
+      "destination": "/news/2021-fifth-graduation-ceremony",
+      "permanent": true
+    },
+    {
+      "source": "/news/2026-2027-admissions-open.html",
+      "destination": "/news/2026-2027-admissions-open",
+      "permanent": true
+    },
+    {
+      "source": "/openday.html",
+      "destination": "/openday",
+      "permanent": true
+    },
+    {
+      "source": "/photo-day.html",
+      "destination": "/photo-day",
+      "permanent": true
+    },
+    {
+      "source": "/poster.html",
+      "destination": "/poster",
+      "permanent": true
+    },
+    {
+      "source": "/privacy.html",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/pta.html",
+      "destination": "/pta",
+      "permanent": true
+    },
+    {
+      "source": "/reading.html",
+      "destination": "/reading",
+      "permanent": true
+    },
+    {
+      "source": "/receipt.html",
+      "destination": "/receipt",
+      "permanent": true
+    },
+    {
+      "source": "/request-centre.html",
+      "destination": "/request-centre",
+      "permanent": true
+    },
+    {
+      "source": "/safeguarding.html",
+      "destination": "/safeguarding",
+      "permanent": true
+    },
+    {
+      "source": "/search.html",
+      "destination": "/search",
+      "permanent": true
+    },
+    {
+      "source": "/shop.html",
+      "destination": "/shop",
+      "permanent": true
+    },
+    {
+      "source": "/story.html",
+      "destination": "/story",
+      "permanent": true
+    },
+    {
+      "source": "/support.html",
+      "destination": "/support",
+      "permanent": true
+    },
+    {
+      "source": "/testimonials.html",
+      "destination": "/testimonials",
+      "permanent": true
+    },
+    {
+      "source": "/transport.html",
+      "destination": "/transport",
+      "permanent": true
+    },
+    {
+      "source": "/uniform.html",
+      "destination": "/uniform",
+      "permanent": true
+    },
+    {
+      "source": "/volunteer.html",
+      "destination": "/volunteer",
+      "permanent": true
+    },
+    {
+      "source": "/website-help.html",
+      "destination": "/website-help",
+      "permanent": true
+    },
+    {
+      "source": "/welcome.html",
+      "destination": "/welcome",
+      "permanent": true
+    },
+    {
+      "source": "/class",
+      "destination": "/classes",
+      "permanent": true
+    },
+    {
+      "source": "/explore",
+      "destination": "/site-map",
+      "permanent": true
+    },
+    {
+      "source": "/classes/creche",
+      "destination": "/classes/pre-nursery",
+      "permanent": true
+    },
+    {
+      "source": "/classes/creche.html",
+      "destination": "/classes/pre-nursery",
+      "permanent": true
+    },
+    {
       "source": "/portal",
       "destination": "/portal/login.html",
       "permanent": true
@@ -168,12 +463,220 @@
       "destination": "/api/cms-media?action=usage"
     },
     {
+      "source": "/api/public/search",
+      "destination": "/api/public-content?action=search"
+    },
+    {
+      "source": "/api/public/content/core-slots",
+      "destination": "/api/public-content?action=core-slots"
+    },
+    {
+      "source": "/api/public/inventory",
+      "destination": "/api/public-content?action=inventory"
+    },
+    {
       "source": "/api/public/content/engagement",
       "destination": "/api/public-content?action=engagement"
     },
     {
       "source": "/api/public/content/placements",
       "destination": "/api/public-content?action=placements"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/public-content?route=sitemap"
+    },
+    {
+      "source": "/news",
+      "destination": "/api/public-content?route=news-list"
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/academics",
+      "destination": "/academics.html"
+    },
+    {
+      "source": "/admission-form",
+      "destination": "/admission-form.html"
+    },
+    {
+      "source": "/admissions",
+      "destination": "/admissions.html"
+    },
+    {
+      "source": "/alumni",
+      "destination": "/alumni.html"
+    },
+    {
+      "source": "/anthem",
+      "destination": "/anthem.html"
+    },
+    {
+      "source": "/birthdays",
+      "destination": "/birthdays.html"
+    },
+    {
+      "source": "/board",
+      "destination": "/board.html"
+    },
+    {
+      "source": "/calendar",
+      "destination": "/calendar.html"
+    },
+    {
+      "source": "/careers",
+      "destination": "/careers.html"
+    },
+    {
+      "source": "/classes",
+      "destination": "/class.html"
+    },
+    {
+      "source": "/classes/nursery-1",
+      "destination": "/classes/nursery-1.html"
+    },
+    {
+      "source": "/classes/nursery-2",
+      "destination": "/classes/nursery-2.html"
+    },
+    {
+      "source": "/classes/pre-nursery",
+      "destination": "/classes/pre-nursery.html"
+    },
+    {
+      "source": "/classes/primary-1",
+      "destination": "/classes/primary-1.html"
+    },
+    {
+      "source": "/classes/primary-2",
+      "destination": "/classes/primary-2.html"
+    },
+    {
+      "source": "/classes/primary-3",
+      "destination": "/classes/primary-3.html"
+    },
+    {
+      "source": "/classes/primary-4",
+      "destination": "/classes/primary-4.html"
+    },
+    {
+      "source": "/classes/primary-6",
+      "destination": "/classes/primary-6.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact.html"
+    },
+    {
+      "source": "/credits",
+      "destination": "/credits.html"
+    },
+    {
+      "source": "/elearning",
+      "destination": "/elearning.html"
+    },
+    {
+      "source": "/exams",
+      "destination": "/exams.html"
+    },
+    {
+      "source": "/site-map",
+      "destination": "/explore.html"
+    },
+    {
+      "source": "/fees",
+      "destination": "/fees.html"
+    },
+    {
+      "source": "/holiday",
+      "destination": "/holiday.html"
+    },
+    {
+      "source": "/homework",
+      "destination": "/homework.html"
+    },
+    {
+      "source": "/lost-found",
+      "destination": "/lost-found.html"
+    },
+    {
+      "source": "/openday",
+      "destination": "/openday.html"
+    },
+    {
+      "source": "/photo-day",
+      "destination": "/photo-day.html"
+    },
+    {
+      "source": "/poster",
+      "destination": "/poster.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/pta",
+      "destination": "/pta.html"
+    },
+    {
+      "source": "/reading",
+      "destination": "/reading.html"
+    },
+    {
+      "source": "/receipt",
+      "destination": "/receipt.html"
+    },
+    {
+      "source": "/request-centre",
+      "destination": "/request-centre.html"
+    },
+    {
+      "source": "/safeguarding",
+      "destination": "/safeguarding.html"
+    },
+    {
+      "source": "/search",
+      "destination": "/search.html"
+    },
+    {
+      "source": "/shop",
+      "destination": "/shop.html"
+    },
+    {
+      "source": "/story",
+      "destination": "/story.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/support.html"
+    },
+    {
+      "source": "/testimonials",
+      "destination": "/testimonials.html"
+    },
+    {
+      "source": "/transport",
+      "destination": "/transport.html"
+    },
+    {
+      "source": "/uniform",
+      "destination": "/uniform.html"
+    },
+    {
+      "source": "/volunteer",
+      "destination": "/volunteer.html"
+    },
+    {
+      "source": "/website-help",
+      "destination": "/website-help.html"
+    },
+    {
+      "source": "/welcome",
+      "destination": "/welcome.html"
     },
     {
       "source": "/news/feed.xml",
@@ -186,10 +689,6 @@
     {
       "source": "/news/:slug([a-z0-9-]+)",
       "destination": "/api/public-content?route=news-detail&slug=:slug"
-    },
-    {
-      "source": "/news",
-      "destination": "/api/public-content?route=news-list"
     },
     {
       "source": "/events/feed.xml",
@@ -546,6 +1045,518 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/classes/creche",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/about",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/academics",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/admission-form",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/admissions",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/alumni",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/anthem",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/birthdays",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/board",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/calendar",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/careers",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/classes/nursery-1",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes/nursery-2",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes/pre-nursery",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes/primary-1",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes/primary-2",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes/primary-3",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes/primary-4",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/classes/primary-6",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/contact",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/credits",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/elearning",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/exams",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/site-map",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/fees",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/holiday",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/homework",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/lost-found",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/openday",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/photo-day",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/poster",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/privacy",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/pta",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/reading",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/receipt",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/request-centre",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/safeguarding",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/shop",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/story",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/support",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/testimonials",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/transport",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/uniform",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/volunteer",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/website-help",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/welcome",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
         }
       ]
     }

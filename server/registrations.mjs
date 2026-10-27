@@ -7,7 +7,7 @@ const MAX_BODY_BYTES = 12 * 1024;
 const PUPIL_CODE = /^TA-LINK-[A-HJ-NP-Z2-9]{4}(?:-[A-HJ-NP-Z2-9]{4}){2}$/;
 const FAMILY_CODE = /^TA-FAMILY-[A-HJ-NP-Z2-9]{4}(?:-[A-HJ-NP-Z2-9]{4}){2}$/;
 const ACTIVE_CLASSES = new Set([
-  'Creche', 'Pre-Nursery', 'Nursery 1', 'Nursery 2',
+  'Pre-Nursery', 'Nursery 1', 'Nursery 2',
   'Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 6'
 ]);
 

@@ -38,7 +38,7 @@ global.TAChat.init(JSON.parse(read('assets/data/kb.json')));
 const plain = (html) => String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const cases = [
   ['where is the school', /Morak Pure-Water Factory.*Ageva.*Okene/i],
-  ['what classes do you have', /Creche.*Pre-Nursery.*Primary 4.*Primary 6.*Graduate Hall/i],
+  ['what classes do you have', /Pre-Nursery.*Nursery 1.*Primary 4.*Primary 6.*Graduate Hall.*no Primary 5/i],
   ['what happens in primary 5', /no Primary 5.*Primary 4 to Primary 6/i],
   ['what happens after primary 4', /Primary 4.*Primary 6/i],
   ['how do I enrol my child', /restricted applicant route.*payment never approves/i],

@@ -419,7 +419,7 @@
         bits.push("<b>" + esc(label) + "</b>" +
                   (amount ? " costs <b>\u20a6" + Number(amount).toLocaleString("en-NG") +
                             "</b> per term." : " is one of our classes."));
-        where = "academics.html";
+        where = "/academics";
       }
 
       /* They named a subject. */
@@ -427,7 +427,7 @@
         bits.push("<b>" + esc(ent.subject.replace(/\b\w/g, function (c) {
           return c.toUpperCase(); })) + "</b> is taught here and appears in the " +
           "exam timetable.");
-        where = where || "exams.html";
+        where = where || "/exams";
       }
 
       /* Retrieval had a near miss - not confident, but genuinely in the same
@@ -537,7 +537,7 @@
         return { html: "Treasure Academy has <b>no Primary 5</b>. The confirmed progression moves directly from <b>Primary 4 to Primary 6</b>. Ask the office about placement; do not rely on an old class page or fee list.", source: "Current class progression" };
       }
       if (/\b(what classes|which classes|class levels|classes (?:do|does) (?:the school|you)|after primary ?4|progression)\b/.test(s)) {
-        return { html: "The confirmed progression is <b>Creche → Pre-Nursery → Nursery 1 → Nursery 2 → Primary 1 → Primary 2 → Primary 3 → Primary 4 → Primary 6 → Graduate Hall</b>. There is no Primary 5.", source: "Current class progression" };
+        return { html: "The confirmed progression is <b>Pre-Nursery → Nursery 1 → Nursery 2 → Primary 1 → Primary 2 → Primary 3 → Primary 4 → Primary 6 → Graduate Hall</b>. There is no Primary 5.", source: "Current class progression" };
       }
       if (/\b(where (?:is|are) (?:the )?school|school (?:address|location)|how (?:do|can) i get to (?:the )?school|directions? to (?:the )?school)\b/.test(s)) {
         return { html: "Treasure Academy is opposite <b>Morak Pure-Water Factory in Ageva, Okene, Kogi State</b>. Use the public Contact page for current directions or create a school-visit request; I will not infer a transport route from your location.", source: "Current school location" };
@@ -632,9 +632,8 @@
       }
       if (/\b(canteen\w*|cafeteria\w*|tuck shop|who cooks|kitchen)\b/.test(s) ||
           (ent.intent === "food")) {
-        return { html: "Meals are served fresh daily and children eat at " +
-                       "school - the Creche even has its own nap and meal " +
-                       "routine.<br><br>" +
+        return { html: "Ask the school office to confirm the current meal arrangement for each class. " +
+                       "The public website does not claim a current menu, feeding programme or price.<br><br>" +
                        "The school does not publish a menu or canteen price " +
                        "list, so for exactly what is served this term, and any " +
                        "allergy arrangements, ask the office on <b>" +
@@ -644,7 +643,7 @@
       if (/\b(registered|accredit\w*|approved by|government|licence\w*|license\w*|ministry)\b/.test(s)) {
         return { html: "Treasure Academy has operated in Ageva since <b>2016</b> " +
                        "and has been on its own permanent site since 2018, " +
-                       "running Creche through Primary 6.<br><br>" +
+                       "running Pre-Nursery through Primary 6.<br><br>" +
                        "Registration and accreditation papers are not published " +
                        "on the website - the office will show you the " +
                        "documents if you ask. Call <b>" + WHATSAPP + "</b> or " +
@@ -738,7 +737,7 @@
                          naira(shopHit.price) + "</b> in the school shop." +
                          "<br><br>Ask the office on " + WHATSAPP + " to confirm " +
                          "it is in stock today.<br>" +
-                         "<a class=\"chat-link\" href=\"shop.html\">Open the Shop page</a>",
+                         "<a class=\"chat-link\" href=\"/shop\">Open the Shop page</a>",
                    source: "School shop" };
         }
       }
@@ -1028,7 +1027,7 @@
                             acts.map(esc).join("<br>&bull; ") : "") +
                            (who ? "<br><br>Class teacher: <b>" + esc(who.name) + "</b>." : "") +
                            (fee ? "<br>Fee: <b>" + naira(fee) + "</b> per term." : "") +
-                           "<br><br><a class=\"chat-link\" href=\"class.html?class=" +
+                           "<br><br><a class=\"chat-link\" href=\"/classes?class=" +
                            encodeURIComponent(page.class) + "\">Open the " +
                            esc(page.class) + " page</a>",
                      source: page.class };
@@ -1067,9 +1066,9 @@
           return { html: "Treasure Academy runs <b>" + names.length +
                          "</b> classes, from the youngest upwards:<br>&bull; " +
                          names.map(esc).join("<br>&bull; ") +
-                         "<br><br>Creche takes babies from <b>six months</b>, and " +
-                         "the ladder runs right through to <b>Primary 6</b>, so a " +
-                         "child never has to change school mid-way.<br><br>" +
+                         "<br><br>The current youngest class is <b>Pre-Nursery</b>, and " +
+                         "the progression runs through <b>Primary 6</b>. The office confirms " +
+                         "age guidance, placement and current availability.<br><br>" +
                          "Ask me about any one of them and I will tell you what " +
                          "happens in it.",
                    source: "Academics" };
@@ -1090,7 +1089,7 @@
                          : "The questions are uploaded by the school and grow " +
                            "every term.<br><br>") +
                        "Log in to the pupil portal to use it." +
-                       "<br><br><a class=\"chat-link\" href=\"elearning.html\">" +
+                       "<br><br><a class=\"chat-link\" href=\"/elearning\">" +
                        "Open E-Learning</a>",
                  source: "E-Learning" };
       }
@@ -1178,7 +1177,7 @@
                          "\u201c" + esc(body) + "\u201d" +
                          (quote.name ? "<br><small>\u2014 " + esc(quote.name) +
                           (quote.role ? ", " + esc(quote.role) : "") + "</small>" : "") +
-                         "<br><br><a class=\"chat-link\" href=\"testimonials.html\">" +
+                         "<br><br><a class=\"chat-link\" href=\"/testimonials\">" +
                          "Read them all</a>",
                    source: "Testimonials" };
         }
@@ -1186,7 +1185,7 @@
                        "page. None are published at the moment - parents, " +
                        "teachers and pupils can submit one from their dashboard " +
                        "after logging in, and the school approves it before it " +
-                       "appears.<br><br><a class=\"chat-link\" href=\"testimonials.html\">" +
+                       "appears.<br><br><a class=\"chat-link\" href=\"/testimonials\">" +
                        "Open Testimonials</a>",
                  source: "Testimonials" };
       }
@@ -1294,7 +1293,7 @@
       }
 
       if (ent.intent === "transfer") {
-        return { html: "A routine fresh-name entry after cutover is normally <b>Creche only</b>. A child joining a higher class needs an authorised admission exception and placement review.<br><br>Create a restricted applicant account, submit the family application, and follow the office’s private instructions. Do not send results, medical records or identity documents through public chat.",
+        return { html: "A routine fresh-name entry after cutover is normally <b>Pre-Nursery only</b>. A child joining a higher class needs an authorised admission exception and placement review.<br><br>Create a restricted applicant account, submit the family application, and follow the office’s private instructions. Do not send results, medical records or identity documents through public chat.",
                  source: "Admissions" };
       }
 
@@ -1322,7 +1321,7 @@
                        "<b>Receipt</b> page - it works for school fees and PTA " +
                        "receipts. If it does not verify, bring it to the office " +
                        "before paying anything further.<br><br>" +
-                       "<a class=\"chat-link\" href=\"receipt.html\">Verify a receipt</a>",
+                       "<a class=\"chat-link\" href=\"/receipt\">Verify a receipt</a>",
                  source: "Receipts" };
       }
 
@@ -1334,7 +1333,7 @@
                        "status.<br><br>" +
                        "If it still reads pending after your school visit, call " +
                        "the office on <b>" + WHATSAPP + "</b>." +
-                       "<br><br><a class=\"chat-link\" href=\"admissions.html\">" +
+                       "<br><br><a class=\"chat-link\" href=\"/admissions\">" +
                        "Track your application</a>",
                  source: "Admissions" };
       }
@@ -1348,7 +1347,7 @@
                        "replies usually come within <b>one school day</b><br>" +
                        "&bull; In person: Ageva, Okene, Kogi State, Monday to " +
                        "Friday 7:30am to 3:00pm<br><br>" +
-                       "<a class=\"chat-link\" href=\"contact.html\">Open Contact</a>",
+                       "<a class=\"chat-link\" href=\"/contact\">Open Contact</a>",
                  source: "Contact" };
       }
 
@@ -1375,7 +1374,7 @@
                        "answered by email usually within one school day. For " +
                        "anything urgent involving your child, call <b>" +
                        WHATSAPP + "</b> rather than waiting." +
-                       "<br><br><a class=\"chat-link\" href=\"contact.html\">" +
+                       "<br><br><a class=\"chat-link\" href=\"/contact\">" +
                        "Open Contact</a>",
                  source: "Contact" };
       }
@@ -1404,7 +1403,7 @@
                        "<b>Contact</b> page has a map and directions, and school " +
                        "transport runs on three routes - Adavi, Okene Town and " +
                        "Ageva.<br><br>Phone or WhatsApp: <b>" + WHATSAPP + "</b>" +
-                       "<br><a class=\"chat-link\" href=\"contact.html\">" +
+                       "<br><a class=\"chat-link\" href=\"/contact\">" +
                        "Directions and map</a>",
                  source: "Contact" };
       }
@@ -1417,7 +1416,7 @@
                        "Shaibu Sidikat Ruth and run today by headmistress " +
                        "<b>Mrs. Salihu Nanahawa</b>.<br><br>" +
                        "It covers " + (nClasses ? "<b>" + nClasses + "</b> classes " : "") +
-                       "from <b>Creche</b> at six months right through to " +
+                       "from <b>Pre-Nursery</b> through to " +
                        "<b>Primary 6</b>, on its own permanent site since 2018, " +
                        "with a computer room, a playground and an online " +
                        "portal where parents check results.<br><br>" +
@@ -1647,7 +1646,7 @@
                        "WhatsApp number, the role, your highest qualification and " +
                        "brief experience. Shortlisted applicants are called within " +
                        "<b>two weeks</b>.<br><br>" +
-                       "<a class=\"chat-link\" href=\"careers.html\">Open the Careers page</a>",
+                       "<a class=\"chat-link\" href=\"/careers\">Open the Careers page</a>",
                  source: "Careers" };
       }
 
@@ -1693,7 +1692,7 @@
           }
         }
         return { html: "<b>Yes - admissions are open.</b><br>" +
-                       "Treasure Academy takes children from <b>Creche</b> " +
+                       "Treasure Academy takes children from <b>Pre-Nursery</b> " +
                        "(6 months) through <b>Nursery</b> to <b>Primary 6</b>, at " +
                        "Ageva, Okene, Kogi State." + range + "<br><br>" +
                        "<b>How to start:</b> tap <b>Login/Register</b> and complete " +
@@ -1703,7 +1702,7 @@
                        "look around.<br><br>" +
                        "Already have a child here? Register the second one with the " +
                        "same phone number and both sit under one account.<br><br>" +
-                       "<a class=\"chat-link\" href=\"admissions.html\">Open Admissions</a>",
+                       "<a class=\"chat-link\" href=\"/admissions\">Open Admissions</a>",
                  source: "Admissions" };
       }
 
@@ -1715,7 +1714,7 @@
                        "No appointment is needed to look around, but a quick message " +
                        "on <b>" + WHATSAPP + "</b> means someone is expecting you and " +
                        "the headmistress can make time for your questions.<br><br>" +
-                       "<a class=\"chat-link\" href=\"contact.html\">Directions and map</a>",
+                       "<a class=\"chat-link\" href=\"/contact\">Directions and map</a>",
                  source: "Contact" };
       }
 
@@ -1724,7 +1723,7 @@
         return { html: "Fair question. What the school actually offers:<br><br>" +
                        "&bull; <b>Small classes</b>, so a child is known by name, not " +
                        "by number.<br>" +
-                       "&bull; <b>Creche to Primary 6</b> on one site - no moving your " +
+                       "&bull; <b>Pre-Nursery to Primary 6</b> on one site - no moving your " +
                        "child mid-way.<br>" +
                        "&bull; Founded in <b>2016</b> by Shaibu Sidikat Ruth, a mother " +
                        "and trained teacher, and on its own permanent site since " +
@@ -2498,7 +2497,7 @@
               "by email, so you do not have to wait by your phone.<br><br>" +
               "I will carry your question across for you.",
         action: { label: "Open the contact form", kind: "contact",
-                  href: "contact.html?q=" + encodeURIComponent(q) },
+                  href: "/contact?q=" + encodeURIComponent(q) },
         chips: ["Ask something else"]
       };
     },
