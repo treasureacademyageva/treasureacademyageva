@@ -1,5 +1,32 @@
 import { createClient } from '@supabase/supabase-js';
 
+let cmsModule = null;
+function emptyCmsState(error = false) {
+  return cmsModule ? cmsModule.emptyCmsState(error) : {
+    available: false,
+    error,
+    capabilities: { view_private: false },
+    entries: [], revisions: [], blocks: [], media: []
+  };
+}
+function canUseCms(cms) {
+  return cmsModule ? cmsModule.canUseCms(cms) : false;
+}
+async function loadCmsBundle() {
+  if (cmsModule) return cmsModule;
+  await new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = '/assets/js/cms-workspace-app.js?v=20261027-cms1';
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+  if (!window.TreasureAcademyCms) throw new Error('CMS bundle unavailable');
+  cmsModule = window.TreasureAcademyCms;
+  return cmsModule;
+}
+
 const WHATSAPP_NUMBER = '2349063932487';
 const app = document.querySelector('#portal-app');
 const bootStatus = document.querySelector('#portal-status');
@@ -11,7 +38,8 @@ const state = {
   user: null,
   profile: null,
   data: {},
-  features: { registration: false, accountClaim: false, office: false },
+  cms: emptyCmsState(),
+  features: { registration: false, accountClaim: false, office: false, cms: false, media: false },
   tab: 'overview',
   hubTab: 'term-bills',
   admissionContinuations: [],
@@ -671,6 +699,14 @@ async function loadPortalData() {
     admissionApplications, admissionApplicationEvents,
     profiles, admissionAudit, paymentAudit, webhooks, guardians, accountAudit, websiteRequests, requestAudit, publicInformation, publicInformationAudit, leadershipRecords, leadershipAudit, assignmentChanges };
   if (state.features.office) await loadOfficeData();
+  state.cms = emptyCmsState();
+  if (state.features.cms) {
+    try {
+      state.cms = await cmsModule.loadCmsWorkspaceData(state.supabase);
+    } catch {
+      state.cms = emptyCmsState(true);
+    }
+  }
 }
 
 async function loadOfficeData() {
@@ -753,6 +789,7 @@ async function establishSession(session) {
     state.user = null;
     state.profile = null;
     state.data = {};
+    state.cms = emptyCmsState();
     const route = window.location.hash.toLowerCase();
     if (route === '#register' && state.features.registration) renderRegistration();
     else if (route === '#claim' && state.features.accountClaim) renderAccountClaim();
@@ -813,6 +850,7 @@ function tabsForRole(role) {
       ['homework', 'Homework', 'homework'], ['results', 'Results', 'results'], ['staff', 'Staff Info', 'user'], ['requests', 'Register Request', 'inbox']
     ];
     if (state.features.office) teacherTabs.splice(5, 0, ['distributions', 'Pupil Handover', 'inbox']);
+    if (canUseCms(state.cms)) teacherTabs.push(['website-cms', 'Website CMS', 'publish']);
     return teacherTabs;
   }
   const tabs = [
@@ -828,6 +866,7 @@ function tabsForRole(role) {
     tabs.splice(3, 0, ['people', 'Teachers & Accounts', 'classes']);
     tabs.splice(tabs.length - 1, 0, ['leadership', 'Leadership Tools', 'shield']);
   }
+  if (canUseCms(state.cms)) tabs.push(['website-cms', 'Website CMS', 'publish']);
   return tabs;
 }
 
@@ -2970,6 +3009,13 @@ function currentView() {
   if (state.tab === 'staff') return staffInformationView();
   if (state.tab === 'leadership' && state.profile.leadership_scope === 'headmistress') return leadershipView();
   if (state.tab === 'audit') return auditView();
+  if (state.tab === 'website-cms' && canUseCms(state.cms)) return cmsModule.renderCmsWorkspace({
+    state,
+    rpc: rpcCall,
+    refresh: async (message) => { pendingMutationMessage = message; await refreshAfterMutation(); },
+    rerender: renderAuthenticated,
+    setStatus
+  });
   return roleOverview();
 }
 
@@ -3009,6 +3055,12 @@ async function start() {
     state.features.registration = config.registrationEnabled === true;
     state.features.accountClaim = config.accountClaimEnabled === true;
     state.features.office = config.officeEnabled === true;
+    state.features.cms = config.cmsEnabled === true;
+    state.features.media = config.mediaEnabled === true;
+    if (state.features.cms) {
+      try { await loadCmsBundle(); }
+      catch { state.features.cms = false; }
+    }
 
     state.supabase = createClient(config.url, config.publishableKey, {
       auth: {

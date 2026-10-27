@@ -1,10 +1,10 @@
 # Content, Route and Dependency Migration Inventory
 
-**Captured:** 25 October 2026; Runs 5–6 boundaries updated 26 October 2026
+**Captured:** 25 October 2026; Runs 5–7 boundaries updated 27 October 2026
 **Authority:** owner-approved Dynamic Platform Master Plan
 **Rule:** inventory → owner/source verification → additive import → revision preservation → database rendering → parity proof → coded-authority retirement
 
-This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–6 added only locally accepted schema/policy and fail-closed media-service source; they imported no content/media, entered no provider secret and changed no current public route authority.
+This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–7 added locally accepted schema/policy, fail-closed media-service source and a capability-gated protected CMS bundle. The dedicated provider credentials are stored privately in Production-only Vercel Sensitive variables, but no value entered source/evidence and no content/media, Production SQL, Run 5–7 source or public route authority was imported or activated.
 
 ## 1. Current deployable route inventory
 
@@ -302,7 +302,7 @@ The preserved 108-file inventory is authoritative for file hashes and current tr
 | 3 excursion source photos | Static News currently references them | Hold from CMS publication pending consent/provenance review |
 | 3 Facebook archive links | Public external links | Reverify school control and continued publication authority before creating relationships |
 
-Cloudinary will own approved media binaries/derivatives; Supabase will own metadata, consent, provenance, relationships and permissions. Run 6 now implements that fail-closed boundary locally against school environment `ecbad9xj`, but no asset or credential has been imported and no route is live. No original/bulk child-media download is public by default.
+Cloudinary will own approved media binaries/derivatives; Supabase will own metadata, consent, provenance, relationships and permissions. Run 6 implements that fail-closed boundary locally against school environment `ecbad9xj`; the dedicated credential is privately stored but has not been used for a provider call, asset upload or public route. Run 7 adds the protected media-library UI while both `CMS_PORTAL_ENABLED` and `CMS_MEDIA_ENABLED` default false. No original/bulk child-media download is public by default.
 
 ## 10. API/dependency inventory
 
@@ -322,7 +322,7 @@ public-information.mjs
 website-request-service.mjs
 ```
 
-The gate-off `cms-media.mjs` dispatcher owns exactly `/api/cms/media/sign`, `/complete`, `/delivery`, `/manifest` and `/usage`; no public content route consumes it in Run 6.
+The gate-off `cms-media.mjs` dispatcher owns exactly `/api/cms/media/sign`, `/complete`, `/delivery`, `/manifest` and `/usage`; no public content route consumes it. Run 7 adds no Function: `cms-workspace-app.js` is a lazy protected browser bundle loaded only when the independent CMS portal gate is true, after which every read/mutation remains capability- and RLS-checked.
 
 ### Server modules
 
@@ -351,7 +351,7 @@ registrations.mjs
 
 ## 11. Database inventory boundary
 
-The accepted pre/post-Run-5 Production baseline, preserved unchanged through local Run 6, contains 105 public tables, all 105 RLS-enabled:
+The accepted pre/post-Run-5 Production database baseline, preserved unchanged through local Run 7, contains 105 public tables, all 105 RLS-enabled:
 
 - earlier tables such as `school_data`, `news_posts`, `news_images`, `calendar_events`, `shop_items`, `fee_structure`, `transport_routes`, `uniform_items`, `staff` and related operational tables;
 - additive secure-portal families for accounts, operations, family linking, enrolment, finance/inventory, admission tracking/developer capabilities, continuity/account claims and the accepted Run 4 bootstrap boundary.
@@ -369,11 +369,13 @@ Run 5 now has exactly one purpose-built source migration, `20261026060000_public
 - dormant privacy-safe views, signed-in likes and premoderated comments;
 - eight fixed-column published-only projections with no anonymous base-table grants.
 
-Run 6 adds `20261026070000_cloudinary_media_governance.sql`, two RLS relations, nine protected media functions, immutable events and provider metadata on the existing media manifest. The trusted service exposes one consolidated five-action Function for upload signing/completion, bounded private derivatives, owner manifest/orphan export and sanitised quota usage. It adds no SDK dependency, row or secret and stays gate-off.
+Run 6 adds `20261026070000_cloudinary_media_governance.sql`, two RLS relations, nine protected media functions, immutable events and provider metadata on the existing media manifest. The trusted service exposes one consolidated five-action Function for upload signing/completion, bounded private derivatives, owner manifest/orphan export and sanitised quota usage. It adds no SDK dependency or row and stays gate-off; private provider values exist only in Vercel Sensitive storage.
+
+Run 7 adds no migration. Its protected portal reads the accepted Run 5/6 relations through RLS, performs all mutations through accepted capability-checked RPCs, and exposes no public rendering route.
 
 Both migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
 
-### Runs 5–6 authority status
+### Runs 5–7 authority status
 
 | Surface | Local result | Current public authority |
 |---|---|---|

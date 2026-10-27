@@ -379,7 +379,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'none'; media-src 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: blob: https://res.cloudinary.com/ecbad9xj/; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cloudinary.com; frame-src 'none'; media-src 'self' blob: https://res.cloudinary.com/ecbad9xj/; upgrade-insecure-requests"
         }
       ]
     },

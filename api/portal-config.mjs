@@ -30,7 +30,9 @@ async function handle(request) {
     publishableKey,
     registrationEnabled: process.env.PORTAL_REGISTRATION_ENABLED === 'true',
     accountClaimEnabled: process.env.PORTAL_ACCOUNT_CLAIM_ENABLED === 'true',
-    officeEnabled: process.env.PORTAL_OFFICE_ENABLED === 'true'
+    officeEnabled: process.env.PORTAL_OFFICE_ENABLED === 'true',
+    cmsEnabled: process.env.CMS_PORTAL_ENABLED === 'true',
+    mediaEnabled: process.env.CMS_MEDIA_ENABLED === 'true'
   });
 }
 

@@ -35,6 +35,9 @@ function isPrivate(pathname) {
     pathname === '/assets/js/developer-console.js' ||
     pathname === '/assets/css/developer-console.css' ||
     pathname === '/assets/js/portal-app.js' ||
+    pathname === '/assets/js/cms-workspace-app.js' ||
+    pathname === '/assets/js/cms-workspace.js' ||
+    pathname === '/assets/js/cms-workspace-entry.js' ||
     pathname === '/assets/css/portal.css' ||
     pathname === '/assets/js/developer-experience.js' ||
     pathname === '/assets/js/experience-audit.js' ||

@@ -370,6 +370,8 @@ const savedPortalEnv = {
   PORTAL_REGISTRATION_ENABLED: process.env.PORTAL_REGISTRATION_ENABLED,
   PORTAL_ACCOUNT_CLAIM_ENABLED: process.env.PORTAL_ACCOUNT_CLAIM_ENABLED,
   PORTAL_OFFICE_ENABLED: process.env.PORTAL_OFFICE_ENABLED,
+  CMS_PORTAL_ENABLED: process.env.CMS_PORTAL_ENABLED,
+  CMS_MEDIA_ENABLED: process.env.CMS_MEDIA_ENABLED,
   DEVELOPER_MANUAL_BOOTSTRAP_ENABLED: process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED,
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
@@ -404,13 +406,15 @@ await asyncTest('enabled portal config returns only public keys and gate boolean
   process.env.PORTAL_REGISTRATION_ENABLED = 'false';
   process.env.PORTAL_ACCOUNT_CLAIM_ENABLED = 'false';
   process.env.PORTAL_OFFICE_ENABLED = 'false';
+  process.env.CMS_PORTAL_ENABLED = 'false';
+  process.env.CMS_MEDIA_ENABLED = 'false';
   process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED = 'false';
   process.env.SUPABASE_URL = 'https://fictional-project.supabase.co';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fictional';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional_must-never-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   const body = await response.json();
-  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false });
+  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false, cmsEnabled: false, mediaEnabled: false });
   assert.doesNotMatch(JSON.stringify(body), /secret/i);
   restorePortalEnvironment();
 });
@@ -1342,10 +1346,10 @@ test('portal has explicit labels, focus styling, reduced motion and mobile reflo
 });
 test('service worker never caches protected portal or developer assets', () => {
   assert.match(serviceWorker, /treasure-v20261024-secure1/);
-  for (const asset of ['portal-app.js', 'portal.css', 'developer-console.js', 'developer-console.css', 'developer-review.js']) {
+  for (const asset of ['portal-app.js', 'cms-workspace-app.js', 'cms-workspace.js', 'portal.css', 'developer-console.js', 'developer-console.css', 'developer-review.js']) {
     assert.match(serviceWorker, new RegExp(asset.replace('.', '\\.')));
   }
-  assert.match(portalHtml, /portal-app\.js\?v=20261024-secure1/);
+  assert.match(portalHtml, /portal-app\.js\?v=20261027-cms1/);
   assert.match(developerHtml, /developer-console\.js\?v=20261025-1/);
 });
 test('Vercel policy keeps portal/API private and consolidates gated routes within the Hobby Function limit', () => {
