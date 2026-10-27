@@ -128,6 +128,26 @@ test('News detail is meaningful server HTML, escapes hostile text and emits matc
   assert.match(await body(rewritten), /canonical" href="https:\/\/www\.treasureacademyageva\.com\/news\/fictional-safe-update/);
 });
 
+test('every JSON-LD block parses after script-safe escaping, including ordinary u/digits and Unicode separators', async () => {
+  const hostile = {
+    ...news,
+    title: 'Update 2026 u2089 </script> <>& line\u2028paragraph\u2029end',
+    summary: 'Useful 2026 update with literal u, digits 2 0 8 9 and safe structured-data separators.'
+  };
+  const repo = repository({ entries: [hostile] });
+  const response = await handlePublicContent(new Request(`https://example.test${hostile.canonical_path}`), { env: contentEnv, repository: repo, now: () => fixedNow });
+  const html = await body(response);
+  const scripts = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((match) => match[1]);
+  assert.ok(scripts.length >= 2);
+  const parsed = scripts.map((value) => JSON.parse(value));
+  assert.ok(parsed.some((value) => value.name === hostile.title || value.headline === hostile.title));
+  scripts.forEach((value) => {
+    assert.doesNotMatch(value, /<\/script/i);
+    assert.doesNotMatch(value, /undefined/);
+    assert.doesNotMatch(value, /[\u2028\u2029]/u);
+  });
+});
+
 test('Event pages expose exact Lagos facts, lifecycle fallback and matching Event JSON-LD', async () => {
   const response = await handlePublicContent(new Request(`https://example.test${event.canonical_path}`), { env: contentEnv, repository: repository(), now: () => fixedNow });
   const html = await body(response);

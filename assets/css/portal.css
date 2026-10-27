@@ -318,6 +318,10 @@ tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparen
 .cms-definition-list dd { min-width: 0; margin: 0; font-weight: 750; }
 .cms-safe-thumbnail { width: 100%; height: auto; max-height: 360px; display: block; border-radius: var(--radius-sm); object-fit: contain; background: var(--surface-2); }
 .cms-admin-tools { display: flex; flex-wrap: wrap; gap: 10px; }
+.cms-comment-card { align-items: start; }
+.cms-comment-body { white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--ink) !important; }
+.cms-comment-card .alert ul { margin: 8px 0 0; padding-left: 20px; }
+.cms-comment-card .form-panel { width: 100%; }
 
 @media (max-width: 980px) {
   .cms-media-layout { grid-template-columns: 1fr; }

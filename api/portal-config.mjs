@@ -32,7 +32,10 @@ async function handle(request) {
     accountClaimEnabled: process.env.PORTAL_ACCOUNT_CLAIM_ENABLED === 'true',
     officeEnabled: process.env.PORTAL_OFFICE_ENABLED === 'true',
     cmsEnabled: process.env.CMS_PORTAL_ENABLED === 'true',
-    mediaEnabled: process.env.CMS_MEDIA_ENABLED === 'true'
+    mediaEnabled: process.env.CMS_MEDIA_ENABLED === 'true',
+    publicEngagementEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_CMS_ENGAGEMENT_ENABLED === 'true',
+    commentsEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_CMS_ENGAGEMENT_ENABLED === 'true' && process.env.PUBLIC_CMS_COMMENTS_ENABLED === 'true',
+    placementsEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_CMS_PLACEMENTS_ENABLED === 'true'
   });
 }
 

@@ -151,7 +151,7 @@ test('CMS data loading checks server-authoritative capabilities before any priva
   const supabase = {
     rpc: async (name, args) => {
       assert.equal(name, 'cms_current_actor_can');
-      assert.match(args.p_capability, /^(view_private|draft|review|publish|safeguarding_review|administer|emergency_publish)$/);
+      assert.match(args.p_capability, /^(view_private|draft|review|publish|comment_moderate|safeguarding_review|administer|emergency_publish)$/);
       return { data: false, error: null };
     },
     from: () => { tableCalled = true; throw new Error('must not query'); }
@@ -167,7 +167,7 @@ test('all CMS mutations use accepted capability-checked RPCs and never direct ta
   const expected = [
     'cms_create_entry', 'cms_create_revision', 'cms_submit_for_review', 'cms_record_approval',
     'cms_publish', 'cms_archive', 'cms_restore_revision', 'cms_change_slug', 'cms_review_media',
-    'cms_archive_media', 'cms_set_capabilities'
+    'cms_archive_media', 'cms_set_capabilities', 'cms_moderate_content_comment', 'cms_set_site_slot'
   ];
   expected.forEach((name) => assert.match(cmsSource, new RegExp(`context\\.rpc\\('${name}'`)));
   assert.match(cmsSource, /p_expected_version: editing\.current_revision_number/);

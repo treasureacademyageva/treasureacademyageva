@@ -149,12 +149,12 @@ export function emptyCmsState(error = false) {
     available: false,
     error,
     capabilities: {
-      view_private: false, draft: false, review: false, publish: false,
+      view_private: false, draft: false, review: false, publish: false, comment_moderate: false,
       safeguarding_review: false, administer: false, emergency_publish: false
     },
     entries: [], revisions: [], blocks: [], tags: [], tagLinks: [], searchTerms: [],
     media: [], contentMedia: [], publicationEvents: [], approvals: [], findings: [],
-    capabilityRows: [], capabilityEvents: []
+    moderationComments: [], commentEvents: [], siteSlots: [], siteSlotEvents: [], capabilityRows: [], capabilityEvents: []
   };
 }
 
@@ -178,7 +178,7 @@ async function rows(supabase, tableName, columns, options = {}) {
 }
 
 export async function loadCmsWorkspaceData(supabase) {
-  const names = ['view_private', 'draft', 'review', 'publish', 'safeguarding_review', 'administer', 'emergency_publish'];
+  const names = ['view_private', 'draft', 'review', 'publish', 'comment_moderate', 'safeguarding_review', 'administer', 'emergency_publish'];
   const values = await Promise.all(names.map((name) => capability(supabase, name)));
   const capabilities = Object.fromEntries(names.map((name, index) => [name, values[index]]));
   if (!capabilities.view_private) return { ...emptyCmsState(), capabilities };
@@ -194,8 +194,18 @@ export async function loadCmsWorkspaceData(supabase) {
     rows(supabase, 'public_content_media', 'id,revision_id,media_id,placement,placement_position,caption,created_at', { limit: 1000 }),
     rows(supabase, 'public_publication_events', 'id,entry_id,revision_id,actor_id,action,previous_status,new_status,reason,detail,created_at', { order: 'created_at', limit: 500 }),
     rows(supabase, 'public_content_approvals', 'id,entry_id,revision_id,approval_kind,decision,reviewer_id,reason,created_at', { order: 'created_at', limit: 500 }),
-    rows(supabase, 'public_content_quality_findings', 'id,entry_id,revision_id,finding_code,severity,status,detail,created_at,resolved_at,resolved_by,resolution_reason', { order: 'created_at', limit: 500 })
+    rows(supabase, 'public_content_quality_findings', 'id,entry_id,revision_id,finding_code,severity,status,detail,created_at,resolved_at,resolved_by,resolution_reason', { order: 'created_at', limit: 500 }),
+    rows(supabase, 'public_site_content_slots', 'id,slot_key,entry_id,slot_position,active,effective_from,expires_at,created_by,created_at,updated_at', { order: 'slot_key', ascending: true, limit: 50 }),
+    rows(supabase, 'public_site_slot_events', 'id,slot_id,entry_id,actor_id,action,slot_key,slot_position,reason,created_at', { order: 'created_at', limit: 300 }),
+    rows(supabase, 'public_comment_moderation_events', 'id,comment_id,actor_id,previous_status,new_status,reason,created_at', { order: 'created_at', limit: 500 })
   ]);
+
+  let moderationComments = [];
+  if (capabilities.comment_moderate) {
+    const result = await supabase.rpc('cms_comment_moderation_queue');
+    if (result.error) throw result.error;
+    moderationComments = result.data || [];
+  }
 
   let capabilityRows = [];
   let capabilityEvents = [];
@@ -206,11 +216,11 @@ export async function loadCmsWorkspaceData(supabase) {
     ]);
   }
 
-  const [entries, revisions, blocks, tags, tagLinks, searchTerms, media, contentMedia, publicationEvents, approvals, findings] = common;
+  const [entries, revisions, blocks, tags, tagLinks, searchTerms, media, contentMedia, publicationEvents, approvals, findings, siteSlots, siteSlotEvents, commentEvents] = common;
   return {
     available: true, error: false, capabilities, entries, revisions, blocks, tags, tagLinks,
     searchTerms, media, contentMedia, publicationEvents, approvals, findings,
-    capabilityRows, capabilityEvents
+    moderationComments, commentEvents, siteSlots, siteSlotEvents, capabilityRows, capabilityEvents
   };
 }
 
@@ -1054,6 +1064,112 @@ function accessPanel(context) {
   );
 }
 
+function commentsPanel(context) {
+  const { cms } = context.state;
+  if (!cms.capabilities.comment_moderate) return notice('error', 'Leadership moderation required', 'Only accepted school leadership can review public comments.');
+  const cards = cms.moderationComments.map((comment) => {
+    const action = actionForm('Record moderation decision', [
+      field('Decision', select('status', [
+        { value: 'approved', label: 'Approve for public display' },
+        { value: 'rejected', label: 'Reject' },
+        { value: 'hidden', label: 'Hide' },
+        { value: 'pending', label: 'Return to pending review' }
+      ], comment.status === 'reported' ? 'hidden' : comment.status)),
+      field('Immutable audit reason', textarea('reason', '', { required: true, minlength: '3', maxlength: '500' }), 'Record why the comment is safe to publish, rejected, hidden or returned to review.')
+    ], 'Record decision', async (values) => {
+      await context.rpc('cms_moderate_content_comment', {
+        p_comment_id: comment.id,
+        p_status: values.get('status'),
+        p_reason: String(values.get('reason')).trim()
+      });
+      await context.refresh('The comment moderation decision was recorded in immutable history.');
+    });
+    const reports = asArray(comment.report_reasons);
+    return el('article', { class: 'cms-entry-card cms-comment-card' },
+      el('div', {},
+        el('p', { class: 'eyebrow', text: `${comment.author_label} · ${comment.canonical_path}` }),
+        el('h3', { text: comment.content_title }),
+        el('p', { class: 'cms-comment-body', text: comment.body }),
+        el('p', { text: `Submitted ${displayDate(comment.created_at, true)} · Updated ${displayDate(comment.updated_at, true)}` }),
+        reports.length ? el('div', { class: 'alert alert--warning', role: 'status' }, el('span', { 'aria-hidden': 'true', text: '!' }), el('div', {},
+          el('strong', { text: `${reports.length} signed-in concern${reports.length === 1 ? '' : 's'}` }),
+          el('ul', {}, reports.map((report) => el('li', { text: `${report.reason} — ${displayDate(report.created_at, true)}` })))
+        )) : null
+      ),
+      el('div', { class: 'cms-entry-card__meta' }, badge(comment.status), comment.report_count ? el('span', { text: `${comment.report_count} reports` }) : null),
+      action
+    );
+  });
+  return el('div', { class: 'cms-panel' },
+    notice(context.state.features.comments ? 'info' : 'warning', context.state.features.comments ? 'Public comments gate active' : 'Public comments gate closed', context.state.features.comments ? 'Only approved comments are public; every decision remains audited.' : 'No new public comment operation is accepted while the exact-true gate is closed. The protected moderation history remains available.'),
+    cards.length ? el('div', { class: 'cms-entry-list' }, cards) : empty('No comments to moderate', 'The system never creates anonymous comments. Signed-in parent or staff submissions will begin pending.'),
+    el('h3', { text: 'Immutable moderation audit' }),
+    table(['Date', 'Comment', 'From', 'To', 'Actor', 'Reason'], [...cms.commentEvents].reverse().map((item) => [displayDate(item.created_at, true), item.comment_id, titleCase(item.previous_status), badge(item.new_status), profileName(context, item.actor_id), item.reason]), 'Comment moderation audit') || empty('No moderation decisions', 'Submission alone does not publish a comment. Every later state change will appear here.')
+  );
+}
+
+function placementsPanel(context) {
+  const { cms } = context.state;
+  if (!cms.capabilities.publish) return notice('error', 'Publication authority required', 'Only accepted CMS publishers can control homepage placements.');
+  const published = cms.entries.filter((entry) => entry.workflow_status === 'published' && entry.published_revision_id);
+  const labelFor = (entry) => `${revisionForEntry(cms, entry, entry.published_revision_id)?.title || entry.slug} — ${entry.canonical_path}`;
+  const form = el('form', { class: 'data-form' });
+  const slotKey = select('slot_key', [
+    { value: 'home.news', label: 'Homepage News' },
+    { value: 'home.event', label: 'Homepage Event' },
+    { value: 'home.alert', label: 'Homepage alert' }
+  ], 'home.news');
+  const slotPosition = select('slot_position', [
+    { value: '0', label: 'Position 1' }, { value: '1', label: 'Position 2' }, { value: '2', label: 'Position 3' }
+  ], '0');
+  const entrySelect = select('entry_id', [], '');
+  const syncEntries = () => {
+    const needed = slotKey.value === 'home.news' ? 'news' : slotKey.value === 'home.event' ? 'event' : null;
+    const allowed = published.filter((entry) => needed ? entry.content_type === needed : ['announcement', 'news'].includes(entry.content_type));
+    replace(entrySelect, ...allowed.map((entry) => el('option', { value: entry.id, text: labelFor(entry) })));
+    slotPosition.disabled = slotKey.value === 'home.alert';
+    if (slotKey.value === 'home.alert') slotPosition.value = '0';
+  };
+  slotKey.addEventListener('change', syncEntries); syncEntries();
+  const output = messageNode();
+  const submit = button('Record homepage placement', null, { type: 'submit' });
+  form.append(
+    notice('info', 'Placement is separate from publication', 'A placement can reference only a currently public revision. Likes, views and comments never influence this list or publication authority.'),
+    field('Homepage area', slotKey), field('Position', slotPosition), field('Published content', entrySelect),
+    checkbox('active', 'Placement active', true, 'Turning this off records an audited deactivation and does not unpublish the source content.'),
+    field('Optional effective time — Africa/Lagos', input('effective_from', '', { type: 'datetime-local' })),
+    field('Optional expiry time — Africa/Lagos', input('expires_at', '', { type: 'datetime-local' })),
+    field('Immutable placement reason', textarea('reason', '', { required: true, minlength: '8', maxlength: '500' })),
+    output, submit
+  );
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    runMutation(submit, output, async () => {
+      const values = new FormData(form);
+      if (!values.get('entry_id')) throw new Error('Choose published content that matches the selected homepage area.');
+      await context.rpc('cms_set_site_slot', {
+        p_slot_key: values.get('slot_key'), p_slot_position: Number(values.get('slot_position')),
+        p_entry_id: values.get('entry_id'), p_active: values.get('active') === 'on',
+        p_effective_from: lagosIso(values.get('effective_from')) || null,
+        p_expires_at: lagosIso(values.get('expires_at')) || null,
+        p_reason: String(values.get('reason')).trim()
+      });
+      await context.refresh('The audited homepage placement decision was recorded.');
+    });
+  });
+  return el('div', { class: 'cms-panel' },
+    notice(context.state.features.placements ? 'info' : 'warning', context.state.features.placements ? 'CMS homepage placements active' : 'CMS homepage placements gate closed', context.state.features.placements ? 'Effective active slots are eligible to replace coded homepage cards.' : 'Placement decisions can be prepared and reviewed, but the homepage continues using its coded fallback.'),
+    form,
+    el('h3', { text: 'Current placement records' }),
+    table(['Area', 'Position', 'Content', 'State', 'Effective', 'Expires'], cms.siteSlots.map((slot) => {
+      const entry = cms.entries.find((item) => item.id === slot.entry_id);
+      return [titleCase(slot.slot_key), Number(slot.slot_position) + 1, entry ? labelFor(entry) : 'Former content', badge(slot.active ? 'active' : 'inactive'), displayDate(slot.effective_from, true), displayDate(slot.expires_at, true)];
+    }), 'Homepage placement records') || empty('No CMS placements', 'The homepage retains its existing reviewed fallback until an authorised publisher records placements and the public gate is explicitly activated.'),
+    el('h3', { text: 'Placement audit' }),
+    table(['Date', 'Area', 'Position', 'Action', 'Actor', 'Reason'], [...cms.siteSlotEvents].reverse().map((item) => [displayDate(item.created_at, true), titleCase(item.slot_key), Number(item.slot_position) + 1, badge(item.action), profileName(context, item.actor_id), item.reason]), 'Homepage placement audit') || empty('No placement events', 'Every set or deactivation decision will be retained here.')
+  );
+}
+
 function auditPanel(context) {
   const { cms } = context.state;
   return el('div', { class: 'cms-panel' },
@@ -1080,8 +1196,11 @@ export function renderCmsWorkspace(context) {
   const rerender = () => context.rerender();
   const workspaceContext = { ...context, cms, previewHost, rerender };
   const panels = [
-    ['content', 'Content'], ['workflow', 'Review & publish'], ['media', 'Media library'], ['audit', 'Audit']
+    ['content', 'Content'], ['workflow', 'Review & publish'], ['media', 'Media library']
   ];
+  if (cms.capabilities.comment_moderate) panels.push(['comments', 'Comments']);
+  if (cms.capabilities.publish) panels.push(['placements', 'Homepage']);
+  panels.push(['audit', 'Audit']);
   if (cms.capabilities.administer) panels.push(['access', 'Access']);
   if (!panels.some(([key]) => key === ui.panel)) ui.panel = 'content';
   const nav = el('div', { class: 'hub-tabs', role: 'tablist', 'aria-label': 'Website CMS sections' }, panels.map(([key, label]) => button(label, () => { ui.panel = key; rerender(); }, { small: false, secondary: ui.panel !== key })));
@@ -1090,6 +1209,8 @@ export function renderCmsWorkspace(context) {
   let panel;
   if (ui.panel === 'workflow') panel = workflowPanel(workspaceContext);
   else if (ui.panel === 'media') panel = mediaPanel(workspaceContext);
+  else if (ui.panel === 'comments') panel = commentsPanel(workspaceContext);
+  else if (ui.panel === 'placements') panel = placementsPanel(workspaceContext);
   else if (ui.panel === 'audit') panel = auditPanel(workspaceContext);
   else if (ui.panel === 'access') panel = accessPanel(workspaceContext);
   else panel = contentPanel(workspaceContext);

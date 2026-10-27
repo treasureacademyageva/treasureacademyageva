@@ -39,7 +39,7 @@ const state = {
   profile: null,
   data: {},
   cms: emptyCmsState(),
-  features: { registration: false, accountClaim: false, office: false, cms: false, media: false },
+  features: { registration: false, accountClaim: false, office: false, cms: false, media: false, engagement: false, comments: false, placements: false },
   tab: 'overview',
   hubTab: 'term-bills',
   admissionContinuations: [],
@@ -3057,6 +3057,9 @@ async function start() {
     state.features.office = config.officeEnabled === true;
     state.features.cms = config.cmsEnabled === true;
     state.features.media = config.mediaEnabled === true;
+    state.features.engagement = config.publicEngagementEnabled === true;
+    state.features.comments = config.commentsEnabled === true;
+    state.features.placements = config.placementsEnabled === true;
     if (state.features.cms) {
       try { await loadCmsBundle(); }
       catch { state.features.cms = false; }

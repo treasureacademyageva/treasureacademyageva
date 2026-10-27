@@ -89,3 +89,35 @@ html[data-theme="dark"] .content-tabs a,html[data-theme="dark"] .content-card,ht
 html[data-theme="dark"] .event-facts dl div{background:var(--d-bg)}
 html[data-theme="dark"] .content-aside>a,html[data-theme="dark"] .content-media-source a,html[data-theme="dark"] .verified-fact a,html[data-theme="dark"] .related-content a,html[data-theme="dark"] .content-read,html[data-theme="dark"] .gallery-card strong{color:#F1D66A}
 html[data-theme="dark"] .content-callout--warning{background:#3E3214}html[data-theme="dark"] .content-callout--success{background:#14351F}
+.content-engagement-wrap{padding-bottom:clamp(2.5rem,7vw,5rem)}
+.content-engagement{max-width:760px;margin-inline:auto;padding:clamp(1.1rem,4vw,1.6rem);border:1px solid var(--line);border-radius:var(--r-lg);background:var(--paper);box-shadow:var(--sh-1)}
+.content-engagement>p,.content-comments>p{color:var(--muted)}
+.content-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin-block:1.2rem}
+.content-counts div{padding:.8rem;border-radius:var(--r-md);background:var(--cream);text-align:center}
+.content-counts dt{font-size:var(--fs-xs);font-weight:800;text-transform:uppercase;color:var(--muted)}
+.content-counts dd{margin:0;font-size:1.35rem;font-weight:900;color:var(--green)}
+.content-like[aria-pressed="true"]{background:var(--green);color:#fff}
+.content-engagement-status{min-height:1.5em;margin:.65rem 0;color:var(--muted);font-size:var(--fs-sm)}
+.content-engagement-status--error{color:#8e1830;font-weight:700}
+.content-comments{margin-top:1.5rem;padding-top:1.4rem;border-top:1px solid var(--line)}
+.content-comments h3,.content-own-comments h3{margin:.3rem 0 .7rem}
+.content-comments-list{display:grid;gap:.8rem;margin:1rem 0;padding:0;list-style:none}
+.content-comment,.content-own-comment{padding:1rem;border:1px solid var(--line);border-radius:var(--r-md);background:var(--cream)}
+.content-comment>div:first-child{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.4rem}
+.content-comment time{color:var(--muted);font-size:var(--fs-xs)}
+.content-comment>p,.content-own-comment>p{white-space:pre-wrap;margin:.65rem 0}
+.content-report,.content-comment-action{min-height:40px;padding:.45rem .7rem;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--paper);color:var(--green);font:inherit;font-weight:800;cursor:pointer}
+.content-comment-form,.content-report-form,.content-own-comment-edit{display:grid;gap:.6rem;margin-top:1rem}
+.content-comment-form label,.content-report-form label,.content-own-comment-edit label{font-weight:800}
+.content-comment-form textarea,.content-report-form textarea,.content-own-comment-edit textarea{width:100%;padding:.7rem;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--paper);color:var(--ink);font:inherit}
+.content-form-hint{margin:0;color:var(--muted);font-size:var(--fs-sm)}
+.content-own-comments{margin-top:1.5rem}
+.content-own-comments>div{display:grid;gap:.8rem}
+.content-own-comment h4{margin:0;text-transform:capitalize}
+.content-own-comment-actions{display:flex;flex-wrap:wrap;gap:.5rem}
+.content-comment-auth[hidden],.content-comment-form[hidden],.content-own-comments[hidden]{display:none}
+html[data-theme="dark"] .content-engagement,html[data-theme="dark"] .content-comment,html[data-theme="dark"] .content-own-comment,html[data-theme="dark"] .content-report,html[data-theme="dark"] .content-comment-action,html[data-theme="dark"] .content-comment-form textarea,html[data-theme="dark"] .content-report-form textarea,html[data-theme="dark"] .content-own-comment-edit textarea{background:var(--d-surface);color:var(--d-text);border-color:var(--d-line)}
+html[data-theme="dark"] .content-counts div{background:var(--d-bg)}
+html[data-theme="dark"] .content-counts dd{color:#f1d66a}
+@media(max-width:620px){.content-counts{grid-template-columns:1fr}.content-comment>div:first-child{display:grid}}
+@media(forced-colors:active){.content-engagement,.content-comment,.content-own-comment{border:1px solid CanvasText}.content-like[aria-pressed="true"]{outline:2px solid Highlight}}

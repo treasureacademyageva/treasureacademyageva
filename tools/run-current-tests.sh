@@ -40,6 +40,7 @@ npm run test:operations-browser
 npm run test:portal-browser
 npm run test:cms-browser
 npm run test:public-content-browser
+npm run test:public-engagement-browser
 npm run test:header-browser
 
 echo "CURRENT RELEASE QA: all static, security, answer, review, visitor, accessibility and browser suites passed."

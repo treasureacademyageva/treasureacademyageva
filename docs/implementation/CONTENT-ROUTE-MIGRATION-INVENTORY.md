@@ -1,10 +1,10 @@
 # Content, Route and Dependency Migration Inventory
 
-**Captured:** 25 October 2026; Runs 5–8 boundaries updated 27 October 2026
+**Captured:** 25 October 2026; Runs 5–9 boundaries updated 27 October 2026
 **Authority:** owner-approved Dynamic Platform Master Plan
 **Rule:** inventory → owner/source verification → additive import → revision preservation → database rendering → parity proof → coded-authority retirement
 
-This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–8 added locally accepted schema/policy, fail-closed media-service source, a capability-gated protected CMS bundle and one consolidated server-rendered public-content dispatcher. The dedicated provider credentials remain private. The three Run 8 public/media/download Production gates now exist encrypted as `false`, but no content/media, Production SQL, Runs 5–8 source or public route authority was imported, deployed or activated.
+This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–9 added locally accepted schema/policy, fail-closed media-service source, a capability-gated protected CMS bundle and one consolidated server-rendered public-content dispatcher. The dedicated provider credentials remain private. The three Run 8 public/media/download gates and three Run 9 engagement/comment/placement gates now exist in Vercel Production encrypted as exact `false`, but no content/media/engagement row, Production SQL, Runs 5–9 source or public route authority was imported, deployed or activated.
 
 ## 1. Current deployable route inventory
 
@@ -366,18 +366,19 @@ registrations.mjs
 - Paragon signed relay code path, disabled;
 - WhatsApp and Facebook outbound links;
 - direct Cloudinary Upload/Admin/Usage REST integration in the trusted server, with no added SDK dependency and `CMS_MEDIA_ENABLED=false`;
-- Run 8 reuses the accepted signed-delivery helper for fixed public transforms only; all three public gates are false and no provider call was made;
+- Run 8 reuses the accepted signed-delivery helper for fixed public transforms only; all three public content/media/download gates are false and no provider call was made;
+- Run 9 reuses the twelfth Function and portal browser-session authentication for gated public engagement; engagement, comments and homepage placements remain false;
 - no production AI backend;
 - dormant Monnify files/gates, out of approved scope.
 
 ## 11. Database inventory boundary
 
-The accepted pre/post-Run-5 Production database baseline, preserved unchanged through local Run 8, contains 105 public tables, all 105 RLS-enabled:
+The accepted pre/post-Run-5 Production database baseline, preserved unchanged through local Run 9, contains 105 public tables, all 105 RLS-enabled:
 
 - earlier tables such as `school_data`, `news_posts`, `news_images`, `calendar_events`, `shop_items`, `fee_structure`, `transport_routes`, `uniform_items`, `staff` and related operational tables;
 - additive secure-portal families for accounts, operations, family linking, enrolment, finance/inventory, admission tracking/developer capabilities, continuity/account claims and the accepted Run 4 bootstrap boundary.
 
-Production still contains zero of the 22 planned Run 5/6 CMS and media-governance tables. `school_data` remains present with its preserved row; Auth users/identities remain `2/2`; storage remains empty; pending/claimed account claims remain `2/2`; live claim challenges and bootstrap authorisations remain zero.
+Production still contains zero of the 25 planned Runs 5/6/9 CMS, media-governance and engagement/placement-audit tables. `school_data` remains present with its preserved row; Auth users/identities remain `2/2`; storage remains empty; pending/claimed account claims remain `2/2`; live claim challenges and bootstrap authorisations remain zero.
 
 Run 5 now has exactly one purpose-built source migration, `20261026060000_public_cms_foundation.sql`, with:
 
@@ -396,9 +397,11 @@ Run 7 adds no migration. Its protected portal reads the accepted Run 5/6 relatio
 
 Run 8 adds `20261027080000_public_content_delivery.sql`. It replaces the public-media usability helper and published-media projection so a public relationship requires a completed authenticated upload, provider version/format, current publication, verified provenance, valid consent and—when identifiable-child media is involved—approved safeguarding. Only provider version and original format are added to the fixed public projection; originals and private consent/provider/audit fields remain excluded. It creates no row.
 
-All three migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+Run 9 adds `20261027090000_public_engagement_and_placements.sql`. It adds three RLS tables for rotating daily HMAC view receipts, one-per-actor comment reports and immutable homepage placement events; completes the comment states; exposes only fixed aggregate/approved-comment views; and adds constrained view/like/comment/moderation/placement RPCs. It creates no row. The endpoint and accessible public/protected UI reuse the existing twelfth Function and remain exact-false gated.
 
-### Runs 5–8 authority status
+All four migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+
+### Runs 5–9 authority status
 
 | Surface | Local result | Current public authority |
 |---|---|---|
@@ -407,9 +410,9 @@ All three migrations remain unapplied to Production and contain no import. The e
 | Media metadata/relationships | Governed signed-upload, provider confirmation, consent/provenance/safeguarding, placement/download, manifest/orphan and quota boundary accepted locally; zero media | Existing approved deployment assets only; historical child media held |
 | Slug aliases | Stable alias model accepted locally; zero aliases | Existing `.html` routes remain unchanged |
 | Search vocabulary | Controlled per-revision terms accepted locally; zero terms; no raw queries | Existing static Search remains authoritative |
-| Homepage slots/navigation | Foundation accepted locally; zero rows | Existing coded layout/navigation remains authoritative |
-| Engagement | Tables fail closed with no public/authenticated grants | No CMS views/likes/comments feature is active; Run 9 remains separate |
-| Public projections | RLS, current-publication and media-withdrawal behavior proven locally through 14 migrations and 8 SQL suites | Run 8 consumes only these projections locally; Production has no migration/source/route activation |
+| Homepage slots/navigation | Publisher-only audited slot controls and safe gated client accepted locally; zero rows | Existing coded layout/navigation remains authoritative while the exact placement gate is false |
+| Engagement | Privacy-safe aggregate views, active-account likes, pending-first comments and leadership moderation accepted locally | No CMS views/likes/comments feature is active; engagement and comments gates are false |
+| Public projections | RLS, current-publication, media-withdrawal and engagement privacy behavior proven locally through 15 migrations and 9 SQL suites | Runs 8–9 consume only fixed projections locally; Production has no migration/source/route activation |
 | News/Event routes and feeds | One consolidated SSR renderer, canonical pagination/detail/archive/metadata and canonical-summary feeds accepted locally | Existing static News remains authoritative; no typed Production Event/feed route |
 | Gallery and derivatives | Current relationship-only Gallery, stable opaque identifiers, same-origin fixed transforms and explicit derivative permission accepted locally | No Production Gallery/media/download route; all three public gates false |
 

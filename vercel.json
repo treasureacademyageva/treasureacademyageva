@@ -168,6 +168,14 @@
       "destination": "/api/cms-media?action=usage"
     },
     {
+      "source": "/api/public/content/engagement",
+      "destination": "/api/public-content?action=engagement"
+    },
+    {
+      "source": "/api/public/content/placements",
+      "destination": "/api/public-content?action=placements"
+    },
+    {
       "source": "/news/feed.xml",
       "destination": "/api/public-content?route=news-feed"
     },

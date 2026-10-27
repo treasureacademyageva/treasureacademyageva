@@ -372,6 +372,10 @@ const savedPortalEnv = {
   PORTAL_OFFICE_ENABLED: process.env.PORTAL_OFFICE_ENABLED,
   CMS_PORTAL_ENABLED: process.env.CMS_PORTAL_ENABLED,
   CMS_MEDIA_ENABLED: process.env.CMS_MEDIA_ENABLED,
+  PUBLIC_CMS_ENABLED: process.env.PUBLIC_CMS_ENABLED,
+  PUBLIC_CMS_ENGAGEMENT_ENABLED: process.env.PUBLIC_CMS_ENGAGEMENT_ENABLED,
+  PUBLIC_CMS_COMMENTS_ENABLED: process.env.PUBLIC_CMS_COMMENTS_ENABLED,
+  PUBLIC_CMS_PLACEMENTS_ENABLED: process.env.PUBLIC_CMS_PLACEMENTS_ENABLED,
   DEVELOPER_MANUAL_BOOTSTRAP_ENABLED: process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED,
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
@@ -414,7 +418,7 @@ await asyncTest('enabled portal config returns only public keys and gate boolean
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional_must-never-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   const body = await response.json();
-  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false, cmsEnabled: false, mediaEnabled: false });
+  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false, cmsEnabled: false, mediaEnabled: false, publicEngagementEnabled: false, commentsEnabled: false, placementsEnabled: false });
   assert.doesNotMatch(JSON.stringify(body), /secret/i);
   restorePortalEnvironment();
 });
@@ -809,7 +813,7 @@ await asyncTest('only Headmistress endpoint issues a pupil code and stores its h
 });
 restoreParentEnvironment();
 
-const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
+const [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration, publicEngagementMigration, rootSchema, legacyInventory, legacyRetirement, webhook, monnify, accountServer, accountClaimServer, otpRelayServer, requestServer, parentLinkServer, admissionTrackingServer, developerConsoleServer, requestApi, requestStatusApi, publicInfoApi, requestPage, requestScript, verifiedInfoScript, verifiedAnswerEngine, workflowBuilder, configApi, portalSource, portalHtml, portalCss, uxCss, developerHtml, developerOperationsHtml, developerSource, admissionPage, admissionScript, serviceWorker, vercel, pkg] = await Promise.all([
   read('supabase/migrations/202610230001_secure_school_portal.sql'),
   read('supabase/migrations/202610230002_portal_accounts.sql'),
   read('supabase/migrations/202610230003_staff_operations_and_requests.sql'),
@@ -824,6 +828,7 @@ const [migration, accountMigration, operationsMigration, parentMigration, enrolm
   read('supabase/migrations/20261026060000_public_cms_foundation.sql'),
   read('supabase/migrations/20261026070000_cloudinary_media_governance.sql'),
   read('supabase/migrations/20261027080000_public_content_delivery.sql'),
+  read('supabase/migrations/20261027090000_public_engagement_and_placements.sql'),
   read('supabase-schema.sql'),
   read('supabase/manual/00_read_only_legacy_portal_inventory.sql'),
   read('supabase/manual/99_retire_legacy_school_data_after_verified_cutover.sql'),
@@ -1204,10 +1209,11 @@ test('baseline preserves the former Supabase portal until a separate verified cu
   assert.match(rootSchema, /20261026060000_public_cms_foundation\.sql/i);
   assert.match(rootSchema, /20261026070000_cloudinary_media_governance\.sql/i);
   assert.match(rootSchema, /20261027080000_public_content_delivery\.sql/i);
-  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration]) {
+  assert.match(rootSchema, /20261027090000_public_engagement_and_placements\.sql/i);
+  for (const orderedMigration of [migration, accountMigration, operationsMigration, parentMigration, enrolmentMigration, financeMigration, admissionTrackingMigration, continuityMigration, bootstrapMigration, bootstrapHttpMigration, bootstrapCorrectionMigration, cmsFoundationMigration, cloudinaryMediaMigration, publicContentDeliveryMigration, publicEngagementMigration]) {
     assert.ok(rootSchema.includes(orderedMigration.trim()), 'root schema must contain every migration verbatim');
   }
-  assert.ok(rootSchema.trimEnd().endsWith(publicContentDeliveryMigration.trimEnd()), 'root schema must end with the exact current public-content delivery migration');
+  assert.ok(rootSchema.trimEnd().endsWith(publicEngagementMigration.trimEnd()), 'root schema must end with the exact current public-engagement migration');
   assert.match(legacyInventory, /begin transaction read only/i);
   assert.match(legacyInventory, /rollback;/i);
   assert.doesNotMatch(legacyInventory, /select\s+\*\s+from\s+public\.(?:school_data|pupils|results|fee_payments)/i);
@@ -1347,7 +1353,7 @@ test('portal has explicit labels, focus styling, reduced motion and mobile reflo
   assert.match(portalHtml, /class="skip-link"/);
 });
 test('service worker never caches protected portal or developer assets', () => {
-  assert.match(serviceWorker, /treasure-v20261027-run8/);
+  assert.match(serviceWorker, /treasure-v20261027-run9/);
   for (const asset of ['portal-app.js', 'cms-workspace-app.js', 'cms-workspace.js', 'portal.css', 'developer-console.js', 'developer-console.css', 'developer-review.js']) {
     assert.match(serviceWorker, new RegExp(asset.replace('.', '\\.')));
   }

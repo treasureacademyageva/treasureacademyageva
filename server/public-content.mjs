@@ -196,6 +196,18 @@ function createRepository(env = process.env, createClientImpl = createClient) {
         .eq('alias_path', path).maybeSingle();
       if (result.error) throw result.error;
       return result.data || null;
+    },
+    async engagement(entryId) {
+      const result = await client.from('public_cms_engagement_totals')
+        .select('view_count,like_count,comment_count').eq('entry_id', entryId).maybeSingle();
+      if (result.error) throw result.error;
+      return result.data || { view_count: 0, like_count: 0, comment_count: 0 };
+    },
+    async comments(entryId) {
+      const result = await client.from('public_cms_approved_comments')
+        .select('id,body,author_label,created_at,updated_at').eq('entry_id', entryId)
+        .order('created_at', { ascending: true }).limit(100);
+      return checkedRows(result);
     }
   };
 }
@@ -434,7 +446,29 @@ function listPage({ type, bundles, page, totalPages, now, archive = false, media
   return pageShell({ title, description, canonicalPath, current: isEvent ? 'events' : 'news', main, robots: bundles.length ? 'index,follow,max-image-preview:large,max-snippet:-1' : 'noindex,follow', feed: isEvent ? 'Treasure Academy Events' : 'Treasure Academy News', feedPath: isEvent ? '/events/feed.xml' : '/news/feed.xml', structured: [breadcrumbs([{ name: 'Home', path: '/' }, { name: heading, path: base }])] });
 }
 
-function detailPage(bundle, now, mediaEnabled) {
+function publicCount(value) {
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number >= 0 ? number : 0;
+}
+
+function approvedCommentList(comments) {
+  if (!comments?.length) return '<p class="content-comments-empty" data-comments-empty>No approved comments yet.</p>';
+  return `<ol class="content-comments-list" data-comments-list>${comments.map((comment) => {
+    const body = escapeHtml(comment.body || '').replace(/\r?\n/g, '<br>');
+    return `<li class="content-comment" data-comment-id="${escapeHtml(comment.id)}"><div><strong>${escapeHtml(comment.author_label || 'School community')}</strong><time datetime="${escapeHtml(comment.created_at)}">${escapeHtml(formatLagosDate(comment.created_at, true))}</time></div><p>${body}</p><button type="button" class="content-report" data-report-comment hidden>Report concern</button></li>`;
+  }).join('')}</ol>`;
+}
+
+function engagementPanel(bundle, commentsEnabled) {
+  const metrics = bundle.engagement || {};
+  const views = publicCount(metrics.view_count);
+  const likes = publicCount(metrics.like_count);
+  const comments = publicCount(metrics.comment_count);
+  const commentsMarkup = commentsEnabled ? `<div class="content-comments"><h3>Approved comments</h3><p>Comments are available only to signed-in active parents and staff. Every submission is reviewed by school leadership before publication. Do not include pupil names, phone numbers, payment evidence or safeguarding details.</p><div data-approved-comments>${approvedCommentList(bundle.comments || [])}</div><div class="content-comment-auth" data-comment-auth><a href="/portal/login.html">Sign in through the Parent &amp; Staff Portal</a>, then return to this page to comment.</div><form class="content-comment-form" data-comment-form hidden><label for="public-comment-body">Your comment</label><textarea id="public-comment-body" name="body" minlength="2" maxlength="2000" rows="5" required></textarea><p class="content-form-hint">Plain text only. Private or safeguarding matters belong in a protected school channel.</p><button class="btn btn-mint" type="submit">Submit for review</button></form><section class="content-own-comments" data-own-comments hidden aria-labelledby="own-comments-heading"><h3 id="own-comments-heading">Your submissions</h3><div data-own-comments-list></div></section></div>` : '';
+  return `<section class="content-engagement" data-public-engagement data-content-path="${escapeHtml(bundle.entry.canonical_path)}" data-comments-enabled="${commentsEnabled ? 'true' : 'false'}" aria-labelledby="engagement-heading"><h2 id="engagement-heading">Community response</h2><p>These public totals are informational only. They never affect admission, payment, results, progression, access or publication decisions.</p><dl class="content-counts"><div><dt>Views</dt><dd data-view-count>${views}</dd></div><div><dt>Likes</dt><dd data-like-count>${likes}</dd></div>${commentsEnabled ? `<div><dt>Approved comments</dt><dd data-comment-count>${comments}</dd></div>` : ''}</dl><button class="btn btn-white content-like" type="button" data-like-button aria-pressed="false" disabled>Like this update</button><p class="content-engagement-status" data-engagement-status role="status" aria-live="polite">Sign in with an active parent or staff account to like this update.</p>${commentsMarkup}</section><script type="module" src="/assets/js/public-engagement.js?v=20261027-run9"></script>`;
+}
+
+function detailPage(bundle, now, mediaEnabled, engagementEnabled = false, commentsEnabled = false) {
   const { entry, blocks, media, tags } = bundle;
   const isEvent = entry.content_type === 'event';
   const featured = mediaEnabled ? (media.find((item) => item.media_id === entry.featured_media_id) || media[0]) : null;
@@ -446,7 +480,7 @@ function detailPage(bundle, now, mediaEnabled) {
   structured.push(isEvent ? eventStructuredData(entry) : newsStructuredData(bundle, socialImage));
   const renderedBlocks = blocks.map((block) => renderBlock(block, bundle, mediaEnabled)).join('');
   const tagList = tags.length ? `<ul class="content-tags" aria-label="Topics">${tags.map((tag) => `<li>${escapeHtml(tag.name)}</li>`).join('')}</ul>` : '';
-  const main = `<header class="page-hero content-hero content-hero--detail"><div class="container"><span class="sec-tag">${escapeHtml(entry.category || (isEvent ? 'Event' : 'News'))}</span><h1>${escapeHtml(entry.title)}</h1><p>${escapeHtml(entry.summary)}</p>${isEvent ? `<p class="event-state event-state--${escapeHtml(lifecycle.key)}">${escapeHtml(lifecycle.label)}</p>` : ''}</div></header><main id="main"><article class="content-article"><div class="container content-article-grid"><aside class="content-aside"><a href="${isEvent ? '/events' : '/news'}">← Back to ${isEvent ? 'Events' : 'News'}</a>${publishedMeta(entry, now)}<p>${minutes} min read</p>${tagList}<button class="btn btn-white js-share" type="button" data-share-url="${escapeHtml(absoluteUrl(entry.canonical_path))}" data-share-title="${escapeHtml(entry.title)}">Share this page</button><p class="share-status" role="status" aria-live="polite"></p></aside><div class="content-body">${featured && !blocks.some((block) => ['image', 'video', 'gallery'].includes(block.block_type)) ? mediaFigure(featured) : ''}${isEvent ? eventFacts(entry, lifecycle, now) : ''}${renderedBlocks}</div></div></article></main>`;
+  const main = `<header class="page-hero content-hero content-hero--detail"><div class="container"><span class="sec-tag">${escapeHtml(entry.category || (isEvent ? 'Event' : 'News'))}</span><h1>${escapeHtml(entry.title)}</h1><p>${escapeHtml(entry.summary)}</p>${isEvent ? `<p class="event-state event-state--${escapeHtml(lifecycle.key)}">${escapeHtml(lifecycle.label)}</p>` : ''}</div></header><main id="main"><article class="content-article"><div class="container content-article-grid"><aside class="content-aside"><a href="${isEvent ? '/events' : '/news'}">← Back to ${isEvent ? 'Events' : 'News'}</a>${publishedMeta(entry, now)}<p>${minutes} min read</p>${tagList}<button class="btn btn-white js-share" type="button" data-share-url="${escapeHtml(absoluteUrl(entry.canonical_path))}" data-share-title="${escapeHtml(entry.title)}">Share this page</button><p class="share-status" role="status" aria-live="polite"></p></aside><div class="content-body">${featured && !blocks.some((block) => ['image', 'video', 'gallery'].includes(block.block_type)) ? mediaFigure(featured) : ''}${isEvent ? eventFacts(entry, lifecycle, now) : ''}${renderedBlocks}</div></div></article>${engagementEnabled ? `<div class="container content-engagement-wrap">${engagementPanel(bundle, commentsEnabled)}</div>` : ''}</main>`;
   return pageShell({ title: entry.seo_title || `${entry.title} — ${SITE_NAME}`, description: entry.seo_description || entry.summary, canonicalPath: entry.canonical_path, current: isEvent ? 'events-detail' : 'news-detail', main, structured, image: socialImage, imageAlt: social?.alt_text || SITE_NAME });
 }
 
@@ -682,7 +716,23 @@ export async function handlePublicContent(request, overrides = {}) {
         if (alias?.destination_path) return redirect(alias.destination_path);
         return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
       }
-      const body = detailPage(await entryBundle(repository, entry), now, mediaEnabled);
+      const bundle = await entryBundle(repository, entry);
+      let engagementEnabled = env.PUBLIC_CMS_ENGAGEMENT_ENABLED === 'true';
+      const commentsEnabled = engagementEnabled && env.PUBLIC_CMS_COMMENTS_ENABLED === 'true';
+      if (engagementEnabled) {
+        try {
+          const [metrics, comments] = await Promise.all([
+            repository.engagement(entry.id),
+            commentsEnabled ? repository.comments(entry.id) : Promise.resolve([])
+          ]);
+          bundle.engagement = metrics;
+          bundle.comments = comments;
+        } catch (error) {
+          console.error('Public engagement projection unavailable', { code: String(error?.code || '') });
+          engagementEnabled = false;
+        }
+      }
+      const body = detailPage(bundle, now, mediaEnabled, engagementEnabled, commentsEnabled);
       return response(request.method === 'HEAD' ? null : body);
     }
     const items = await allGallery(repository);

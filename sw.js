@@ -1,5 +1,5 @@
 /* Treasure Academy offline shell. Never cache private, operational or review routes. */
-const CACHE = 'treasure-v20261027-run8';
+const CACHE = 'treasure-v20261027-run9';
 const CORE = [
   '/', '/index.html', '/about.html', '/academics.html', '/admissions.html',
   '/contact.html', '/news.html', '/privacy.html', '/safeguarding.html', '/explore.html', '/search.html', '/404.html',
