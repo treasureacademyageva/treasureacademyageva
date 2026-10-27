@@ -1,10 +1,10 @@
 # Content, Route and Dependency Migration Inventory
 
-**Captured:** 25 October 2026; Runs 5–7 boundaries updated 27 October 2026
+**Captured:** 25 October 2026; Runs 5–8 boundaries updated 27 October 2026
 **Authority:** owner-approved Dynamic Platform Master Plan
 **Rule:** inventory → owner/source verification → additive import → revision preservation → database rendering → parity proof → coded-authority retirement
 
-This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–7 added locally accepted schema/policy, fail-closed media-service source and a capability-gated protected CMS bundle. The dedicated provider credentials are stored privately in Production-only Vercel Sensitive variables, but no value entered source/evidence and no content/media, Production SQL, Run 5–7 source or public route authority was imported or activated.
+This register describes current authorities and migration candidates. It does not declare unverified wording, media, legacy seed rows or old table contents publishable. Runs 5–8 added locally accepted schema/policy, fail-closed media-service source, a capability-gated protected CMS bundle and one consolidated server-rendered public-content dispatcher. The dedicated provider credentials remain private. The three Run 8 public/media/download Production gates now exist encrypted as `false`, but no content/media, Production SQL, Runs 5–8 source or public route authority was imported, deployed or activated.
 
 ## 1. Current deployable route inventory
 
@@ -152,12 +152,15 @@ The other 34 audited files are noindex/private/utility/historical pages. No rout
 /news
 /news/page/{n}
 /news/{article-slug}
+/news/feed.xml
 /events
 /events/page/{n}
 /events/archive
+/events/archive/page/{n}
 /events/{event-slug}
+/events/feed.xml
 /gallery
-/gallery/{media-or-story-slug}
+/gallery/{source-slug}-media-{opaque-id}
 /shop
 /contact
 /site-map
@@ -171,6 +174,21 @@ The other 34 audited files are noindex/private/utility/historical pages. No rout
 ```
 
 The plan explicitly requires top-level core routes and typed News/Event/Gallery routes. Existing useful routes not listed as “primary” must remain reachable until a documented per-route retain/merge/archive decision and one-hop redirect test exists.
+
+### Run 8 locally accepted, gate-off route contract
+
+| Route family | Local behavior | Current Production authority |
+|---|---|---|
+| `/news`, `/news/page/{n}`, `/news/{slug}` | SSR listing/pagination/detail from the current published projection; approved relative/read time and metadata | `/news.html` and preserved `.html` articles remain authoritative while the master gate is false and source is undeployed |
+| `/events`, `/events/page/{n}`, `/events/archive`, `/events/archive/page/{n}`, `/events/{slug}` | SSR current/archive/detail with one Lagos lifecycle and Event structured data | No typed Production Event route; no legacy calendar row was reclassified/imported |
+| `/gallery`, `/gallery/{source-slug}-media-{12-hex}` | Relationship-generated approved media with source links and stable opaque identifiers | No dynamic Production Gallery route; historical child media remains held |
+| `/gallery/{slug}/asset` | Same-origin proxy for fixed version-bound transformed image/video variants | Absent while media gate/source is undeployed |
+| `/gallery/{slug}/download` | Safe derivative only when the global gate and current `download` placement both allow it | Absent/off; no original or bulk route exists |
+| `/news/feed.xml`, `/events/feed.xml` | At most 30 canonical published summaries, no blocks/private/media payload | Absent while source is undeployed |
+
+The Vercel rewrite sources for typed News/Event slugs accept only lowercase letters, digits and hyphens. They therefore do not capture preserved `.html` files. The Gallery rewrite additionally requires the exact `-media-` plus 12 lowercase hex suffix. Server classification repeats these constraints rather than trusting the edge rewrite.
+
+Run 8 intentionally leaves `sitemap.xml` and `robots.txt` unchanged while no verified CMS content or deployed route exists. Response-level robots controls remain authoritative for empty, filtered, missing and unavailable dynamic states. Dynamic sitemap and permanent clean-route redirects remain Run 11 work after parity.
 
 ### Guaranteed first-wave canonical moves
 
@@ -197,12 +215,12 @@ The plan explicitly requires top-level core routes and typed News/Event/Gallery 
 
 | Surface | Current authority | Duplicate/consumer | Required final authority |
 |---|---|---|---|
-| News archive records | `assets/js/store.js` (`PUBLIC_NEWS`, 6 records) | `news.html`, six article files, homepage, Search index | Published CMS records/projection |
-| Current admission campaign | `index.html`, `news.html`, admission article, metadata, `store.js`, Search answers/index | Multiple cards/badges/descriptions | One published CMS article/announcement plus placements |
-| Event/calendar facts | legacy `calendar_events` rows plus static guidance pages | Search/chat fallbacks, homepage guidance | Verified CMS Event records related to operational calendar facts without duplication |
-| Homepage news | browser render from `DB.load().newsEvents` | `store.js` fallback | Published CMS placement projection |
-| Homepage gallery | four hardcoded illustration cards | links to `news.html#gallery` | Gallery projection from publishable News/Event media relationships |
-| News gallery | three hardcoded excursion images | media inventory and `store.js` references | Media records only after consent/provenance approval |
+| News archive records | `assets/js/store.js` (`PUBLIC_NEWS`, 6 records) | `news.html`, six article files, homepage, Search index | Run 8 renderer is ready for one current published CMS revision, but no import/cutover occurred |
+| Current admission campaign | `index.html`, `news.html`, admission article, metadata, `store.js`, Search answers/index | Multiple cards/badges/descriptions | One verified published CMS article/announcement plus placements; Run 8 can render it only after Run 10 import/parity |
+| Event/calendar facts | legacy `calendar_events` rows plus static guidance pages | Search/chat fallbacks, homepage guidance | Verified CMS Event records rendered by the accepted Run 8 Lagos lifecycle without duplicating authority |
+| Homepage news | browser render from `DB.load().newsEvents` | `store.js` fallback | Published CMS placement projection remains Run 9/10; Run 8 does not alter homepage authority |
+| Homepage gallery | four hardcoded illustration cards | links to `news.html#gallery` | Run 8 relationship-generated Gallery is accepted locally; homepage placement cutover remains later |
+| News gallery | three hardcoded excursion images | media inventory and `store.js` references | Run 8 will expose only eligible governed relationships; historical files remain held pending consent/provenance |
 | Search destinations | generated `assets/js/search-index.js` (57 static entries) | `smart-search.js` ranking | Published fixed-route + CMS Search projection |
 | Direct answers | `verified-answer-engine.js`, duplicate `smart-search.js` fallback, optional public-info endpoint | Search UI | Verified database projection with supporting source links and fail-closed fallbacks |
 | Repeated contacts/address/hours | repeated HTML shell/body plus Search scripts | up to 57 audited pages | Verified site-fact projection where changeable; stable rendering templates remain code |
@@ -302,7 +320,7 @@ The preserved 108-file inventory is authoritative for file hashes and current tr
 | 3 excursion source photos | Static News currently references them | Hold from CMS publication pending consent/provenance review |
 | 3 Facebook archive links | Public external links | Reverify school control and continued publication authority before creating relationships |
 
-Cloudinary will own approved media binaries/derivatives; Supabase will own metadata, consent, provenance, relationships and permissions. Run 6 implements that fail-closed boundary locally against school environment `ecbad9xj`; the dedicated credential is privately stored but has not been used for a provider call, asset upload or public route. Run 7 adds the protected media-library UI while both `CMS_PORTAL_ENABLED` and `CMS_MEDIA_ENABLED` default false. No original/bulk child-media download is public by default.
+Cloudinary will own approved media binaries/derivatives; Supabase will own metadata, consent, provenance, relationships and permissions. Run 6 implements that fail-closed boundary locally against school environment `ecbad9xj`; the dedicated credential is privately stored but has not been used for a Cloudinary request/upload. Run 7 adds the protected media-library UI while both `CMS_PORTAL_ENABLED` and `CMS_MEDIA_ENABLED` default false. Run 8 adds relationship-generated public Gallery and same-origin, version-bound transformed delivery behind encrypted `PUBLIC_CMS_MEDIA_ENABLED=false` and `PUBLIC_CMS_DOWNLOADS_ENABLED=false`. No provider signed URL, original or bulk child-media route is exposed.
 
 ## 10. API/dependency inventory
 
@@ -317,12 +335,13 @@ monnify-webhook.mjs
 parent-service.mjs
 portal-config.mjs
 portal-register.mjs
+public-content.mjs
 public-graduates.mjs
 public-information.mjs
 website-request-service.mjs
 ```
 
-The gate-off `cms-media.mjs` dispatcher owns exactly `/api/cms/media/sign`, `/complete`, `/delivery`, `/manifest` and `/usage`; no public content route consumes it. Run 7 adds no Function: `cms-workspace-app.js` is a lazy protected browser bundle loaded only when the independent CMS portal gate is true, after which every read/mutation remains capability- and RLS-checked.
+The gate-off `cms-media.mjs` dispatcher owns exactly `/api/cms/media/sign`, `/complete`, `/delivery`, `/manifest` and `/usage`; no public content route consumes its protected endpoints. Run 7 adds no Function: `cms-workspace-app.js` is a lazy protected browser bundle loaded only when the independent CMS portal gate is true. Run 8 adds one `public-content.mjs` dispatcher for every public News/Event/Gallery/feed/asset/download rewrite, bringing the local project to exactly 12/12 Functions.
 
 ### Server modules
 
@@ -336,6 +355,7 @@ monnify.mjs
 otp-relay.mjs
 parent-linking.mjs
 portal-register.mjs
+public-content.mjs
 registrations.mjs
 ```
 
@@ -346,12 +366,13 @@ registrations.mjs
 - Paragon signed relay code path, disabled;
 - WhatsApp and Facebook outbound links;
 - direct Cloudinary Upload/Admin/Usage REST integration in the trusted server, with no added SDK dependency and `CMS_MEDIA_ENABLED=false`;
+- Run 8 reuses the accepted signed-delivery helper for fixed public transforms only; all three public gates are false and no provider call was made;
 - no production AI backend;
 - dormant Monnify files/gates, out of approved scope.
 
 ## 11. Database inventory boundary
 
-The accepted pre/post-Run-5 Production database baseline, preserved unchanged through local Run 7, contains 105 public tables, all 105 RLS-enabled:
+The accepted pre/post-Run-5 Production database baseline, preserved unchanged through local Run 8, contains 105 public tables, all 105 RLS-enabled:
 
 - earlier tables such as `school_data`, `news_posts`, `news_images`, `calendar_events`, `shop_items`, `fee_structure`, `transport_routes`, `uniform_items`, `staff` and related operational tables;
 - additive secure-portal families for accounts, operations, family linking, enrolment, finance/inventory, admission tracking/developer capabilities, continuity/account claims and the accepted Run 4 bootstrap boundary.
@@ -373,9 +394,11 @@ Run 6 adds `20261026070000_cloudinary_media_governance.sql`, two RLS relations, 
 
 Run 7 adds no migration. Its protected portal reads the accepted Run 5/6 relations through RLS, performs all mutations through accepted capability-checked RPCs, and exposes no public rendering route.
 
-Both migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+Run 8 adds `20261027080000_public_content_delivery.sql`. It replaces the public-media usability helper and published-media projection so a public relationship requires a completed authenticated upload, provider version/format, current publication, verified provenance, valid consent and—when identifiable-child media is involved—approved safeguarding. Only provider version and original format are added to the fixed public projection; originals and private consent/provider/audit fields remain excluded. It creates no row.
 
-### Runs 5–7 authority status
+All three migrations remain unapplied to Production and contain no import. The empty legacy `news_posts/news_images` relations are preserved and are not reused as the new authority. Old `db/*.sql` and `cms/wordpress-migration/*` files are not production migration sources.
+
+### Runs 5–8 authority status
 
 | Surface | Local result | Current public authority |
 |---|---|---|
@@ -385,8 +408,10 @@ Both migrations remain unapplied to Production and contain no import. The empty 
 | Slug aliases | Stable alias model accepted locally; zero aliases | Existing `.html` routes remain unchanged |
 | Search vocabulary | Controlled per-revision terms accepted locally; zero terms; no raw queries | Existing static Search remains authoritative |
 | Homepage slots/navigation | Foundation accepted locally; zero rows | Existing coded layout/navigation remains authoritative |
-| Engagement | Tables fail closed with no public/authenticated grants | No CMS views/likes/comments feature is active |
-| Public projections | RLS and published-only behavior proven locally | No dynamic public route consumes them yet |
+| Engagement | Tables fail closed with no public/authenticated grants | No CMS views/likes/comments feature is active; Run 9 remains separate |
+| Public projections | RLS, current-publication and media-withdrawal behavior proven locally through 14 migrations and 8 SQL suites | Run 8 consumes only these projections locally; Production has no migration/source/route activation |
+| News/Event routes and feeds | One consolidated SSR renderer, canonical pagination/detail/archive/metadata and canonical-summary feeds accepted locally | Existing static News remains authoritative; no typed Production Event/feed route |
+| Gallery and derivatives | Current relationship-only Gallery, stable opaque identifiers, same-origin fixed transforms and explicit derivative permission accepted locally | No Production Gallery/media/download route; all three public gates false |
 
 ## 12. Parity and retirement checklist for each migrated item
 

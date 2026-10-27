@@ -166,6 +166,62 @@
     {
       "source": "/api/cms/media/usage",
       "destination": "/api/cms-media?action=usage"
+    },
+    {
+      "source": "/news/feed.xml",
+      "destination": "/api/public-content?route=news-feed"
+    },
+    {
+      "source": "/news/page/:number",
+      "destination": "/api/public-content?route=news-page&page=:number"
+    },
+    {
+      "source": "/news/:slug([a-z0-9-]+)",
+      "destination": "/api/public-content?route=news-detail&slug=:slug"
+    },
+    {
+      "source": "/news",
+      "destination": "/api/public-content?route=news-list"
+    },
+    {
+      "source": "/events/feed.xml",
+      "destination": "/api/public-content?route=events-feed"
+    },
+    {
+      "source": "/events/archive/page/:number",
+      "destination": "/api/public-content?route=events-archive-page&page=:number"
+    },
+    {
+      "source": "/events/page/:number",
+      "destination": "/api/public-content?route=events-page&page=:number"
+    },
+    {
+      "source": "/events/archive",
+      "destination": "/api/public-content?route=events-archive"
+    },
+    {
+      "source": "/events/:slug([a-z0-9-]+)",
+      "destination": "/api/public-content?route=events-detail&slug=:slug"
+    },
+    {
+      "source": "/events",
+      "destination": "/api/public-content?route=events-list"
+    },
+    {
+      "source": "/gallery/:slug([a-z0-9-]+-media-[a-f0-9]{12})/asset",
+      "destination": "/api/public-content?route=gallery-asset&slug=:slug"
+    },
+    {
+      "source": "/gallery/:slug([a-z0-9-]+-media-[a-f0-9]{12})/download",
+      "destination": "/api/public-content?route=gallery-download&slug=:slug"
+    },
+    {
+      "source": "/gallery/:slug([a-z0-9-]+-media-[a-f0-9]{12})",
+      "destination": "/api/public-content?route=gallery-detail&slug=:slug"
+    },
+    {
+      "source": "/gallery",
+      "destination": "/api/public-content?route=gallery-list"
     }
   ],
   "headers": [

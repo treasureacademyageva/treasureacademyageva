@@ -1,5 +1,5 @@
 /* Treasure Academy offline shell. Never cache private, operational or review routes. */
-const CACHE = 'treasure-v20261024-secure1';
+const CACHE = 'treasure-v20261027-run8';
 const CORE = [
   '/', '/index.html', '/about.html', '/academics.html', '/admissions.html',
   '/contact.html', '/news.html', '/privacy.html', '/safeguarding.html', '/explore.html', '/search.html', '/404.html',
@@ -46,6 +46,10 @@ function isPrivate(pathname) {
     pathname === '/assets/data/review-gateway.enc.json';
 }
 
+function isDynamicPublicContent(pathname) {
+  return /^\/(?:news|events|gallery)(?:\/|$)/.test(pathname) && pathname !== '/news.html';
+}
+
 async function cacheOk(request, response) {
   if (response && response.ok && response.type === 'basic') {
     const cache = await caches.open(CACHE);
@@ -58,6 +62,19 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || isPrivate(url.pathname) || url.pathname.startsWith('/_vercel/')) return;
+
+  /* Public CMS responses are always network-only here. Their one-minute edge
+     policy is controlled by the server so a service-worker cache cannot conceal
+     an archive, consent withdrawal or emergency correction. */
+  if (isDynamicPublicContent(url.pathname)) {
+    event.respondWith(fetch(request).catch(() => new Response(
+      request.mode === 'navigate'
+        ? '<!doctype html><title>Temporarily unavailable</title><h1>Published information is temporarily unavailable</h1><p>Please reconnect or contact the school.</p>'
+        : 'Published information is temporarily unavailable.',
+      {status: 503, headers: {'Content-Type': request.mode === 'navigate' ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8', 'Cache-Control': 'no-store'}}
+    )));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(

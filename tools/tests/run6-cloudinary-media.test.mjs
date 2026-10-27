@@ -384,9 +384,8 @@ test('routes, CSP and Function count keep the provider surface exact and dormant
   assert.match(server, /deliveryType: config\.deliveryType/);
 });
 
-test('generated schema ends with the exact Run 6 migration', () => {
+test('generated schema retains the exact Run 6 migration', () => {
   assert.ok(schema.includes(migration.trim()));
-  assert.ok(schema.trimEnd().endsWith(migration.trimEnd()));
   assert.equal(mediaPolicy.cloudName, 'ecbad9xj');
   assert.equal(mediaPolicy.deliveryType, 'authenticated');
   assert.deepEqual(mediaPolicy.requiredTags, ['treasure-academy', 'cms', 'manual-review-required']);

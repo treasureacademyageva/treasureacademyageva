@@ -84,7 +84,7 @@ test('CMS portal and media gates are independent and fail closed by default', as
   }
 });
 
-test('the CMS is a separate lazy bundle and does not increase the Vercel Function count', () => {
+test('the CMS remains a separate lazy bundle while Run 8 uses the final Function slot', () => {
   assert.equal(packageJson.scripts['build:cms'].includes('cms-workspace-entry.js'), true);
   assert.equal(packageJson.scripts['build:portal'].includes('npm run build:cms'), true);
   assert.match(portalSource, /loadCmsBundle/);
@@ -93,7 +93,7 @@ test('the CMS is a separate lazy bundle and does not increase the Vercel Functio
   assert.equal(fs.existsSync(path.join(root, 'assets/js/cms-workspace-app.js')), true);
   assert.equal(fs.statSync(path.join(root, 'assets/js/cms-workspace-app.js')).size < 80 * 1024, true);
   assert.equal(Object.keys(packageJson.scripts).includes('build:cms'), true);
-  assert.equal(fs.readdirSync(path.join(root, 'api')).filter((name) => name.endsWith('.mjs')).length, 11);
+  assert.equal(fs.readdirSync(path.join(root, 'api')).filter((name) => name.endsWith('.mjs')).length, 12);
 });
 
 test('document builder creates only closed structured fields and governed media relationships', () => {

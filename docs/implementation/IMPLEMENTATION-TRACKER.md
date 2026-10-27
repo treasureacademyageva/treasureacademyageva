@@ -3,8 +3,8 @@
 **Authority:** `docs/TREASURE-ACADEMY-DYNAMIC-PLATFORM-MASTER-PLAN-2026-10-25.md`
 **Owner approval:** Shaibu Sidikat Ruth authorised the complete implementation
 **Programme:** 12 controlled runs; additive, reversible and fail-closed
-**Last updated:** 27 October 2026 — Run 7 protected portal CMS local acceptance
-**Overall status:** Runs 1–7 are complete at their accepted repository/disposable-local boundaries. Run 7 adds a lazy first-party Website CMS workspace with capability-checked content editing, safe private preview, review/approval, scheduling/archive, immutable revisions/audit, explicit access administration and the governed Run 6 media library. `CMS_PORTAL_ENABLED=false` and `CMS_MEDIA_ENABLED=false` remain independent fail-closed defaults. Production still serves unchanged Run 4 commit `a552618`; Runs 5–7 source/SQL have not been pushed or applied, no provider call/upload/content import occurred, and no public CMS/media route or gate was activated. The neutral provider smoke and separately authorised Runs 5–7 release boundaries remain controlled holds. Stage 9 remains unauthorised, so production account claims, admission tracking and the Paragon relay remain false.
+**Last updated:** 27 October 2026 — Run 8 dynamic public content local acceptance
+**Overall status:** Runs 1–8 are complete at their accepted repository/disposable-local boundaries. Run 8 adds one consolidated fail-closed Function for server-rendered News, Events, Gallery, canonical summary feeds and governed transformed-media delivery; local Function count is exactly 12/12. Production still serves unchanged Run 4 commit `a552618`; Runs 5–8 source/SQL have not been pushed or applied and no content/media row, import, Cloudinary request/upload or public route activation occurred. The only Run 8 provider change is safe preconfiguration of `PUBLIC_CMS_ENABLED`, `PUBLIC_CMS_MEDIA_ENABLED` and `PUBLIC_CMS_DOWNLOADS_ENABLED` as encrypted Production values set to `false`; it caused no deployment. Existing CMS/media gates also remain false. Provider smoke, Production migration/source release, verified content import and every activation remain separate controlled boundaries. Stage 9 account claims remains unauthorised, so production claims, admission tracking and the Paragon relay remain false.
 
 ## Status key
 
@@ -25,8 +25,8 @@
 | 5 | First-party CMS schema and policy | One additive CMS migration; content, revisions, structured blocks, aliases, workflow, audit, published-only projections and RLS; all former records preserved | Run 4 | `DONE` locally — pre-Run-6 adversarial findings corrected; 12/12 migrations, 6/6 SQL suites, dedicated static security and complete regression passed; Production application and public activation remain separate and did not occur |
 | 6 | Cloudinary and media governance | School-owned account; private secrets; signed upload; consent/provenance/placement metadata; safe derivatives; CSP and quota controls | Run 5 plus provider/owner decisions | `DONE` locally and private handoff complete — dedicated Active/Master Admin key and Production-only Vercel Sensitive storage confirmed without reading either value; 13/13 migrations, 7/7 SQL suites, 14/14 focused tests and complete regression passed; live provider smoke and Run 5/6 Production release remain separate |
 | 7 | Protected portal CMS | Modular editor, preview, review, approval, scheduling, archive, revisions, restore, audit and media library; CMS permissions separated from school-record permissions | Runs 5–6 | `DONE` locally — independent gate, lazy bundle, accepted RPC-only mutations, structured preview/editor, full workflow/media/access UI and complete SQL/browser/security regression passed; no Production release or activation |
-| 8 | Dynamic public News, Events and Gallery | Server-rendered listing/detail routes, lifecycle/countdowns, read time, media relationships, Gallery source links, safe downloads, feeds and structured data | Run 7 | `READY` locally; public route and content migration boundaries remain separately gated |
-| 9 | Engagement and shared placements | Privacy-safe views, signed-in likes, gated premoderated comments, homepage placements and related content; popularity isolated from operations | Run 8 | `BLOCKED` |
+| 8 | Dynamic public News, Events and Gallery | Server-rendered listing/detail routes, lifecycle/countdowns, read time, media relationships, Gallery source links, safe downloads, feeds and structured data | Run 7 | `DONE` locally — one consolidated Function, additive delivery projection, SSR routes, stable opaque Gallery IDs, metadata/feeds and network-only caching accepted; three exact Vercel Production gates exist encrypted as false; no deployment, SQL, content import or activation |
+| 9 | Engagement and shared placements | Privacy-safe views, signed-in likes, gated premoderated comments, homepage placements and related content; popularity isolated from operations | Run 8 | `READY` locally; all public engagement grants/routes/gates remain absent or off |
 | 10 | Verified content migration and Search cutover | Verified text/core sections/repeated facts/search projections migrated; sensitive historical media held; parity proven before coded authority is retired | Runs 8–9 | `BLOCKED` |
 | 11 | Clean routes, discovery and final quality | One-hop `.html` redirects, canonical/link updates, dynamic sitemap, human site map, duplicate controls, a11y/performance/security/backup/restore evidence | Run 10 | `BLOCKED` |
 | 12 | Production acceptance and provider completion | Production preservation proof, rollback evidence and probes; account/admission gates opened only after separate acceptances; Meta relay only after every external gate passes | Run 11 and external provider gates | `BLOCKED` |
@@ -178,6 +178,30 @@
 | Production boundary | No push, deployment, SQL, row, import, provider call/upload, Vercel change or gate activation | Preserved |
 | Evidence and rollback | `RUN-07-PROTECTED-PORTAL-CMS-ACCEPTANCE-EVIDENCE.md`; `RUN-07-PROTECTED-PORTAL-CMS-ROLLBACK-PLAN.md` | Recorded |
 
+## Run 8 local acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| Consolidated public dispatcher | `api/public-content.mjs` delegates every News/Event/Gallery/feed/media route to one server module | Pass; Function count exactly 12/12 |
+| Independent public gates | `PUBLIC_CMS_ENABLED`, `PUBLIC_CMS_MEDIA_ENABLED`, `PUBLIC_CMS_DOWNLOADS_ENABLED`; exact-true only and hierarchical | Pass; encrypted Production values created as `false`, no deployment triggered |
+| Disabled compatibility | `/news` falls back to `/news.html`; all other new routes return non-indexable 404 before any database/provider access | Pass |
+| Published-only authority | Publishable-key reads limited to five fixed published projections; no service-role/public base-table path | Pass |
+| Additive delivery projection | `20261027080000_public_content_delivery.sql` tightens current relationship/provider/provenance/consent/safeguarding checks and exposes only provider version/format additions | Pass locally; data-neutral and not Production-applied |
+| News SSR | Meaningful listing, canonical pagination and detail; 225 wpm/minimum one-minute read time; relative plus absolute publication time | Pass |
+| Event SSR | Listing, pagination, archive and detail use fixed Africa/Lagos formatting, machine times and one shared truthful lifecycle | Pass |
+| Structured-block safety | 13 allowlisted types; contextual HTML/attribute/path/JSON escaping; unknown/raw executable content does not render | Pass |
+| Generated Gallery | Current News/Event relationships only; stable opaque 12-hex SHA-256 identifier, source link, withdrawal propagation and non-indexable filters/empty state | Pass |
+| Governed media proxy | Fixed version-bound transforms; signed URL concealed; redirect/type/status/range/timeout controls; one-minute freshness | Pass |
+| Safe derivative downloads | Global exact gate plus explicit current `download` placement; generated safe filename; no original/bulk route | Pass; gate false |
+| Metadata and feeds | Canonical/OG/Twitter alt/NewsArticle/Event/Breadcrumb/Image/Video data matches visible facts; News/Event feeds contain canonical summaries only | Pass |
+| Cache/discovery | HTML/feed short CDN freshness; service worker network-only; static sitemap/robots intentionally unchanged while routes/content are disabled | Pass for Run 8 boundary; dynamic sitemap remains Run 11 |
+| Vercel route validation | Vercel CLI 65.4.0 config validation plus routing-utils 6.6.0 conversion of all 14 Run 8 rewrites; dots excluded from dynamic slugs | Pass |
+| Focused tests | Run 8 Node/security/route **9/9**; Chromium SSR/XSS/lifecycle/Gallery/mobile/dark/axe scenario | Pass |
+| Database regression | **14/14** migrations, **8/8** rollback-safe SQL suites and read-only postflight | Pass |
+| Complete regression | Static audit; visitor UX **45/45**; answers **10/10**; portal/security **87/87**; bootstrap **12/12**; Run 4–7 TAP **34/34**; Run 8 **9/9** | Pass |
+| Production boundary | Same promoted Run 4 deployment/source; no push, deployment, SQL, row/import, Cloudinary request/upload or gate activation | Preserved |
+| Evidence and rollback | `RUN-08-DYNAMIC-PUBLIC-CONTENT-ACCEPTANCE-EVIDENCE.md`; `RUN-08-DYNAMIC-PUBLIC-CONTENT-ROLLBACK-PLAN.md` | Recorded |
+
 ## Permanent preservation rules
 
 1. Never rerun the first seven production migrations. Future database work is additive.
@@ -202,8 +226,10 @@
 | School account claims | Off in production; Stage 8 accepted and closed | A separately authorised Stage 9 environment change, new Production deployment and verification are still required before opening |
 | Admission-tracking OTP | Off | Separate later acceptance after account claims |
 | Protected Website CMS | `CMS_PORTAL_ENABLED=false`; Run 7 workspace accepted locally; no Production source/SQL or capability record | Separately authorised Runs 5–7 Production SQL/source release with both CMS/media gates false, then protected acceptance before any enablement |
-| Public CMS publication | Absent/off; foundation and protected editor accepted locally but not Production-applied | Protected portal acceptance, verified content import/parity and a separate published-route activation decision |
-| Governed CMS media | `CMS_MEDIA_ENABLED=false`; Run 6 service and Run 7 library accepted locally; dedicated credentials privately stored; no provider call/upload | Separately authorised Runs 5–7 Production SQL/source release with gate false, then neutral generated-fixture smoke evidence and an independent activation decision |
+| Public CMS publication | `PUBLIC_CMS_ENABLED=false` exists encrypted in Production; Run 8 renderer accepted locally but not deployed or Production-applied | Gate-off Runs 5–8 SQL/source release, protected portal/provider acceptance, verified content import/parity and a separate exact activation decision |
+| Public transformed media | `PUBLIC_CMS_MEDIA_ENABLED=false` exists encrypted in Production; generated Gallery/proxy accepted locally | Governed media/provider smoke acceptance, eligible reviewed relationships and a separate activation after the master public gate |
+| Public derivative downloads | `PUBLIC_CMS_DOWNLOADS_ENABLED=false` exists encrypted in Production; every asset additionally needs current `download` placement | Media/public-route acceptance plus explicit per-relationship permission; originals and bulk child-media downloads remain prohibited |
+| Governed CMS media | `CMS_MEDIA_ENABLED=false`; Run 6 service and Run 7 library accepted locally; dedicated credentials privately stored; no Cloudinary request/upload | Separately authorised Runs 5–8 Production SQL/source release with gates false, then neutral generated-fixture smoke evidence and an independent activation decision |
 | Comments | Off | Signed-in identity, premoderation, abuse controls, audit and kill switch pass |
 | Media downloads | Off by default | Asset-level permission and metadata-safe derivative proven |
 | External/generative AI | Off | Separate privacy review and explicit owner approval; retrieval-first remains default |
@@ -212,9 +238,9 @@
 
 ## External/owner decision holds
 
-The school-owned Cloudinary account, dedicated key/private Vercel storage, manual-only indefinite retention, two accepted leadership reviewers and the gate-off Run 7 protected workspace are resolved at their local/private-handoff boundaries. The remaining external holds are not local source defects:
+The school-owned Cloudinary account, dedicated key/private Vercel storage, manual-only indefinite retention, two accepted leadership reviewers, gate-off Run 7 protected workspace and gate-off Run 8 public renderer are resolved at their local/private-handoff boundaries. The remaining external holds are not local source defects:
 
-- a neutral generated non-child provider smoke test after an authorised gate-off Runs 5–7 database/source acceptance;
+- a neutral generated non-child provider smoke test after an authorised gate-off Runs 5–8 database/source acceptance;
 - separate manual admission-tracking acceptance window;
 - a future private receiving number for Jibril if the owner later supplies one;
 - private Meta and Render dashboard completion.

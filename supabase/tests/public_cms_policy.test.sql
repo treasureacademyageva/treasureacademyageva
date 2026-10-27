@@ -570,12 +570,14 @@ select pg_temp.assert_true((select count(*)=1 from public.public_cms_published_e
 reset role;
 reset session authorization;
 insert into public.public_media_assets(
-  id,media_type,lifecycle_state,title,alt_text,source_note,child_identifiable,
-  provenance_status,consent_status,public_derivative_only,created_by
+  id,provider,provider_asset_id,provider_asset_uid,provider_resource_type,provider_version,provider_etag,
+  original_format,original_mime_type,byte_size,upload_completed_at,media_type,lifecycle_state,title,alt_text,
+  source_note,child_identifiable,provenance_status,consent_status,safeguarding_status,public_derivative_only,created_by
 ) values (
-  '25000000-0000-4000-8000-000000000002','image','approved','Fictional public-media fixture',
-  'Fictional public fixture','Internal fictional provenance note',false,'verified','not_required',true,
-  '15000000-0000-4000-8000-000000000004'
+  '25000000-0000-4000-8000-000000000002','cloudinary','ta_22222222222222222222222222222222',
+  'fictional-public-asset-uid','image',1700000002,repeat('2',32),'jpg','image/jpeg',2048,now(),
+  'image','approved','Fictional public-media fixture','Fictional public fixture','Internal fictional provenance note',
+  false,'verified','not_required','not_required',true,'15000000-0000-4000-8000-000000000004'
 );
 insert into public.public_content_media(revision_id,media_id,placement,placement_position,caption)
 select published_revision_id,'25000000-0000-4000-8000-000000000002','body',0,'Safe public caption'
@@ -598,12 +600,14 @@ select pg_temp.assert_true((select count(*)=0 from public.public_cms_published_m
 reset role;
 reset session authorization;
 insert into public.public_media_assets(
-  id,media_type,lifecycle_state,title,alt_text,source_note,child_identifiable,
-  provenance_status,consent_status,public_derivative_only,created_by
+  id,provider,provider_asset_id,provider_asset_uid,provider_resource_type,provider_version,provider_etag,
+  original_format,original_mime_type,byte_size,upload_completed_at,media_type,lifecycle_state,title,alt_text,
+  source_note,child_identifiable,provenance_status,consent_status,safeguarding_status,public_derivative_only,created_by
 ) values (
-  '25000000-0000-4000-8000-000000000001','image','approved','Fictional child-media fixture',
-  'Fictional safeguarding fixture','Verified fictional source',true,'verified','not_required',true,
-  '15000000-0000-4000-8000-000000000004'
+  '25000000-0000-4000-8000-000000000001','cloudinary','ta_11111111111111111111111111111111',
+  'fictional-child-asset-uid','image',1700000001,repeat('1',32),'jpg','image/jpeg',2048,now(),
+  'image','approved','Fictional child-media fixture','Fictional safeguarding fixture','Verified fictional source',
+  true,'verified','not_required','approved',true,'15000000-0000-4000-8000-000000000004'
 );
 set session authorization authenticator;
 insert into cms_documents(name,document) values (
