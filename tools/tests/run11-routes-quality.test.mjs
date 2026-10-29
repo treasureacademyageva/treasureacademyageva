@@ -50,6 +50,9 @@ test('Vercel clean-route redirects are one hop, rewrites preserve files and dyna
   assert.equal(redirects.get('/explore'), '/site-map');
   assert.equal(rewrites.get('/sitemap.xml'), '/api/public-content?route=sitemap');
   assert.equal(rewrites.get('/news'), '/api/public-content?route=news-list');
+  assert.equal(rewrites.get('/news/:slug([a-z0-9-]+)'), '/api/public-content?route=news-detail&slug=:slug');
+  assert.equal(rewrites.get('/events'), '/api/public-content?route=events-list');
+  assert.equal(rewrites.get('/gallery'), '/api/public-content?route=gallery-list');
   assert.equal(readdirSync(join(root, 'api')).filter((name) => /\.(?:js|mjs)$/.test(name)).length, 12);
 });
 
@@ -73,10 +76,10 @@ test('all public HTML has clean canonical, Open Graph URL, crawlable clean inter
 test('fixed sitemap, local Search and knowledge base agree with clean public routes', () => {
   const sitemap = read('sitemap.xml');
   const locs = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
-  assert.equal(locs.length, 30);
+  assert.equal(locs.length, 32);
   assert.equal(new Set(locs).size, locs.length);
   assert.ok(locs.every((loc) => loc.startsWith(site + '/') && !loc.endsWith('.html')));
-  const expected = routes.filter((row) => row.indexable).map((row) => site + row.canonical).sort();
+  const expected = [...routes.filter((row) => row.indexable).map((row) => site + row.canonical), site + '/events', site + '/gallery'].sort();
   assert.deepEqual(locs.sort(), expected);
   const searchText = read('assets/js/search-index.js');
   const search = JSON.parse(searchText.slice(searchText.indexOf('=') + 1, searchText.lastIndexOf(';')));

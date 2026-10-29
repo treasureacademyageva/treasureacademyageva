@@ -70,9 +70,11 @@
       if (!data) return;
       const news = Array.isArray(data.slots?.news) ? data.slots.news.slice(0, 3) : [];
       const events = Array.isArray(data.slots?.event) ? data.slots.event.slice(0, 3) : [];
-      grid.classList.remove('ne-track');
-      grid.classList.add('cms-home-placements');
-      grid.replaceChildren(...(news.length ? news.map(card) : [empty('No CMS news is currently placed on the homepage. Browse the reviewed News page or contact the school for current information.')]));
+      if (news.length) {
+        grid.classList.remove('ne-track');
+        grid.classList.add('cms-home-placements');
+        grid.replaceChildren(...news.map(card));
+      }
       const currentEvent = events[0];
       if (currentEvent) {
         const link = document.createElement('a');
@@ -88,17 +90,10 @@
         arrow.textContent = '→';
         link.append(copy, arrow);
         eventBar.replaceChildren(link);
-      } else {
-        eventBar.replaceChildren(empty('No confirmed CMS event is currently placed on the homepage.'));
       }
       alertPlacement(Array.isArray(data.slots?.alert) ? data.slots.alert[0] : null);
-      const archiveLink = document.querySelector('#news .btn.btn-ghost');
-      if (archiveLink) { archiveLink.href = '/news'; archiveLink.textContent = 'All News & Events →'; }
     })
     .catch(() => {
-      grid.classList.remove('ne-track');
-      grid.classList.add('cms-home-placements');
-      grid.replaceChildren(empty('Reviewed homepage updates are temporarily unavailable. No date or announcement has been guessed.'));
-      eventBar.replaceChildren(empty('Confirmed event information is temporarily unavailable.'));
+      // Optional current additions must not displace the reviewed static page.
     });
 })();

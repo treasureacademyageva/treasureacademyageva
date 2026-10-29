@@ -471,6 +471,14 @@
       "destination": "/api/public-content?action=core-slots"
     },
     {
+      "source": "/api/public/content/page-surface",
+      "destination": "/api/public-content?action=page-surface"
+    },
+    {
+      "source": "/api/public/content/page-media",
+      "destination": "/api/public-content?action=page-media"
+    },
+    {
       "source": "/api/public/inventory",
       "destination": "/api/public-content?action=inventory"
     },
@@ -485,10 +493,6 @@
     {
       "source": "/sitemap.xml",
       "destination": "/api/public-content?route=sitemap"
-    },
-    {
-      "source": "/news",
-      "destination": "/api/public-content?route=news-list"
     },
     {
       "source": "/about",
@@ -601,6 +605,34 @@
     {
       "source": "/lost-found",
       "destination": "/lost-found.html"
+    },
+    {
+      "source": "/news",
+      "destination": "/api/public-content?route=news-list"
+    },
+    {
+      "source": "/news/2017-first-graduation-ceremony",
+      "destination": "/api/public-content?route=news-detail&slug=2017-first-graduation-ceremony"
+    },
+    {
+      "source": "/news/2018-second-graduation-ceremony",
+      "destination": "/api/public-content?route=news-detail&slug=2018-second-graduation-ceremony"
+    },
+    {
+      "source": "/news/2019-third-graduation-ceremony",
+      "destination": "/api/public-content?route=news-detail&slug=2019-third-graduation-ceremony"
+    },
+    {
+      "source": "/news/2020-fourth-graduation-ceremony",
+      "destination": "/api/public-content?route=news-detail&slug=2020-fourth-graduation-ceremony"
+    },
+    {
+      "source": "/news/2021-fifth-graduation-ceremony",
+      "destination": "/api/public-content?route=news-detail&slug=2021-fifth-graduation-ceremony"
+    },
+    {
+      "source": "/news/2026-2027-admissions-open",
+      "destination": "/api/public-content?route=news-detail&slug=2026-2027-admissions-open"
     },
     {
       "source": "/openday",
@@ -1338,6 +1370,89 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/news",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/news/2017-first-graduation-ceremony",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/news/2018-second-graduation-ceremony",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/news/2019-third-graduation-ceremony",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/news/2020-fourth-graduation-ceremony",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/news/2021-fifth-graduation-ceremony",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/news/2026-2027-admissions-open",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
         }
       ]
     },

@@ -12,7 +12,7 @@ const read = (path) => readFileSync(join(root, path), 'utf8');
 const migration = read('supabase/migrations/20261027100000_verified_content_search_and_inventory.sql');
 const sqlSuite = read('supabase/tests/verified_content_search_inventory.test.sql');
 const env = {
-  PUBLIC_CMS_ENABLED: 'true', PUBLIC_CMS_SEARCH_ENABLED: 'true', PUBLIC_CMS_CORE_SLOTS_ENABLED: 'true', PUBLIC_INVENTORY_ENABLED: 'false',
+  PUBLIC_CMS_ENABLED: 'true', PUBLIC_CMS_SEARCH_ENABLED: 'true', PUBLIC_CMS_CORE_SLOTS_ENABLED: 'true', PUBLIC_CMS_PAGES_ENABLED: 'true', PUBLIC_CMS_MEDIA_ENABLED: 'false', PUBLIC_INVENTORY_ENABLED: 'false',
   SUPABASE_URL: 'https://fixture.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'publishable.fixture', SUPABASE_SECRET_KEY: 'secret.fixture',
   CMS_SEARCH_HASH_PEPPER: 'run-ten-fixture-search-pepper-with-more-than-32-characters'
 };
@@ -30,7 +30,12 @@ function fakeSupabase() {
   const calls = [];
   const rows = {
     public_cms_published_core_slots: [{ id: 'slot-1', page_path: '/about', mount_key: 'guidance', slot_position: 0, entry_id: 'entry-1', canonical_path: '/verified-about-update', content_type: 'page', revision_id: 'revision-1', title: 'Verified About Update', summary: 'Current source-backed guidance.', next_review_date: '2099-12-31' }],
-    public_cms_published_blocks: [{ revision_id: 'revision-1', block_position: 0, block_type: 'paragraph', payload: { text: '<img src=x onerror=alert(1)>', private_note: 'must not leave the server' } }],
+    public_cms_published_blocks: [
+      { revision_id: 'revision-1', block_position: 0, block_type: 'paragraph', payload: { text: '<img src=x onerror=alert(1)>', private_note: 'must not leave the server' } },
+      { revision_id: '22222222-2222-4222-8222-222222222222', block_position: 0, block_type: 'paragraph', payload: { text: 'Owner-published dynamic page content.', private_note: 'must not leave the server' } }
+    ],
+    public_cms_published_page_surfaces: [{ id: '11111111-1111-4111-8111-111111111111', page_path: '/about', render_mode: 'replace', entry_id: '33333333-3333-4333-8333-333333333333', canonical_path: '/about', revision_id: '22222222-2222-4222-8222-222222222222', title: 'Editable About Page', summary: 'Current reviewed school information.', category: 'School information', next_review_date: '2099-12-31', seo_title: 'Editable About Page — Treasure Academy', seo_description: 'Current reviewed public information about Treasure Academy.', featured_media_id: null, social_media_id: null, updated_at: '2099-01-01T00:00:00Z' }],
+    public_cms_published_media: [],
     public_inventory_availability: [{ product_id: 'product-1', product_code: 'BOOK', name: 'Practice Book', description: 'Reconciled item.', category: 'books', variant_id: 'variant-1', sku: 'BOOK_ONE', variant_label: 'One copy', size_label: null, eligible_classes: ['P6'], unit_price: 100, on_hand: 50, reserved: 10, damaged: 2, availability: 'in_stock', may_request: true, updated_at: '2099-01-01T00:00:00Z' }]
   };
   const client = {
@@ -56,6 +61,7 @@ function searchRequest(query, headers = {}) {
 for (const [gate, action, method] of [
   ['PUBLIC_CMS_SEARCH_ENABLED', 'search', 'POST'],
   ['PUBLIC_CMS_CORE_SLOTS_ENABLED', 'core-slots&path=%2Fabout', 'GET'],
+  ['PUBLIC_CMS_PAGES_ENABLED', 'page-surface&path=%2Fabout', 'GET'],
   ['PUBLIC_INVENTORY_ENABLED', 'inventory', 'GET']
 ]) {
   test(`${gate} is exact-true and subordinate to the master public gate`, async () => {
@@ -113,6 +119,39 @@ test('core slots return fixed structured fields and inventory strips private bal
   assert.equal('unit_price' in inventoryPayload.items[0], false);
 });
 
+test('published Page surfaces expose only fixed-route structured content', async () => {
+  const fake = fakeSupabase();
+  const response = await handlePublicDiscovery(new Request('https://school.test/api/public-content?action=page-surface&path=%2Fabout'), env, { createClient: fake.createClient });
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.state, 'current');
+  assert.equal(payload.path, '/about');
+  assert.equal(payload.mode, 'replace');
+  assert.equal(payload.page.title, 'Editable About Page');
+  assert.equal(payload.page.blocks[0].payload.text, 'Owner-published dynamic page content.');
+  assert.equal(payload.page.blocks[0].payload.private_note, undefined);
+  assert.equal(JSON.stringify(payload).includes('private_note'), false);
+  const invalid = await handlePublicDiscovery(new Request('https://school.test/api/public-content?action=page-surface&path=%2Fportal%2Flogin.html'), env, { createClient: fake.createClient });
+  assert.equal(invalid.status, 400);
+});
+
+test('held public Page manifest covers every approved non-News route without publishing', () => {
+  const manifest = JSON.parse(read('content/migration/public-page-held-candidates.json'));
+  assert.equal(manifest.candidate_count, 48);
+  assert.equal(manifest.all_candidates_held, true);
+  assert.equal(new Set(manifest.candidates.map((item) => item.surface_path)).size, 48);
+  for (const candidate of manifest.candidates) {
+    assert.equal(candidate.content_type, 'page');
+    assert.equal(candidate.verification_status, 'held');
+    assert.equal(candidate.media_imported, false);
+    assert.ok(['replace', 'supplement'].includes(candidate.surface_mode));
+    assert.deepEqual(candidate.document.media, []);
+    assert.equal(candidate.document.metadata.surface_path, candidate.surface_path);
+    const source = read(candidate.source_locator);
+    assert.equal(createHash('sha256').update(Buffer.from(source)).digest('hex'), candidate.source_sha256);
+  }
+});
+
 test('held migration manifest is deterministic, source-hashed, text-only and media-free', () => {
   const manifest = JSON.parse(read('content/migration/run10-held-candidates.json'));
   assert.equal(manifest.candidate_count, 14);
@@ -155,6 +194,7 @@ test('public clients use text-safe rendering, truthful states and consolidated r
   const search = read('assets/js/smart-search.js');
   const core = read('assets/js/core-page-slots.js');
   const inventory = read('assets/js/public-inventory.js');
+  const dynamicPage = read('assets/js/dynamic-page.js');
   assert.match(search, /method:\s*'POST'/);
   assert.doesNotMatch(search, /new URLSearchParams\(location\.search\)\.get\("q"\)/);
   assert.match(search, /Press Search to check current published information/);
@@ -164,6 +204,9 @@ test('public clients use text-safe rendering, truthful states and consolidated r
   assert.match(search, /No verified answer found/);
   assert.doesNotMatch(core, /innerHTML|insertAdjacentHTML|outerHTML/);
   assert.doesNotMatch(inventory, /innerHTML|insertAdjacentHTML|outerHTML/);
+  assert.doesNotMatch(dynamicPage, /innerHTML|insertAdjacentHTML|outerHTML|document\.write/);
+  assert.match(dynamicPage, /textContent/);
+  assert.match(dynamicPage, /main\.replaceChildren/);
   assert.match(core, /textContent/);
   assert.match(inventory, /textContent/);
   assert.match(read('search.html'), /raw queries are not retained as analytics/i);
@@ -182,6 +225,8 @@ test('public clients use text-safe rendering, truthful states and consolidated r
   const rewrites = new Map(vercel.rewrites.map((rule) => [rule.source, rule.destination]));
   assert.equal(rewrites.get('/api/public/search'), '/api/public-content?action=search');
   assert.equal(rewrites.get('/api/public/content/core-slots'), '/api/public-content?action=core-slots');
+  assert.equal(rewrites.get('/api/public/content/page-surface'), '/api/public-content?action=page-surface');
+  assert.equal(rewrites.get('/api/public/content/page-media'), '/api/public-content?action=page-media');
   assert.equal(rewrites.get('/api/public/inventory'), '/api/public-content?action=inventory');
   assert.equal(readdirSync(join(root, 'api')).filter((name) => /\.(?:js|mjs)$/.test(name)).length, 12);
 });

@@ -43,6 +43,7 @@ npm run test:public-content-browser
 npm run test:public-engagement-browser
 npm run test:verified-content-browser
 npm run test:run11-browser
+npm run test:run14-browser
 npm run test:header-browser
 
 echo "CURRENT RELEASE QA: all static, security, answer, review, visitor, accessibility and browser suites passed."

@@ -20,18 +20,37 @@ CLASSES = [
  ("primary-6", "Primary 6", "Finish primary school with confidence.", "Primary 6 follows Primary 4 in the school progression and focuses on Common Entrance practice, interviews and readiness for secondary school.", ["Common Entrance practice", "Interview skills", "Revision planning", "Secondary-school readiness"]),
 ]
 
-NAV = '<a href="/">Home</a><a href="/about.html">About</a><a href="/admissions.html">Admissions</a><a href="/academics.html" aria-current="page">Academics</a><a href="/fees.html">Fees</a><a href="/news.html">News</a><a href="/contact.html">Contact</a>'
+ESSENTIALS = {
+    "pre-nursery": ("₦12,300", "6 pencils, 2 big erasers, 3 razor blades and 1 packet of colour pencils", "₦38,300"),
+    "nursery-1": ("₦12,300", "6 pencils, 2 erasers, 3 blades, 1 packet of colour pencils and 1 Drawing & Writing item", "₦38,300"),
+    "nursery-2": ("₦15,800", "7 pencils, 2 erasers, 3 blades, 1 packet of colour pencils, 1 ruler and 1 Drawing & Writing item", "₦41,800"),
+}
+
+NAV = '<a href="/">Home</a><a href="/about">About</a><a href="/admissions">Admissions</a><a href="/academics" aria-current="page">Classes</a><a href="/fees">Fees</a><a href="/news">News</a><a href="/contact">Contact</a>'
 
 for slug, name, tagline, about, activities in CLASSES:
     canonical = f"{SITE}/classes/{slug}.html"
     cards = "".join(f"<li>{escape(x)}</li>" for x in activities)
-    wa_text = quote("Hello Treasure Academy, I want to ask about " + name + ".")
-    if slug in {"pre-nursery", "nursery-1", "nursery-2"}:
-        image, webp = "stage-nursery.png", "stage-nursery.webp"
+    if slug in ESSENTIALS:
+        book_total, materials, new_pupil_total = ESSENTIALS[slug]
+        essentials = (f'<div class="panel class-essentials"><h2>Current books and materials</h2>'
+                      f'<p>The current {escape(name)} book package is <strong>{book_total}</strong>. Required writing materials are {escape(materials)}. Writing-material prices are not included.</p>'
+                      f'<p>The current new-pupil admission and book total is <strong>{new_pupil_total}</strong>. Families may buy the required materials elsewhere. After promotion, use the list for the pupil’s new class.</p>'
+                      f'<p><a href="/fees#{slug}-list">View the complete {escape(name)} prices and safe payment guidance →</a></p></div>')
     else:
-        image, webp = "stage-primary.png", ""
-    source = f'<source type="image/webp" srcset="/assets/img/{webp}">' if webp else ""
-    class_media = f'<figure class="class-media"><picture>{source}<img src="/assets/img/{image}" width="1408" height="768" alt="Illustration for the {escape(name)} stage" loading="eager"></picture></figure>'
+        essentials = '<div class="panel class-essentials"><h2>Current fees and materials</h2><p>The school has not yet supplied a public book and writing-material list for this class. Confirm the current requirements before buying or paying.</p><p><a href="/fees">View verified fee and safe payment guidance →</a></p></div>'
+    class_query = quote(name)
+    if slug in {"pre-nursery", "nursery-1", "nursery-2"}:
+        fallback, webp = "stage-nursery.jpg", "stage-nursery.webp"
+    else:
+        fallback, webp = "stage-primary.jpg", "stage-primary.webp"
+    source = f'<source type="image/webp" srcset="/assets/img/{webp}">'
+    class_media = f'<figure class="class-media"><picture>{source}<img src="/assets/img/{fallback}" width="1408" height="768" alt="Illustration for the {escape(name)} stage" loading="eager" decoding="async"></picture></figure>'
+    progression = ("Primary 6 follows Primary 4 in Treasure Academy’s current class sequence because Primary 5 is not offered. "
+                   "This final primary stage consolidates earlier learning and prepares pupils for Common Entrance and the move to secondary education. "
+                   "Treasure Academy is an approved Common Entrance Centre, number BS/OKN/141."
+                   if slug == "primary-6" else
+                   f"This page gives families a clear introduction to {name}. The school office confirms individual placement after considering the child’s previous schooling and the current class availability.")
     html = f'''<!doctype html>
 <html lang="en">
 <head>
@@ -42,21 +61,23 @@ for slug, name, tagline, about, activities in CLASSES:
 <link rel="stylesheet" href="/assets/css/main.css?v=20261022-restoration1">
 <link rel="stylesheet" href="/assets/css/extra.css?v=20261022-restoration1">
 <link rel="stylesheet" href="/assets/css/corporate.css?v=20261022-restoration1">
+<link rel="stylesheet" href="/assets/css/site.css?v=20261028-remediation1">
 <meta name="theme-color" content="#0E5A2E">
-<style>.class-simple-nav{{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}}.class-simple-nav .container{{display:flex;align-items:center;gap:14px;min-height:66px;flex-wrap:wrap}}.class-simple-nav img{{border-radius:50%;flex:none}}.class-simple-nav b{{color:var(--green-deep);margin-right:auto}}.class-simple-nav a{{color:var(--ink);font-weight:700;text-decoration:none;padding:8px 4px}}.class-simple-nav a[aria-current]{{color:var(--green);border-bottom:2px solid var(--gold)}}.class-overview{{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:start}}.class-media{{grid-column:1/-1;margin:0}}.class-media img{{display:block;width:100%;height:auto;max-height:470px;object-fit:cover;border-radius:22px;box-shadow:var(--sh-2)}}@media(max-width:700px){{.class-simple-nav .container{{gap:8px;padding-block:10px}}.class-simple-nav b{{flex:1 0 100%}}.class-simple-nav a{{font-size:.82rem}}.class-overview{{grid-template-columns:1fr}}}}</style>
 </head>
 <body data-page="academics">
 <a class="skip-link" href="#main">Skip to content</a>
-<nav class="class-simple-nav" aria-label="Primary navigation"><div class="container"><img src="/assets/img/logo.jpg" width="48" height="48" alt=""><b>Treasure Academy, Ageva</b>{NAV}</div></nav>
+<nav class="lite-nav" aria-label="Primary navigation"><div class="container"><a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" loading="eager" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Pre-Nursery · Nursery · Primary — Ageva</small></span></a><div class="lite-links">{NAV}</div><div class="lite-actions"><a class="lite-search" href="/search" aria-label="Search the website">Search</a><a class="lite-portal" href="/portal/login.html">Portal</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admission-form">Apply</a></div></div></nav>
 <header class="page-hero"><div class="container"><span class="sec-tag">Our Classes</span><h1>{escape(name)}</h1><p>{escape(tagline)}</p></div></header>
 <main id="main"><section><div class="container class-overview">
 {class_media}
-<div class="panel"><h2>What children build in {escape(name)}</h2><p>{escape(about)}</p><p>Class routines and materials may change during the session. Parents can arrange a visit or ask the school for the current class plan.</p></div>
-<div class="panel"><h2>Learning highlights</h2><ul class="tick">{cards}</ul></div>
+<div class="panel"><h2>What children build in {escape(name)}</h2><p>{escape(about)}</p><p>{escape(progression)}</p><p>The learning highlights are a public overview rather than a fixed weekly timetable. Teachers may adjust the order and pace of classroom work to support the pupils in the class while keeping the stage goals clear.</p></div>
+<div class="panel"><h2>Learning highlights</h2><ul class="tick">{cards}</ul><h3>How families can help</h3><p>Read and talk together, encourage a calm daily routine and share any useful information about the child’s earlier learning with the school. Ask the teacher or office when guidance is unclear rather than relying on an older class list or fee notice.</p><h3>Before applying</h3><p>Confirm the child’s placement, available places, current fee schedule and required documents with the school office. An enquiry is separate from an application, and an application remains subject to an authorised admission decision.</p></div>
+{essentials}
 </div></section>
-<section style="padding-top:0"><div class="container"><div class="cta-band"><div><h2>Ask about {escape(name)}</h2><p>Confirm age guidance, available places, current fees and required documents with the school office.</p></div><div><a class="btn btn-sun" href="/request-centre.html?type=class_enquiry">Ask the Office</a> <a class="btn btn-white" href="/admissions.html">Admission Steps</a></div></div></div></section>
+<section class="class-enquiry-band"><div class="container"><div class="cta-band"><div><h2>Ask about {escape(name)}</h2><p>Confirm placement guidance, available places, current fees and required documents with the school office.</p></div><div><a class="btn btn-sun" data-class-enquiry="{escape(name)}" href="/request-centre?type=class_enquiry&amp;class={class_query}">Ask the Office about {escape(name)}</a> <a class="btn btn-white" href="/admissions">Admission Steps</a></div></div></div></section>
 </main>
-<footer class="site-footer"><div class="container"><p><b>Treasure Academy, Ageva</b><br>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State</p><p><a href="tel:+2348141943478">+234 814 194 3478</a> · <a href="https://wa.me/2349063932487">WhatsApp 09063932487</a> · <a href="/privacy.html">Privacy</a> · <a href="/safeguarding.html">Safeguarding</a></p></div></footer>
+<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid"><div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" loading="lazy" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Pre-Nursery, Nursery and Primary education in Ageva, Okene.</p></div><div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support"><a href="/admissions">Admissions</a><a href="/academics">Classes</a><a href="/fees">Fees</a><a href="/portal/login.html">Parent &amp; Staff Portal</a></nav></div><div class="uf-col uf-contact"><h2>Contact</h2><p><a href="tel:+2348141943478">+234 814 194 3478</a><br><a href="https://wa.me/2349063932487">WhatsApp 09063932487</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p></div></div></div></footer>
+<script src="/assets/js/public-shell.js?v=20261028-remediation1"></script>
 </body></html>
 '''
     (OUT / f"{slug}.html").write_text(html)

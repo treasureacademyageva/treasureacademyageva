@@ -10,6 +10,18 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ALLOWED_PATH = /^\/[a-zA-Z0-9/_?#=&.%-]*$/;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const PUBLIC_PAGE_PATHS = [
+  '/', '/about', '/academics', '/admission-form', '/admissions', '/alumni', '/anthem', '/birthdays', '/board', '/calendar',
+  '/careers', '/classes', '/classes/pre-nursery', '/classes/nursery-1', '/classes/nursery-2', '/classes/primary-1',
+  '/classes/primary-2', '/classes/primary-3', '/classes/primary-4', '/classes/primary-6', '/contact', '/credits',
+  '/elearning', '/exams', '/site-map', '/fees', '/holiday', '/homework', '/lost-found', '/openday', '/photo-day',
+  '/poster', '/privacy', '/pta', '/reading', '/receipt', '/request-centre', '/safeguarding', '/search', '/shop',
+  '/story', '/support', '/testimonials', '/transport', '/uniform', '/volunteer', '/website-help', '/welcome'
+];
+const SUPPLEMENT_PAGE_PATHS = new Set([
+  '/', '/admission-form', '/admissions', '/birthdays', '/contact', '/elearning', '/site-map', '/homework',
+  '/lost-found', '/poster', '/reading', '/receipt', '/request-centre', '/search', '/shop', '/website-help'
+]);
 
 const ui = {
   panel: 'content',
@@ -155,8 +167,8 @@ export function emptyCmsState(error = false) {
     entries: [], revisions: [], blocks: [], tags: [], tagLinks: [], searchTerms: [],
     media: [], contentMedia: [], publicationEvents: [], approvals: [], findings: [],
     moderationComments: [], commentEvents: [], siteSlots: [], siteSlotEvents: [],
-    migrationCandidates: [], migrationEvents: [], revisionSources: [], coreSlots: [], coreSlotEvents: [], reviewQueue: [],
-    capabilityRows: [], capabilityEvents: []
+    migrationCandidates: [], migrationEvents: [], revisionSources: [], coreSlots: [], coreSlotEvents: [],
+    pageSurfaces: [], pageSurfaceEvents: [], reviewQueue: [], capabilityRows: [], capabilityEvents: []
   };
 }
 
@@ -177,6 +189,14 @@ async function rows(supabase, tableName, columns, options = {}) {
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
+}
+
+async function optionalRows(supabase, tableName, columns, options = {}) {
+  try { return await rows(supabase, tableName, columns, options); }
+  catch (error) {
+    if (['42P01', 'PGRST200', 'PGRST205'].includes(String(error?.code || ''))) return [];
+    throw error;
+  }
 }
 
 export async function loadCmsWorkspaceData(supabase) {
@@ -204,7 +224,9 @@ export async function loadCmsWorkspaceData(supabase) {
     rows(supabase, 'public_content_migration_events', 'id,candidate_id,actor_id,action,reason,created_at', { order: 'created_at', limit: 500 }),
     rows(supabase, 'public_content_revision_sources', 'revision_id,candidate_id,source_sha256,linked_by,linked_at', { order: 'linked_at', limit: 500 }),
     rows(supabase, 'public_core_page_slots', 'id,page_path,mount_key,slot_position,entry_id,active,effective_from,expires_at,created_by,updated_by,created_at,updated_at', { order: 'page_path', ascending: true, limit: 200 }),
-    rows(supabase, 'public_core_page_slot_events', 'id,slot_id,entry_id,actor_id,action,page_path,mount_key,slot_position,reason,created_at', { order: 'created_at', limit: 500 })
+    rows(supabase, 'public_core_page_slot_events', 'id,slot_id,entry_id,actor_id,action,page_path,mount_key,slot_position,reason,created_at', { order: 'created_at', limit: 500 }),
+    optionalRows(supabase, 'public_page_surfaces', 'id,page_path,render_mode,entry_id,active,effective_from,expires_at,created_by,updated_by,created_at,updated_at', { order: 'page_path', ascending: true, limit: 100 }),
+    optionalRows(supabase, 'public_page_surface_events', 'id,surface_id,page_path,entry_id,actor_id,action,render_mode,reason,created_at', { order: 'created_at', limit: 500 })
   ]);
 
   let reviewQueue = [];
@@ -229,13 +251,14 @@ export async function loadCmsWorkspaceData(supabase) {
   }
 
   const [entries, revisions, blocks, tags, tagLinks, searchTerms, media, contentMedia, publicationEvents, approvals, findings,
-    siteSlots, siteSlotEvents, commentEvents, migrationCandidates, migrationEvents, revisionSources, coreSlots, coreSlotEvents] = common;
+    siteSlots, siteSlotEvents, commentEvents, migrationCandidates, migrationEvents, revisionSources, coreSlots, coreSlotEvents,
+    pageSurfaces, pageSurfaceEvents] = common;
   return {
     available: true, error: false, capabilities, entries, revisions, blocks, tags, tagLinks,
     searchTerms, media, contentMedia, publicationEvents, approvals, findings,
     moderationComments, commentEvents, siteSlots, siteSlotEvents,
-    migrationCandidates, migrationEvents, revisionSources, coreSlots, coreSlotEvents, reviewQueue,
-    capabilityRows, capabilityEvents
+    migrationCandidates, migrationEvents, revisionSources, coreSlots, coreSlotEvents,
+    pageSurfaces, pageSurfaceEvents, reviewQueue, capabilityRows, capabilityEvents
   };
 }
 
@@ -1185,6 +1208,104 @@ function placementsPanel(context) {
   );
 }
 
+function pageSurfacePanel(context) {
+  const { cms } = context.state;
+  const published = cms.entries.filter((entry) =>
+    entry.content_type === 'page' && entry.workflow_status === 'published' && entry.published_revision_id
+  );
+  let formNode = null;
+  if (cms.capabilities.publish) {
+    const form = el('form', { class: 'data-form' });
+    const surfaceSelect = select('surface_id', [
+      { value: '', label: 'Create a new public Page binding' },
+      ...cms.pageSurfaces.map((surface) => ({ value: surface.id, label: `${surface.page_path} — ${titleCase(surface.render_mode)}` }))
+    ], '');
+    const pathSelect = select('page_path', PUBLIC_PAGE_PATHS, '/about');
+    const entrySelect = select('entry_id', published.map((entry) => {
+      const revision = revisionForEntry(cms, entry, entry.published_revision_id);
+      return { value: entry.id, label: `${revision?.title || entry.slug} — ${entry.canonical_path}` };
+    }), '', { required: true });
+    const modeNotice = notice('info', 'Editorial replacement', 'This ordinary information page can use the published Page as its main content. The reviewed static page remains the fail-safe fallback.');
+    const syncMode = () => {
+      const supplementary = SUPPLEMENT_PAGE_PATHS.has(pathSelect.value);
+      modeNotice.className = `alert alert--${supplementary ? 'warning' : 'info'}`;
+      modeNotice.replaceChildren(
+        el('span', { 'aria-hidden': 'true', text: supplementary ? '!' : 'i' }),
+        el('div', {},
+          el('strong', { text: supplementary ? 'Protected supplementary content' : 'Editorial replacement' }),
+          el('p', { text: supplementary
+            ? 'This route keeps its fixed form, privacy or transaction controls. The published Page appears as reviewed current information without replacing the safety shell.'
+            : 'This ordinary information page can use the published Page as its main content. The reviewed static page remains the fail-safe fallback.' })
+        )
+      );
+    };
+    const syncSurface = () => {
+      const current = cms.pageSurfaces.find((surface) => surface.id === surfaceSelect.value);
+      if (!current) { syncMode(); return; }
+      pathSelect.value = current.page_path;
+      entrySelect.value = current.entry_id;
+      form.querySelector('[name="active"]').checked = current.active === true;
+      syncMode();
+    };
+    surfaceSelect.addEventListener('change', syncSurface);
+    pathSelect.addEventListener('change', syncMode);
+    const output = messageNode();
+    const submit = button('Save reviewed public Page binding', null, { type: 'submit', disabled: !published.length });
+    form.append(
+      notice(context.state.features.publicPages ? 'info' : 'warning',
+        context.state.features.publicPages ? 'Dynamic public Pages active' : 'Dynamic public Pages gate closed',
+        context.state.features.publicPages
+          ? 'Only an effective owner-published binding can replace or supplement a public page.'
+          : 'Bindings can be prepared and audited without changing any public page. Preview activation remains a separate release decision.'),
+      field('Existing binding', surfaceSelect),
+      field('Fixed public route', pathSelect, 'The route list is code-owned. Editors cannot create a private, portal or arbitrary public route.'),
+      modeNotice,
+      field('Published Page', entrySelect, 'Only an independently reviewed and already-published CMS Page can be selected.'),
+      checkbox('active', 'Binding active when the separate public gate is enabled', true),
+      field('Optional effective time — Africa/Lagos', input('effective_from', '', { type: 'datetime-local' })),
+      field('Optional expiry time — Africa/Lagos', input('expires_at', '', { type: 'datetime-local' })),
+      field('Immutable publication reason', textarea('reason', '', { required: true, minlength: '8', maxlength: '500' })),
+      output, submit
+    );
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      runMutation(submit, output, async () => {
+        const values = new FormData(form);
+        if (!values.get('entry_id')) throw new Error('Choose an already-published CMS Page.');
+        await context.rpc('cms_set_page_surface', {
+          p_surface_id: values.get('surface_id') || null,
+          p_page_path: values.get('page_path'),
+          p_entry_id: values.get('entry_id'),
+          p_active: values.get('active') === 'on',
+          p_effective_from: lagosIso(values.get('effective_from')) || null,
+          p_expires_at: lagosIso(values.get('expires_at')) || null,
+          p_reason: String(values.get('reason')).trim()
+        });
+        await context.refresh('The reviewed public Page binding was recorded. Gate activation remains separate.');
+      });
+    });
+    syncMode();
+    formNode = form;
+  }
+
+  const rowsData = cms.pageSurfaces.map((surface) => {
+    const entry = cms.entries.find((record) => record.id === surface.entry_id);
+    const revision = entry ? revisionForEntry(cms, entry, entry.published_revision_id) : null;
+    return [surface.page_path, badge(surface.render_mode), revision?.title || entry?.canonical_path || 'Former Page', badge(surface.active ? 'active' : 'inactive'), displayDate(surface.effective_from, true), displayDate(surface.expires_at, true)];
+  });
+  return el('div', { class: 'cms-panel' },
+    notice('info', 'Static fail-safe retained', 'A public Page is displayed only after draft, independent review, leadership publication, route binding and separate gate activation. If the service is unavailable, the complete reviewed static page remains visible.'),
+    formNode || notice('warning', 'Publication authority required', 'Staff with drafting access can prepare Page revisions. Only accepted leadership publishers can bind a published Page to a public route.'),
+    el('h3', { text: 'Public Page bindings' }),
+    table(['Public route', 'Mode', 'Published Page', 'State', 'Effective', 'Expires'], rowsData, 'Dynamic public Page bindings')
+      || empty('No public Page bindings', 'Load the held public Page manifest, verify and import candidates as drafts, complete review and publication, then bind each accepted Page here.'),
+    el('h3', { text: 'Public Page audit' }),
+    table(['Date', 'Route', 'Mode', 'Action', 'Actor', 'Reason'], [...cms.pageSurfaceEvents].reverse().map((event) => [
+      displayDate(event.created_at, true), event.page_path, badge(event.render_mode), badge(event.action), profileName(context, event.actor_id), event.reason
+    ]), 'Dynamic public Page audit') || empty('No public Page decisions', 'Every binding, update and deactivation decision will be retained here.')
+  );
+}
+
 function migrationPanel(context) {
   const { cms } = context.state;
   let stagingForm = null;
@@ -1377,7 +1498,7 @@ export function renderCmsWorkspace(context) {
     ['content', 'Content'], ['workflow', 'Review & publish'], ['media', 'Media library']
   ];
   if (cms.capabilities.comment_moderate) panels.push(['comments', 'Comments']);
-  if (cms.capabilities.publish) panels.push(['placements', 'Homepage']);
+  if (cms.capabilities.publish) panels.push(['placements', 'Homepage'], ['pages', 'Public Pages']);
   panels.push(['migration', 'Migration & freshness']);
   panels.push(['audit', 'Audit']);
   if (cms.capabilities.administer) panels.push(['access', 'Access']);
@@ -1390,6 +1511,7 @@ export function renderCmsWorkspace(context) {
   else if (ui.panel === 'media') panel = mediaPanel(workspaceContext);
   else if (ui.panel === 'comments') panel = commentsPanel(workspaceContext);
   else if (ui.panel === 'placements') panel = placementsPanel(workspaceContext);
+  else if (ui.panel === 'pages') panel = pageSurfacePanel(workspaceContext);
   else if (ui.panel === 'migration') panel = migrationPanel(workspaceContext);
   else if (ui.panel === 'audit') panel = auditPanel(workspaceContext);
   else if (ui.panel === 'access') panel = accessPanel(workspaceContext);

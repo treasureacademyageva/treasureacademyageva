@@ -6,17 +6,17 @@ async function check(width){
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!/favicon|Failed to load resource/.test(m.text()))errors.push(m.text())});
  await page.goto('http://127.0.0.1:4173/index.html',{waitUntil:'domcontentloaded'});
  await page.waitForTimeout(250);
- const top=await page.locator('.topbar').boundingBox(),nav=await page.locator('.navbar').boundingBox();
+ const top=await page.locator('.topbar').boundingBox(),nav=await page.locator('.lite-nav').boundingBox();
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`overflow ${width}`);
  if(width>=960){
-  assert(top&&Math.abs(top.height-44)<1,`topbar ${width}: ${top&&top.height}`);assert(nav.height>=69,`navbar ${width}`);
+  assert(top&&top.height>=43&&top.height<=45,`topbar ${width}: ${top&&top.height}`);assert(nav.height>=69,`navigation ${width}`);
   assert.equal(await page.locator('#menuToggle').count(),0,`obsolete desktop hamburger ${width}`);
   assert.equal(await page.locator('.mobile-dock').isVisible(),false,`desktop dock ${width}`);
-  assert.equal(await page.locator('#mainNav .nav-link').count(),7);
-  assert.equal(await page.evaluate(()=>document.querySelector('.navbar').scrollWidth<=innerWidth),true,`nav overflow ${width}`);
+  assert.equal(await page.locator('.lite-links a').count(),7);
+  assert.equal(await page.evaluate(()=>document.querySelector('.lite-nav').scrollWidth<=innerWidth),true,`nav overflow ${width}`);
   await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';scrollTo(0,900)});await page.waitForTimeout(250);
-  const stickyDesktopNav=await page.locator('.navbar').boundingBox();assert(Math.abs(stickyDesktopNav.y-44)<2,`desktop nav not below topbar ${width}: ${stickyDesktopNav.y}`);
-  assert.equal(await page.locator('.sticky-portal').isVisible(),true);assert.equal(await page.locator('.desktop-apply').isVisible(),true);
+  const stickyDesktopNav=await page.locator('.lite-nav').boundingBox();assert(Math.abs(stickyDesktopNav.y)<2,`desktop nav not sticky ${width}: ${stickyDesktopNav.y}`);
+  assert.equal(await page.locator('.lite-portal').isVisible(),true);assert.equal(await page.locator('.lite-apply').isVisible(),true);
  }else{
   assert.equal(await page.locator('.topbar').isVisible(),false,`mobile topbar ${width}`);
   assert.equal(await page.locator('#navDrawer').isVisible(),false,`hidden site nav ${width}`);
@@ -30,8 +30,9 @@ async function check(width){
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(()=>document.activeElement===document.querySelectorAll('.mobile-dock a')[1]),true,`dock keyboard order ${width}`);
   await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';scrollTo(0,900)});await page.waitForTimeout(250);
-  const stickyNav=await page.locator('.navbar').boundingBox();assert(Math.abs(stickyNav.y)<2,`mobile nav not sticky ${width}: ${stickyNav.y}`);
-  assert.equal(await page.locator('.desktop-apply').isVisible(),true,`mobile apply ${width}`);
+  const stickyNav=await page.locator('.lite-nav').boundingBox();assert(Math.abs(stickyNav.y)<2,`mobile nav not sticky ${width}: ${stickyNav.y}`);
+  assert.equal(await page.locator('.lite-apply').isVisible(),true,`mobile header apply ${width}`);
+  assert.equal(await page.getByRole('link',{name:'Start an Application'}).first().isVisible(),true,`hero application action ${width}`);
  }
  assert.deepEqual(errors,[],`browser errors ${width}: ${errors.join(' | ')}`);await page.close();passed++;
  }

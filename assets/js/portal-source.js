@@ -44,7 +44,7 @@ const state = {
   profile: null,
   data: {},
   cms: emptyCmsState(),
-  features: { registration: false, accountClaim: false, office: false, cms: false, media: false, engagement: false, comments: false, placements: false, publicSearch: false, coreSlots: false, publicInventory: false },
+  features: { registration: false, accountClaim: false, office: false, cms: false, media: false, engagement: false, comments: false, placements: false, publicSearch: false, coreSlots: false, publicPages: false, publicInventory: false },
   tab: 'overview',
   hubTab: 'term-bills',
   admissionContinuations: [],
@@ -3171,6 +3171,7 @@ async function start() {
     state.features.placements = config.placementsEnabled === true;
     state.features.publicSearch = config.publicSearchEnabled === true;
     state.features.coreSlots = config.coreSlotsEnabled === true;
+    state.features.publicPages = config.publicPagesEnabled === true;
     state.features.publicInventory = config.publicInventoryEnabled === true;
     if (state.features.cms) {
       try { await loadCmsBundle(); }

@@ -378,6 +378,7 @@ const savedPortalEnv = {
   PUBLIC_CMS_PLACEMENTS_ENABLED: process.env.PUBLIC_CMS_PLACEMENTS_ENABLED,
   PUBLIC_CMS_SEARCH_ENABLED: process.env.PUBLIC_CMS_SEARCH_ENABLED,
   PUBLIC_CMS_CORE_SLOTS_ENABLED: process.env.PUBLIC_CMS_CORE_SLOTS_ENABLED,
+  PUBLIC_CMS_PAGES_ENABLED: process.env.PUBLIC_CMS_PAGES_ENABLED,
   PUBLIC_INVENTORY_ENABLED: process.env.PUBLIC_INVENTORY_ENABLED,
   DEVELOPER_MANUAL_BOOTSTRAP_ENABLED: process.env.DEVELOPER_MANUAL_BOOTSTRAP_ENABLED,
   SUPABASE_URL: process.env.SUPABASE_URL,
@@ -396,7 +397,7 @@ await asyncTest('portal config endpoint fails closed when the activation switch 
   process.env.SUPABASE_PUBLISHABLE_KEY = 'must-not-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicInventoryEnabled: false });
+  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicPagesEnabled: false, publicInventoryEnabled: false });
   restorePortalEnvironment();
 });
 await asyncTest('portal config can expose only the temporary bootstrap gate while normal sign-in stays closed', async () => {
@@ -405,7 +406,7 @@ await asyncTest('portal config can expose only the temporary bootstrap gate whil
   process.env.SUPABASE_URL = 'https://must-not-be-returned.supabase.co';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'must-not-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
-  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: true, publicSearchEnabled: false, coreSlotsEnabled: false, publicInventoryEnabled: false });
+  assert.deepEqual(await response.json(), { enabled: false, developerBootstrapEnabled: true, publicSearchEnabled: false, coreSlotsEnabled: false, publicPagesEnabled: false, publicInventoryEnabled: false });
   restorePortalEnvironment();
 });
 await asyncTest('enabled portal config returns only public keys and gate booleans', async () => {
@@ -421,7 +422,7 @@ await asyncTest('enabled portal config returns only public keys and gate boolean
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_fictional_must-never-be-returned';
   const response = await portalConfigHandler.fetch(new Request('https://example.test/api/portal-config'));
   const body = await response.json();
-  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false, cmsEnabled: false, mediaEnabled: false, publicEngagementEnabled: false, commentsEnabled: false, placementsEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicInventoryEnabled: false });
+  assert.deepEqual(body, { enabled: true, developerBootstrapEnabled: false, url: 'https://fictional-project.supabase.co', publishableKey: 'sb_publishable_fictional', registrationEnabled: false, accountClaimEnabled: false, officeEnabled: false, cmsEnabled: false, mediaEnabled: false, publicEngagementEnabled: false, commentsEnabled: false, placementsEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicPagesEnabled: false, publicInventoryEnabled: false });
   assert.doesNotMatch(JSON.stringify(body), /secret/i);
   restorePortalEnvironment();
 });

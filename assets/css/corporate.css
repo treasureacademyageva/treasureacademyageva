@@ -1412,6 +1412,7 @@ body[data-page="home"] .testi-rail{display:grid;grid-template-columns:repeat(2,1
 body[data-page="home"] .testi-card{min-width:0}
 .final-cta{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s5);background:var(--green-deep);color:#FFFFFF;border-radius:var(--r-md)}
 .final-cta h2{color:#FFFFFF}.final-cta p{color:#E5DCC2;max-width:620px;margin-top:8px}
+.final-cta .sec-tag{color:#F3D66D!important}
 .final-cta .cta-btns{flex:none}.final-cta .btn-secondary{color:#FFFFFF!important;border-color:#FFFFFF!important}.final-cta .btn-secondary:hover{background:rgba(255,255,255,.1)!important}
 .count-bar{border-radius:var(--r-md);box-shadow:none;border:1px solid var(--line);background:var(--gold-soft)}
 

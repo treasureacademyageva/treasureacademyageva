@@ -20,7 +20,7 @@ const BASE = process.env.TA_TEST_BASE || 'http://127.0.0.1:4173/';
       publicNote: 'Fictional status note.', submittedAt: '2026-10-23T10:00:00Z', updatedAt: '2026-10-23T11:00:00Z', resolvedAt: null
     }) });
   });
-  await page.route('**/api/requests', async (route) => {
+  await page.route('**/api/requests/create', async (route) => {
     createPayload = JSON.parse(route.request().postData() || '{}');
     return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({
       reference: 'TA-REQ-20261023-ABCD2345', trackingCode: 'ABCD-EFGH-JKLM-2345', status: 'received',

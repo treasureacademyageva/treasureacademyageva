@@ -73,19 +73,27 @@ const mediaEnv = {
 
 async function body(response) { return response.text(); }
 
-test('Run 8 gates remain exact-true and disabled dynamic routes return a real 404 without redirect loops', async () => {
+test('Run 8 gates remain exact-true while reviewed News and empty collections retain honest gate-off fallbacks', async () => {
   const repo = repository();
   const legacy = await handlePublicContent(new Request('https://example.test/news'), { env: { PUBLIC_CMS_ENABLED: 'TRUE' }, repository: repo, now: () => fixedNow });
-  assert.equal(legacy.status, 404);
+  assert.equal(legacy.status, 200);
+  assert.match(await body(legacy), /News &amp; Updates/);
   assert.equal(legacy.headers.get('location'), null);
   assert.deepEqual(repo.calls, []);
   const eventOff = await handlePublicContent(new Request('https://example.test/events'), { env: {}, repository: repo, now: () => fixedNow });
-  assert.equal(eventOff.status, 404);
+  assert.equal(eventOff.status, 200);
+  assert.match(await body(eventOff), /No current events are published/);
+  assert.deepEqual(repo.calls, []);
   const rewrittenLegacy = await handlePublicContent(new Request('https://example.test/api/public-content?route=news-list'), { env: {}, repository: repo, now: () => fixedNow });
-  assert.equal(rewrittenLegacy.status, 404);
+  assert.equal(rewrittenLegacy.status, 200);
+  assert.match(await body(rewrittenLegacy), /News &amp; Updates/);
   assert.equal(rewrittenLegacy.headers.get('location'), null);
+  const reviewedDetail = await handlePublicContent(new Request('https://example.test/api/public-content?route=news-detail&slug=2026-2027-admissions-open'), { env: {}, repository: repo, now: () => fixedNow });
+  assert.equal(reviewedDetail.status, 200);
+  assert.match(await body(reviewedDetail), /2026\/2027 Admissions/);
   const galleryOff = await handlePublicContent(new Request('https://example.test/gallery'), { env: contentEnv, repository: repo, now: () => fixedNow });
-  assert.equal(galleryOff.status, 404);
+  assert.equal(galleryOff.status, 200);
+  assert.match(await body(galleryOff), /No gallery photos are published/);
   assert.match(read('.env.example'), /^PUBLIC_CMS_ENABLED=false$/m);
   assert.match(read('.env.example'), /^PUBLIC_CMS_MEDIA_ENABLED=false$/m);
   assert.match(read('.env.example'), /^PUBLIC_CMS_DOWNLOADS_ENABLED=false$/m);
@@ -187,7 +195,7 @@ test('Gallery is generated only from published relationships and always links ba
   const html = await body(response);
   assert.equal(response.status, 200);
   assert.ok(html.includes(gallerySlug));
-  assert.match(html, /Approved pictures and videos linked to their published News or Event source/);
+  assert.match(html, /Pictures and videos approved by the school and linked to their published News or Event page/);
   const detail = await handlePublicContent(new Request(`https://example.test/gallery/${gallerySlug}`), { env: mediaEnv, repository: repository(), now: () => fixedNow });
   const detailHtml = await body(detail);
   assert.match(detailHtml, /href="\/news\/fictional-safe-update"/);

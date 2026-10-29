@@ -91,14 +91,12 @@
     })
     .then((payload) => {
       if (!payload) return;
+      // These are optional page additions: an empty response should not create
+      // a parent-facing implementation notice or a blank visual slot.
       if (payload.state === 'current' && Array.isArray(payload.items) && payload.items.length) main.prepend(current(payload.items));
-      else main.prepend(shell('empty', 'No current supplemental update', element('p', { text: 'No reviewed supplemental update is published for this page. Use the page guidance or contact the school if you need a current operational fact.' })));
     })
     .catch(() => {
-      const message = element('p', {},
-        'The website will not guess. Use the verified contact page for time-sensitive information. ',
-        element('a', { href: '/contact', text: 'Contact the school' })
-      );
-      main.prepend(shell('unavailable', 'Current updates are temporarily unavailable', message));
+      // The reviewed static page remains complete when optional additions are
+      // unavailable. Do not expose publishing-system state to families.
     });
 })();

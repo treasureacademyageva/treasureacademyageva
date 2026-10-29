@@ -6,19 +6,26 @@ import html
 import json
 import re
 from pathlib import Path
+from urllib.parse import quote
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "20261023-design1"
+VERSION = "20261028-remediation1"
 SKIP_SHELL = {"developer.html", "developer-review.html", "developer-operations.html"}
 STORE_PAGES = {"index.html", "contact.html"}
-SAFE_ACTION_PAGES = {"admissions.html", "contact.html"}
+SAFE_ACTION_PAGES: set[str] = set()
 CORE_SLOT_PAGES = {
     "about.html", "academics.html", "admissions.html", "fees.html", "contact.html", "calendar.html",
     "exams.html", "transport.html", "uniform.html", "shop.html", "pta.html", "careers.html",
     "privacy.html", "safeguarding.html", "credits.html", "request-centre.html",
 }
 DISCOVERY_VERSION = "20261027-run10"
+DYNAMIC_PAGE_VERSION = "20261029-pages1"
+PUBLIC_ROUTE_REGISTRY = json.loads((ROOT / "config" / "public-routes.json").read_text(encoding="utf-8"))
+DYNAMIC_PAGE_PAGES = {
+    item["source"].lstrip("/") for item in PUBLIC_ROUTE_REGISTRY["routes"]
+    if not item["canonical"].startswith("/news")
+}
 BRAND_ASSETS = json.loads((ROOT / "assets" / "data" / "brand-assets.json").read_text(encoding="utf-8"))
 
 
@@ -59,16 +66,15 @@ def nav_links(rel: str, lite: bool = False) -> str:
         ("contact", "Contact", "/contact.html"),
     ]
     if lite:
-        items = items[1:]
         return "".join(f'<a href="{href}"' + (' aria-current="page"' if key == current else "") + f'>{label}</a>' for key, label, href in items)
     return "".join(f'<a class="nav-link' + (' on' if key == current else '') + f'" href="{href}"' + (' aria-current="page"' if key == current else "") + f'>{label}</a>' for key, label, href in items)
 
 
 def lite_nav(rel: str) -> str:
     return f'''<nav class="lite-nav" aria-label="Primary navigation"><div class="container">
-<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Pre-Nursery · Nursery · Primary — Ageva</small></span></a>
+<a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" loading="eager" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Pre-Nursery · Nursery · Primary — Ageva</small></span></a>
 <div class="lite-links">{nav_links(rel, True)}</div>
-<div class="lite-actions"><a class="lite-search" href="/search.html">Search</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admissions.html#apply">Apply</a></div>
+<div class="lite-actions"><a class="lite-search" href="/search.html" aria-label="Search the website"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Search</span></a><a class="lite-portal" href="/portal/login.html">Portal</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admission-form.html">Apply</a></div>
 </div></nav>'''
 
 
@@ -78,15 +84,15 @@ def primary_action(rel: str, title: str) -> tuple[str, str]:
         return "Raise a concern", "/request-centre.html?type=safeguarding"
     if rel == "contact.html" or rel == "openday.html": return "Schedule a Visit", "/request-centre.html?type=school_visit"
     if rel == "fees.html":
-        return "Request current fees", "/request-centre.html?type=fee_schedule"
+        return "Ask about fees or books", "/request-centre.html?type=fee_schedule"
     if rel.startswith("classes/"):
         label = re.sub(r"\s+—.*$", "", title)
-        return f"Ask about {label}", "/request-centre.html?type=class_enquiry"
+        return f"Ask about {label}", f"/request-centre.html?type=class_enquiry&class={quote(label)}"
     if group == "admissions": return "Start an admission enquiry", "/admissions.html#apply"
     if group == "academics": return "Explore all classes", "/academics.html"
     if group == "fees": return "View family essentials", "/explore.html#families"
     if group == "news": return "See current updates", "/news.html"
-    if group == "about": return "Schedule a Visit", "/contact.html#visit"
+    if group == "about": return "Request a School Visit", "/request-centre.html?type=school_visit"
     return "Contact the school", "/contact.html"
 
 
@@ -102,10 +108,10 @@ def route_bar(rel: str, title: str) -> str:
 
 def footer() -> str:
     return '''<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid">
-<div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Pre-Nursery, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
+<div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" loading="lazy" decoding="async"><b>Treasure Academy, Ageva</b></a><p>Pre-Nursery, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p><p><a class="btn btn-sun btn-sm" href="/explore.html">Explore the Website</a></p></div>
 <div class="uf-col"><h2>Find it fast</h2><nav class="uf-links" aria-label="Popular pages"><a href="/admissions.html">Admissions</a><a href="/academics.html">Classes</a><a href="/fees.html">Fees</a><a href="/calendar.html">Term dates</a><a href="/uniform.html">Uniform</a><a href="/transport.html">Transport</a></nav></div>
 <div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/portal/login.html">Parent &amp; Staff Portal</a><a href="/portal/login.html#register">Create Parent Account</a><a href="/admissions.html#tracker">Track Application</a><a href="/request-centre.html">Request Centre</a><a href="/safeguarding.html">Safeguarding</a><a href="/privacy.html">Privacy</a><a href="/website-help.html">Website help</a><a href="/credits.html">Website credits</a></nav></div>
-<div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
+<div class="uf-col uf-contact"><h2>Contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p><p><a href="/contact.html#visit">Visit &amp; directions →</a></p></div>
 </div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span><span><a href="https://paragonhub-kappa.vercel.app/" target="_blank" rel="noopener">Website designed and implemented by Jibril Abdullahi Onoruoiza, Paragon Hub.</a></span></div></div></footer>'''
 
 
@@ -151,7 +157,7 @@ def insert_verified_hero(text: str) -> str:
     block = (
         '<!-- brand:hero:start --><div class="page-hero-media" aria-hidden="true"><picture>'
         + source
-        + f'<img src="{html.escape(str(asset["src"]), quote=True)}" width="{int(asset["width"])}" height="{int(asset["height"])}" alt="" fetchpriority="high" decoding="async">'
+        + f'<img src="{html.escape(str(asset["src"]), quote=True)}" width="{int(asset["width"])}" height="{int(asset["height"])}" alt="" loading="eager" fetchpriority="high" decoding="async">'
         + '</picture></div><!-- brand:hero:end -->'
     )
     return re.sub(r'(<div\b[^>]*class=["\'][^"\']*\bpage-hero\b[^"\']*["\'][^>]*>)', r'\1' + block, text, count=1, flags=re.I)
@@ -190,8 +196,13 @@ def optimize_images(text: str) -> str:
 
     def decoding_repl(match: re.Match) -> str:
         tag = match.group(0)
-        if "decoding=" in tag: return tag
-        return tag[:-1] + ' decoding="async">'
+        additions = []
+        if "loading=" not in tag:
+            eager = "logo-badge" in tag or "page-banner" in tag or "fetchpriority=\"high\"" in tag
+            additions.append(f'loading="{"eager" if eager else "lazy"}"')
+        if "decoding=" not in tag:
+            additions.append('decoding="async"')
+        return tag[:-1] + ((" " + " ".join(additions)) if additions else "") + ">"
     return re.sub(r"<img\b[^>]*>", decoding_repl, text, flags=re.I)
 
 
@@ -203,11 +214,7 @@ for path in paths:
     rel = path.relative_to(ROOT).as_posix()
     text = path.read_text(encoding="utf-8", errors="ignore")
     if rel in SKIP_SHELL:
-        # Private developer surfaces keep their own isolated styling and never
-        # inherit the public visitor shell bundle.
-        text = re.sub(r'\s*<link\b[^>]*href=["\'][^"\']*assets/css/site\.css[^"\']*["\'][^>]*>', '', text, flags=re.I)
-        text = text.replace("20261022-ux1", VERSION).replace("20261022-ux2", VERSION)
-        path.write_text(text, encoding="utf-8")
+        # Absolute no-edit surfaces are excluded rather than rewritten.
         continue
     text = replace_css(text)
 
@@ -266,8 +273,16 @@ for path in paths:
     if discovery_scripts:
         text = text.replace("</body>", "\n".join(discovery_scripts) + "\n</body>", 1)
 
+    # Every approved non-News public route can consume an owner-published CMS
+    # Page. When its separate gate is closed, missing or unavailable, the full
+    # reviewed static page remains untouched as the fail-safe fallback.
+    dynamic_page_rx = r'\s*<script\b[^>]*src=["\'][^"\']*assets/js/dynamic-page\.js[^"\']*["\'][^>]*></script>'
+    text = re.sub(dynamic_page_rx, "", text, flags=re.I)
+    if rel in DYNAMIC_PAGE_PAGES:
+        text = text.replace("</body>", f'<script src="/assets/js/dynamic-page.js?v={DYNAMIC_PAGE_VERSION}"></script>\n</body>', 1)
+
     # One predictable primary navigation order.
-    alt_classes = r'(?:utility-nav|news-nav|class-simple-nav|archive-nav|identity-nav|practice-nav|article-nav|lite-nav)'
+    alt_classes = r'(?:navbar|utility-nav|news-nav|class-simple-nav|archive-nav|identity-nav|practice-nav|article-nav|lite-nav)'
     text = re.sub(rf'<nav\b[^>]*class=["\']{alt_classes}["\'][^>]*>.*?</nav>', lite_nav(rel), text, count=1, flags=re.I | re.S)
     if 'class="navbar"' not in text and 'class="lite-nav"' not in text and 'class="page-hero"' in text:
         text = text.replace('<div class="page-hero"', lite_nav(rel) + '\n<div class="page-hero"', 1)

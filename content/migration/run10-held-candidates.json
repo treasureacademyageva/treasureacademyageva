@@ -10,7 +10,7 @@
       "source_key": "repository_html/news/2017-first-graduation-ceremony.html",
       "source_kind": "repository_html",
       "source_locator": "/news/2017-first-graduation-ceremony.html",
-      "source_sha256": "79f2d1fe33af29d2ac0b7c10e2c7039ccaf0ffbc1c9e5c3215d949047458008d",
+      "source_sha256": "35f2ea9eabeac7d4bf59f50b0c2feb2a3266aed6a34a7d2f06cbf7c6052008f4",
       "content_type": "news",
       "slug": "2017-first-graduation-ceremony",
       "canonical_target": "/news/2017-first-graduation-ceremony",
@@ -81,7 +81,7 @@
       "source_key": "repository_html/news/2018-second-graduation-ceremony.html",
       "source_kind": "repository_html",
       "source_locator": "/news/2018-second-graduation-ceremony.html",
-      "source_sha256": "4162563ed8d2a4ef4ea6a865024e14b66b93040193403c7f311b38c73c42734c",
+      "source_sha256": "210655c90b4dfc0a6522b8b3ba4b9b3a11d0287debc20c855c7c0f87fe8f7052",
       "content_type": "news",
       "slug": "2018-second-graduation-ceremony",
       "canonical_target": "/news/2018-second-graduation-ceremony",
@@ -146,7 +146,7 @@
       "source_key": "repository_html/news/2019-third-graduation-ceremony.html",
       "source_kind": "repository_html",
       "source_locator": "/news/2019-third-graduation-ceremony.html",
-      "source_sha256": "6579f91ca683d9ac18195a70c88fb0f4e7a27950f669a219c04be36ec36e142b",
+      "source_sha256": "96d4e0af6a682875a9807775a9edca4f47768ac381f2b0ddc7f8599977ca83cc",
       "content_type": "news",
       "slug": "2019-third-graduation-ceremony",
       "canonical_target": "/news/2019-third-graduation-ceremony",
@@ -211,7 +211,7 @@
       "source_key": "repository_html/news/2020-fourth-graduation-ceremony.html",
       "source_kind": "repository_html",
       "source_locator": "/news/2020-fourth-graduation-ceremony.html",
-      "source_sha256": "883e191c479aa2efa32798e7a917829fc6a69a16428200dd079d38a73eceee70",
+      "source_sha256": "d59fdd77bc1f6a0f5608eb02002ab725a9f463b3bdd1d00b6b7def88bf5a7daf",
       "content_type": "news",
       "slug": "2020-fourth-graduation-ceremony",
       "canonical_target": "/news/2020-fourth-graduation-ceremony",
@@ -270,7 +270,7 @@
       "source_key": "repository_html/news/2021-fifth-graduation-ceremony.html",
       "source_kind": "repository_html",
       "source_locator": "/news/2021-fifth-graduation-ceremony.html",
-      "source_sha256": "f1aa04c0c99054650dd86a9cecaf8223f878576ee39296a9b903462c1107a5fd",
+      "source_sha256": "aaf555eefb154cedd752b0cd7af610b77adda8e8ee514987bf91ad4fe9320908",
       "content_type": "news",
       "slug": "2021-fifth-graduation-ceremony",
       "canonical_target": "/news/2021-fifth-graduation-ceremony",
@@ -335,7 +335,7 @@
       "source_key": "repository_html/news/2026-2027-admissions-open.html",
       "source_kind": "repository_html",
       "source_locator": "/news/2026-2027-admissions-open.html",
-      "source_sha256": "7026eeee87c99abd54a0cde0383a93119cf978484f143c50e6fcb98458c9c023",
+      "source_sha256": "5333064a224daabc36b4f6034dea28f750b2877869af003fdb10ae6c4196b20c",
       "content_type": "news",
       "slug": "2026-2027-admissions-open",
       "canonical_target": "/news/2026-2027-admissions-open",
@@ -439,7 +439,7 @@
       "source_key": "repository_html/about.html",
       "source_kind": "repository_html",
       "source_locator": "/about.html",
-      "source_sha256": "4d95a98876a0437de3dda6b16a49a0c03b7fc645439d1d15196bff94669d1a99",
+      "source_sha256": "0e47d5e3214114c86388f78048806f200a55f10b552b57365b836af495a3aed2",
       "content_type": "page",
       "slug": "about",
       "canonical_target": "/about",
@@ -470,7 +470,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "was founded in 2016 by Shaibu Sidikat Ruth to serve children and families in Ageva."
+              "text": "Treasure Academy was founded in 2016 by Shaibu Sidikat Ruth to serve children and families in Ageva, Okene. The school began with a clear purpose: to help children grow in knowledge, character and confidence."
             }
           },
           {
@@ -495,7 +495,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "Building an effective and efficient future leader: raising confident, brilliant and well-mannered children through strong academics and morals."
+              "text": "To help children grow in knowledge, character and confidence through strong academics, clear guidance and good morals."
             }
           },
           {
@@ -508,7 +508,20 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "To be the most trusted school in Okene, where every graduate shines in secondary school and beyond."
+              "text": "To nurture confident, capable and well-mannered children who are ready for the next stage of their education."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Our Values",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Discipline · Excellence · Respect · Integrity"
             }
           },
           {
@@ -596,7 +609,7 @@
       "source_key": "repository_html/academics.html",
       "source_kind": "repository_html",
       "source_locator": "/academics.html",
-      "source_sha256": "28511c0afe65e854d42e94568262a3433e9350888459555fbfe6673461ddbb59",
+      "source_sha256": "46167bfb5dec883d707a30fe010bc79bbc5f3e238a7c55fadf5b18aaa66f1902",
       "content_type": "page",
       "slug": "academics",
       "canonical_target": "/academics",
@@ -869,7 +882,7 @@
       "source_key": "repository_html/admissions.html",
       "source_kind": "repository_html",
       "source_locator": "/admissions.html",
-      "source_sha256": "c9d8ed7c3c35bb6aaff3cbc26cf80083b919f3b8364acf764547b08b5f432b51",
+      "source_sha256": "4f0ce145e17fab05937eeb0b1d4c7b16b06c98161c307ce146b2bcc18be2a55b",
       "content_type": "page",
       "slug": "admissions",
       "canonical_target": "/admissions",
@@ -893,26 +906,44 @@
           {
             "type": "heading",
             "payload": {
-              "text": "New here? Start in 3 safe steps",
+              "text": "New-pupil admission steps",
               "level": "2"
             }
           },
           {
             "type": "paragraph",
             "payload": {
-              "text": "Create a restricted new-applicant parent account online or ask for assistance at the school office."
+              "text": "Enquire → Apply → Assessment → Decision → Parent/Portal Setup"
             }
           },
           {
             "type": "paragraph",
             "payload": {
-              "text": "Complete the official admission form and confirm class availability and required documents."
+              "text": "Enquire: ask about the class and current requirements; an enquiry is not an application."
             }
           },
           {
             "type": "paragraph",
             "payload": {
-              "text": "Track the application with the registered phone; payment never approves admission."
+              "text": "Apply: create a restricted new-applicant parent account or receive office assistance, then complete the official admission form."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Assessment: follow the school’s age-appropriate assessment guidance. Assessment supports placement and does not replace the authorised decision."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Decision: track the application privately with the registered phone. Payment never approves admission."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Parent/Portal setup: after an authorised admission, the school completes the appropriate family access steps."
             }
           },
           {
@@ -944,7 +975,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "Use the registered phone number from the application. We send a short code by WhatsApp or SMS only after an authorised dispatcher releases it. This tracker never shows existing linked pupils."
+              "text": "Track securely with the registered phone and a five-minute WhatsApp or SMS code—no school code or invitation is required. We send a short code only after an authorised dispatcher releases it. This tracker shows new-pupil applications only and never shows existing linked pupils; families use the secure parent portal for those records."
             }
           },
           {
@@ -1113,7 +1144,7 @@
       "source_key": "repository_html/fees.html",
       "source_kind": "repository_html",
       "source_locator": "/fees.html",
-      "source_sha256": "a25a80d9cd20cbad576e2df8ef3b49dabc63e801448c54e74b3de3ff590dbe2e",
+      "source_sha256": "a58efc6028af58136395e3107ec2a43aecb7bac76f84af1e165a3ed75b4fa76f",
       "content_type": "page",
       "slug": "fees",
       "canonical_target": "/fees",
@@ -1122,12 +1153,12 @@
       "historical_child_media_held": false,
       "media_imported": false,
       "document": {
-        "title": "School Fees and Safe Payment",
-        "summary": "School fee and safe-payment guidance for Treasure Academy, Ageva: current amounts and approved bank details appear only in the signed-in portal or official invoice.",
+        "title": "School Fees, Books and Safe Payment",
+        "summary": "Current Treasure Academy new-intake charges, Pre-Nursery and Nursery book lists, writing materials, totals and safe payment guidance.",
         "classification": "public",
         "source_note": "Repository source candidate; field verification is required before import.",
-        "seo_title": "School Fees and Safe Payment",
-        "seo_description": "School fee and safe-payment guidance for Treasure Academy, Ageva: current amounts and approved bank details appear only in the signed-in portal or official invoice.",
+        "seo_title": "School Fees, Books and Safe Payment",
+        "seo_description": "Current Treasure Academy new-intake charges, Pre-Nursery and Nursery book lists, writing materials, totals and safe payment guidance.",
         "search_keywords": [],
         "search_terms": [],
         "metadata": {
@@ -1137,32 +1168,128 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "Website guidance reviewed 24 October 2026."
+              "text": "Website guidance reviewed 28 October 2026."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Current list supplied by the school on 28 October 2026. Confirm that it still applies before paying."
             }
           },
           {
             "type": "heading",
             "payload": {
-              "text": "Before you pay",
+              "text": "New-intake admission charges",
               "level": "2"
             }
           },
           {
             "type": "paragraph",
             "payload": {
-              "text": "Open the signed-in parent portal and check the current class, session, term, included components and separate charges."
+              "text": "Correction recorded: school fees are ₦8,500 per term."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Books and writing materials",
+              "level": "2"
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Pre-Nursery books — ₦12,300",
+              "level": "3"
             }
           },
           {
             "type": "paragraph",
             "payload": {
-              "text": "Term invoices may accept instalments. Examination or materials marked included must not be charged again."
+              "text": "Writing materials: 6 pencils, 2 big erasers, 3 razor blades and 1 packet of colour pencils."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Nursery 1 books — ₦12,300",
+              "level": "3"
             }
           },
           {
             "type": "paragraph",
             "payload": {
-              "text": "Pay by manual bank transfer using only the approved account shown in the portal or official invoice, or in person through the school’s physical office POS."
+              "text": "Writing materials: 6 pencils, 2 erasers, 3 blades, 1 packet of colour pencils and 1 Drawing & Writing item."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Nursery 2 books — ₦15,800",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Writing materials: 7 pencils, 2 erasers, 3 blades, 1 packet of colour pencils, 1 ruler and 1 Drawing & Writing item."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "New-pupil totals",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Pre-Nursery: ₦26,000 + ₦12,300 = ₦38,300"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Nursery 1: ₦26,000 + ₦12,300 = ₦38,300"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Nursery 2: ₦26,000 + ₦15,800 = ₦41,800"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Writing-material prices are not included in those totals. Every pupil needs the stated quantities. Families may buy them elsewhere. If buying through the school, order the complete required quantity, not fewer or more. After promotion, use the list for the pupil’s new class."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Stock requests and payment",
+              "level": "2"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "If a school-supplied item is unavailable, create a supplies request so the school knows it is needed. A request is not an order, stock promise or payment instruction. Advance payment may be accepted only after the school issues an official order or invoice; payment does not mean an item is ready for collection."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Linked parents should check the pupil, class and current charge in the secure portal or official invoice."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Pay only by approved bank transfer shown in the portal or official invoice, or at the school’s physical office POS."
             }
           },
           {
@@ -1174,7 +1301,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "There is no online card form, card-data storage, automatic admission from payment or WhatsApp payment-evidence workflow."
+              "text": "There is no public online card form, automatic admission from payment or WhatsApp payment-evidence workflow."
             }
           },
           {
@@ -1187,7 +1314,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "Online forms save through the school database. WhatsApp actions, where offered, open a draft for you to review before sending."
+              "text": "Choose the relevant school route below. A website request is confirmed only after you receive its reference; a WhatsApp draft is not proof of delivery."
             }
           },
           {
@@ -1203,7 +1330,7 @@
       "source_key": "repository_html/contact.html",
       "source_kind": "repository_html",
       "source_locator": "/contact.html",
-      "source_sha256": "ea98f9f5eea5223bea5ad802d78f270a28c20a06260d3e971e2d9de2ab7b886e",
+      "source_sha256": "18e40d89413b821775cfd342bcb1020f70b339ad99171246278914afc7f3f9e3",
       "content_type": "page",
       "slug": "contact",
       "canonical_target": "/contact",
@@ -1235,6 +1362,25 @@
             "type": "paragraph",
             "payload": {
               "text": "Complete the short draft below. WhatsApp will open so you can check the message before sending it. Fields marked * are required; email is optional."
+            }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Your WhatsApp draft is ready",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Your form remains on this page. Check the draft before sending; the website does not claim that WhatsApp opened or that a message was delivered."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Open this draft in WhatsApp Copy draft"
             }
           },
           {
@@ -1313,6 +1459,19 @@
             "payload": {
               "text": "Send a private suggestion or complaint through the verified school WhatsApp. WhatsApp identifies the sending account, so this channel is confidential but not anonymous."
             }
+          },
+          {
+            "type": "heading",
+            "payload": {
+              "text": "Your private WhatsApp draft is ready",
+              "level": "3"
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "Check the draft before sending. The website does not claim delivery."
+            }
           }
         ]
       }
@@ -1321,7 +1480,7 @@
       "source_key": "repository_html/privacy.html",
       "source_kind": "repository_html",
       "source_locator": "/privacy.html",
-      "source_sha256": "5336bd3756ec2a54f18423810bd590f230007e2aabdbb12d3dec897f8a6ed112",
+      "source_sha256": "7502ebcb62f512197d4feaaf070dd8d92db42625e15acd52f6640d87440f2aae",
       "content_type": "page",
       "slug": "privacy",
       "canonical_target": "/privacy",
@@ -1365,7 +1524,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "The public Request & Verification Centre records the request type, your name, Nigerian phone number, optional email and class, subject, message, source, status and school follow-up notes. After database creation it issues a public reference and a private tracking code. Only a one-way hash of that private code is retained, so the readable code cannot be recovered."
+              "text": "The public Request & Verification Centre records the request type, your name, Nigerian phone number, optional email and class, subject, message, source, status and school follow-up notes. After the request is saved, it issues a public reference and a private tracking code. Only a one-way hash of that private code is retained, so the readable code cannot be recovered."
             }
           },
           {
@@ -1377,7 +1536,13 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "The website may keep non-sensitive preferences on your device, such as light or dark mode. It also keeps a short list of broad action categories during the current tab session—for example, “opened fees” or “search category: admissions.” It never stores form values or raw search words in those local diagnostics."
+              "text": "The website may keep non-sensitive preferences on your device, such as light or dark mode. During the current tab session, it may also keep a selected class and standard enquiry wording so a class-page link can prepare the correct Request Centre fields, plus a short list of broad action categories such as “opened fees” or “search category: admissions”."
+            }
+          },
+          {
+            "type": "paragraph",
+            "payload": {
+              "text": "It does not store a typed name, phone number, email address, free-text enquiry or raw search words in that browser storage."
             }
           },
           {
@@ -1579,7 +1744,7 @@
       "source_key": "repository_html/safeguarding.html",
       "source_kind": "repository_html",
       "source_locator": "/safeguarding.html",
-      "source_sha256": "734765cbc242aa14d2832b3957e5b971915b9dfc5dd74776d902916b8bac9585",
+      "source_sha256": "f4e4b4e1a90310be5c0720fa3525d52401639bb1fdbb9f0ab6058ff4d67e71a5",
       "content_type": "page",
       "slug": "safeguarding",
       "canonical_target": "/safeguarding",
@@ -1751,7 +1916,7 @@
       "source_key": "repository_html/credits.html",
       "source_kind": "repository_html",
       "source_locator": "/credits.html",
-      "source_sha256": "cb741b6619de83efb0c6e5a99c1fb97b810ec81391382a8bba27216b915cd05a",
+      "source_sha256": "9eb84ccb112316484f809e31817789238f45835775d0d0a8ccf06ec44b54a94f",
       "content_type": "page",
       "slug": "credits",
       "canonical_target": "/credits",
@@ -1775,7 +1940,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "Website guidance reviewed 24 October 2026."
+              "text": "Website guidance reviewed 28 October 2026."
             }
           },
           {
@@ -1833,7 +1998,7 @@
           {
             "type": "paragraph",
             "payload": {
-              "text": "Online forms save through the school database. WhatsApp actions, where offered, open a draft for you to review before sending."
+              "text": "Choose the relevant school route below. A website request is confirmed only after you receive its reference; a WhatsApp draft is not proof of delivery."
             }
           },
           {

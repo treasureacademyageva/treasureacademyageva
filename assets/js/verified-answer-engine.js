@@ -46,6 +46,11 @@
     if (has(q, /\b(password|sign in|login|result|report card|linked child|linked pupil|payment record|invoice|bank detail|account)\b/)) {
       return answer('Private information requires secure sign-in', 'Pupil records, results, invoices, approved bank details and linked-family information are never returned by public Search or chat.', [['Open secure portal','/portal/login.html'],['Get account help','/request-centre?type=account_help']], 'private_information', 1);
     }
+    // A service intent takes priority over a class name in a mixed query such
+    // as “Primary 1 fees”; do not let a broad class matcher answer it first.
+    if (has(q, /\b(fee|fees|cost|price|how much|amount)\b/)) {
+      return answer('Current new-intake charges and nursery book lists are published', 'The approved new-intake list records school fees of ₦8,500 per term within total admission charges of ₦26,000. Book packages are listed for Pre-Nursery, Nursery 1 and Nursery 2. Writing-material prices and other class-specific book lists have not been supplied.', [['View fees and book lists','/fees'],['Ask about a class','/request-centre?type=fee_schedule']], 'fees', .98);
+    }
     var current = publishedAnswer(q);
     if (current) return current;
     if (has(q, /\b(hour|hours|open|close|closing|start time|school time|school day)\b/)) {
@@ -55,7 +60,7 @@
       return answer('Treasure Academy is in Ageva, Okene', 'The school is opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State. Call before visiting during a holiday or break.', [['Contact and directions','/contact#visit'],['Call the school','tel:+2348141943478']], 'address', 1);
     }
     if (has(q, /\b(class|classes|progression|primary 5|primary five|creche|pre nursery|nursery|primary [1-6]|graduate hall)\b/)) {
-      return answer('Published class progression', 'Pre-Nursery → Nursery 1 → Nursery 2 → Primary 1 → Primary 2 → Primary 3 → Primary 4 → Primary 6 → Graduate Hall. Crèche/Daycare is no longer an active class. There is no Primary 5.', [['Explore classes','/academics'],['Ask about availability','/request-centre?type=class_enquiry']], 'class_progression', 1);
+      return answer('Published class progression', 'Pre-Nursery → Nursery 1 → Nursery 2 → Primary 1 → Primary 2 → Primary 3 → Primary 4 → Primary 6. Crèche/Daycare is no longer an active class. There is no Primary 5. Primary 6 prepares pupils to move on to secondary education.', [['Explore classes','/academics'],['Ask about availability','/request-centre?type=class_enquiry']], 'class_progression', 1);
     }
     if (has(q, /\b(apply|application|admission|enrol|enroll|new pupil|join school)\b/) && !has(q, /\b(pay|payment|bank|transfer|pos|card|cash|account number|receipt)\b/)) {
       return answer('Admissions use the official online process', 'A family may complete admission online or receive assistance at school using the same online process. Applications may be accepted for every active class, subject to an authorised admission decision.', [['Start admission','/admissions#apply'],['Track a new-pupil application','/admissions#tracker']], 'admission_procedure', 1);
@@ -64,7 +69,7 @@
       return answer('Payments require manual school-office approval', 'Use an approved bank transfer or the physical school-office POS. Bank details appear only in the signed-in portal or an official invoice. The website does not take online card payments, and payment never approves admission.', [['Read payment guidance','/fees'],['Secure parent portal','/portal/login.html']], 'payment_policy', 1);
     }
     if (has(q, /\b(fee|fees|cost|price|how much|amount)\b/)) {
-      return answer('Ask for the current written fee schedule', 'The public website does not publish an unverified amount. Fees depend on class and term; approved details are provided by the office, signed-in portal or official invoice.', [['Request current fees','/request-centre?type=fee_schedule'],['Read safe-payment guidance','/fees']], 'fees', .98);
+      return answer('Current new-intake charges and nursery book lists are published', 'The approved new-intake list records school fees of ₦8,500 per term within total admission charges of ₦26,000. Book packages are listed for Pre-Nursery, Nursery 1 and Nursery 2. Writing-material prices and other class-specific book lists have not been supplied.', [['View fees and book lists','/fees'],['Ask about a class','/request-centre?type=fee_schedule']], 'fees', .98);
     }
     if (has(q, /\b(term date|calendar|holiday date|resumption|resume|vacation|next term|school date)\b/)) {
       return answer('Calendar dates are awaiting publication', 'The school will publish calendar dates after authorised staff verification. No date should be inferred from an older notice.', [['Open calendar guidance','/calendar'],['Ask the school to add or update it','/request-centre?type=information_update']], 'calendar', .98);

@@ -68,7 +68,7 @@ function ok(name,value,details=''){if(value){pass++;}else{fail++;console.error('
  await search.fill('#smartQuery','unifrom');await search.click('#smartSearchForm button[type="submit"]');
  ok('browser smart search finds a misspelled uniform query',await search.locator('.search-result h2',{hasText:'Uniform'}).count()>0);
  await search.fill('#smartQuery','how much are the school charges');await search.click('#smartSearchForm button[type="submit"]');
- ok('browser smart search renders a direct fee answer from related wording',await search.locator('.answer-card',{hasText:'current written fee schedule'}).count()>0);
+ ok('browser smart search renders a direct fee answer from related wording',await search.locator('.answer-card',{hasText:'₦8,500 per term'}).count()>0);
  ok('browser search keeps raw query text out of the URL',!search.url().includes('charges'),search.url());
  await search.fill('#smartQuery','former student history');await search.click('#smartSearchForm button[type="submit"]');
  ok('browser meaning search connects former students to alumni',await search.locator('.search-result h2',{hasText:/Former Pupil|Alumni/i}).count()>0);

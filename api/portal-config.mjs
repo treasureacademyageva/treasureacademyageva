@@ -23,6 +23,7 @@ async function handle(request) {
   const publicDiscovery = {
     publicSearchEnabled: publicCmsEnabled && process.env.PUBLIC_CMS_SEARCH_ENABLED === 'true',
     coreSlotsEnabled: publicCmsEnabled && process.env.PUBLIC_CMS_CORE_SLOTS_ENABLED === 'true',
+    publicPagesEnabled: publicCmsEnabled && process.env.PUBLIC_CMS_PAGES_ENABLED === 'true',
     publicInventoryEnabled: publicCmsEnabled && process.env.PUBLIC_INVENTORY_ENABLED === 'true'
   };
   if (!enabled || !url || !publishableKey) {
@@ -44,6 +45,7 @@ async function handle(request) {
     placementsEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_CMS_PLACEMENTS_ENABLED === 'true',
     publicSearchEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_CMS_SEARCH_ENABLED === 'true',
     coreSlotsEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_CMS_CORE_SLOTS_ENABLED === 'true',
+    publicPagesEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_CMS_PAGES_ENABLED === 'true',
     publicInventoryEnabled: process.env.PUBLIC_CMS_ENABLED === 'true' && process.env.PUBLIC_INVENTORY_ENABLED === 'true'
   });
 }

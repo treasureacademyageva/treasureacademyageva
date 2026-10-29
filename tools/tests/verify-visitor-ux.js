@@ -26,9 +26,9 @@ ok('privacy-safe visitor diagnostics are available on every public page',shellPa
 ok('homepage and explore keep raw search words out of URLs',/data-private-search/.test(read('index.html'))&&/data-private-search/.test(read('explore.html'))&&!/<input[^>]+name="q"[^>]+homeQuery/.test(read('index.html'))&&!/<input[^>]+name="q"[^>]+exploreQuery/.test(read('explore.html')));
 ok('mobile quick navigation is present in one consistent order',shellPages.every(x=>{const h=read(x),m=h.match(/<nav class="mobile-dock"[\s\S]*?<\/nav>/);return m&&['Home','Admissions','Explore','Search','Contact'].every((label,i,a)=>i===0||m[0].indexOf(label)>m[0].indexOf(a[i-1]));}));
 ok('secondary pages expose visible location and early actions',shellPages.filter(x=>!['index.html','search.html','explore.html','404.html'].includes(x)).every(x=>/class="route-bar"/.test(read(x))&&/class="route-actions"/.test(read(x))));
-ok('universal footer provides popular, support, problem-report and verified-contact routes',shellPages.every(x=>/class="universal-footer"/.test(read(x))&&/Find it fast/.test(read(x))&&/Verified contact/.test(read(x))&&/\/website-help/.test(read(x))));
+ok('universal footer provides popular, support, problem-report and contact routes',shellPages.every(x=>/class="universal-footer"/.test(read(x))&&/Find it fast/.test(read(x))&&/<h2>Contact<\/h2>/.test(read(x))&&/\/website-help/.test(read(x))));
 ok('responsive illustration variants are referenced by width',/stage-nursery-640\.webp 640w/.test(read('index.html'))&&/uniform-banner-640\.webp 640w/.test(read('uniform.html')));
-ok('familiar illustrations are restored without presenting them as verified current photos',/hero-school\.jpg/.test(read('index.html'))&&/hero-kids\.png/.test(read('index.html'))&&/classroom\.png/.test(read('index.html'))&&/Restored earlier-website illustrations/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('news.html')));
+ok('familiar illustrations use optimised fallbacks without presenting them as verified current photos',/hero-school\.jpg/.test(read('index.html'))&&/hero-kids\.jpg/.test(read('index.html'))&&/classroom\.jpg/.test(read('index.html'))&&/Restored earlier-website illustrations/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('index.html'))&&!/sports\.png|culture\.png/.test(read('news.html')));
 ok('shop uses small WebP sources without invalid nested picture elements',/shop-uniform-560\.webp/.test(read('shop.html'))&&!/<picture>(?:(?!<\/picture>)[\s\S])*<picture>/.test(read('shop.html')));
 const css=fs.readFileSync(path.join(ROOT,'assets/css/site.css'));
 ok('single stylesheet stays below 50 KB gzip',zlib.gzipSync(css,{level:9}).length<50*1024);
@@ -47,8 +47,8 @@ vm.runInContext(read('assets/js/smart-search.js'),ctx);
 const index=ctx.window.TA_SEARCH_INDEX||[];
 const search=ctx.window.TA_SMART_SEARCH;
 function top(query){return index.map(e=>({e,s:search.score(e,query)})).sort((a,b)=>b.s-a.s)[0]?.e?.u;}
-ok('smart search indexes all fifty-six useful public destinations',index.length===56&&index.some(x=>x.u==='/website-help')&&index.some(x=>x.u==='/classes')&&index.some(x=>x.u==='/story'));
-ok('smart search gives a direct safe-fee answer',/current written fee schedule/i.test(search.directAnswer('how much are the school charges').title));
+ok('smart search indexes fifty-six static and three honest collection destinations',index.length===59&&index.some(x=>x.u==='/website-help')&&index.some(x=>x.u==='/classes')&&index.some(x=>x.u==='/story')&&index.some(x=>x.u==='/events')&&index.some(x=>x.u==='/gallery'));
+ok('smart search gives a direct current-fee answer',/current new-intake charges/i.test(search.directAnswer('how much are the school charges').title)&&/₦8,500 per term/.test(search.directAnswer('how much are the school charges').text));
 ok('smart search answers location questions',/opposite Morak Pure-Water Factory/i.test(search.directAnswer('whereabouts of the campus').text));
 const uniform=index.find(x=>x.u==='/uniform');
 ok('smart search tolerates a transposed spelling error',uniform&&search.score(uniform,'unifrom')>=16);
@@ -59,7 +59,7 @@ ok('phrase family relates pick up service to transport',top('pick up service in 
 ok('phrase family relates former students to alumni',top('former student history')==='/alumni');
 ok('problem wording finds website help',top('a broken webpage is not working')==='/website-help');
 ok('smart search explains secure school-issued portal access without inventing a public account',/school-issued account[\s\S]*linked children/i.test(search.directAnswer('how do I see report cards').text));
-ok('search page explains meaning matching and on-device privacy',/related meanings, word families/.test(read('search.html'))&&/Private on-device search/.test(read('search.html')));
+ok('search page explains meaning matching and in-tab privacy',/related meanings, similar words/.test(read('search.html'))&&/Search on this page/.test(read('search.html'))&&/stay in this browser tab/.test(read('search.html')));
 vm.runInContext(read('assets/js/content-quality.js'),ctx);
 const quality=ctx.window.TA_CONTENT_QUALITY||{};
 ok('clarity report covers every public shell page',quality.pageCount===shellPages.length);
@@ -75,9 +75,9 @@ ok('owner brand registry stays fail-closed for unverified images and profiles',b
 ok('owner-directed familiar crest is restored throughout public navigation',brandAssets.readiness&&brandAssets.readiness.verifiedLogo===true&&shellPages.every(x=>read(x).includes('assets/img/logo.jpg'))&&/Owner-directed restoration/.test(read('assets/data/brand-assets.json')));
 ok('structured data uses the owner-restored crest and omits unverified social profiles',/"logo"\s*:\s*"[^"]*logo\.jpg/.test(read('index.html'))&&!/"sameAs"\s*:/.test(read('index.html')));
 ok('shared form layer supplies visible errors and invalid-state focus support',/initAccessibleForms/.test(read('assets/js/public-shell.js'))&&/aria-invalid/.test(read('assets/js/public-shell.js'))&&/field-error/.test(read('assets/css/ux.css')));
-ok('homepage and shared routes use consistent Apply and Schedule a Visit actions',/Apply for Admission/.test(read('index.html'))&&/Schedule a Visit/.test(read('index.html'))&&/Schedule a Visit/.test(read('about.html')));
+ok('homepage and shared routes use consistent application and visit actions',/Start an Application/.test(read('index.html'))&&/Request a School Visit/.test(read('index.html'))&&/Request a School Visit/.test(read('about.html')));
 const helpPage=read('website-help.html');
-ok('visitor problem report is voluntary, category-only and uses the trackable Request Centre',/Continue to the Request Centre/.test(helpPage)&&/type=website_problem/.test(helpPage)&&/No report is sent automatically/.test(helpPage)&&/taa_request_prefill/.test(helpPage)&&!/<textarea/i.test(helpPage)&&!/problemDetail/.test(helpPage));
+ok('visitor problem report is voluntary, category-only and uses the trackable Request Centre',/Continue to the Request Centre/.test(helpPage)&&/type=website_problem/.test(helpPage)&&/No report is sent automatically/.test(helpPage)&&/treasureacademy\.requestPrefill/.test(helpPage)&&/requestType:\"website_problem\"/.test(helpPage)&&!/<textarea/i.test(helpPage)&&!/problemDetail/.test(helpPage));
 const developer=read('developer.html');
 const retiredOperations=read('developer-operations.html');
 ok('developer operations are consolidated behind the capability-scoped console',

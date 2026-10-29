@@ -110,7 +110,8 @@ function sendJson(res, status, value) {
     if (!(await page.locator('.inventory-state').innerText()).includes('Low stock')) throw new Error('Truthful availability state was not rendered.');
     if (await page.evaluate(() => window.__run10InventoryXss === true)) throw new Error('Inventory payload executed.');
     const shopAxe = await new AxeBuilder({ page }).analyze();
-    if (shopAxe.violations.some((item) => ['serious', 'critical'].includes(item.impact))) throw new Error('Inventory has serious/critical axe findings.');
+    const shopSevere = shopAxe.violations.filter((item) => ['serious', 'critical'].includes(item.impact));
+    if (shopSevere.length) throw new Error(`Inventory axe findings: ${shopSevere.map((item) => `${item.id} (${item.nodes.map((node) => node.target.join(' ')).join(', ')})`).join('; ')}`);
     if (dialogs.length) throw new Error(`Unexpected browser dialog: ${dialogs.join(', ')}`);
     console.log('Run 10 browser checks passed (source-backed Search states, core-slot/inventory XSS, mobile/dark, axe).');
   } finally {

@@ -14,6 +14,8 @@ spec = importlib.util.spec_from_file_location("taa_seo_build", SEO_PATH)
 seo = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
 spec.loader.exec_module(seo)
+ROUTE_REGISTRY = json.loads((ROOT / "config" / "public-routes.json").read_text(encoding="utf-8"))
+SOURCE_TO_CANONICAL = {row["source"].lstrip("/"): row["canonical"] for row in ROUTE_REGISTRY["routes"]}
 
 EXCLUDE = {
     "404.html", "developer.html", "developer-review.html", "developer-operations.html",
@@ -161,13 +163,21 @@ for path in paths:
         priority = 2
     entries.append({
         "t": title,
-        "u": "index.html" if rel == "index.html" else rel,
+        "u": SOURCE_TO_CANONICAL.get(rel, "/" + rel),
         "d": description,
         "c": category,
         "k": " ".join(filter(None, [KEYWORDS.get(rel, ""), name_words, title, description])),
         "f": families_for(rel),
         "p": priority,
     })
+
+# Gate-off collection pages are server-rendered rather than backed by source
+# HTML. Keep them discoverable with truthful empty-state descriptions.
+entries.extend([
+    {"t": "School Events", "u": "/events", "d": "Current approved school events. When none are published, this page says so clearly.", "c": "News & dates", "k": "events programme ceremony dates current school events", "f": "news dates", "p": 5},
+    {"t": "Past Events", "u": "/events/archive", "d": "Approved past school events. Missing individual event pages may remain unavailable.", "c": "News & dates", "k": "past archived events ceremony history", "f": "news dates", "p": 4},
+    {"t": "School Gallery", "u": "/gallery", "d": "Approved public school photographs. The page remains empty until suitable images are published.", "c": "News & dates", "k": "gallery photographs pictures school activities", "f": "news privacy", "p": 5},
+])
 
 output = ROOT / "assets" / "js" / "search-index.js"
 output.write_text(

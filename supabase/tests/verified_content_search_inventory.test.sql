@@ -181,7 +181,7 @@ select pg_temp.assert_true(not exists(
 ),'Public inventory projection must omit private balances and actors');
 
 -- Search is service-only, weighted, excludes itself and can independently omit inventory.
-select pg_temp.assert_true((select count(*)>=1 from public.public_search_published_content('fictional verified migration',10,false) where kind='page' and url='/fictional-run-ten-page'),'Published CMS text must enter Search automatically');
+select pg_temp.assert_true((select count(*)>=1 from public.public_search_published_content('fictional verified migration',10,false) where kind='page' and url='/about'),'Published CMS text must enter Search only through its fixed public surface');
 select pg_temp.assert_true((select count(*)=0 from public.public_search_published_content('fictional practice book',10,false) where kind='inventory'),'Inventory gate false must omit inventory Search rows');
 select pg_temp.assert_true((select count(*)=1 from public.public_search_published_content('fictional practice book',10,true) where kind='inventory' and url='/shop'),'Inventory gate true may include only reconciled projection rows');
 select pg_temp.assert_true((select count(*)=0 from public.public_search_documents where url in ('/search','/search')),'Search must never index itself');

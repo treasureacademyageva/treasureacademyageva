@@ -1,142 +1,187 @@
-(function () {
+(() => {
   'use strict';
-  var root = document.getElementById('admissionTracker');
-  if (!root) return;
-  var requestForm = document.getElementById('admissionOtpRequest');
-  var verifyForm = document.getElementById('admissionOtpVerify');
-  var phoneInput = document.getElementById('admissionPhone');
-  var whatsappConfirm = document.getElementById('whatsappConfirmWrap');
-  var whatsappCheckbox = document.getElementById('whatsappConfirmed');
-  var requestState = document.getElementById('admissionRequestState');
-  var result = document.getElementById('admissionTrackingResult');
-  var requestToken = '';
 
-  function esc(value) {
-    return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character];
-    });
+  const root = document.getElementById('admissionTracker');
+  if (!root) return;
+
+  const requestForm = document.getElementById('admissionOtpRequest');
+  const verifyForm = document.getElementById('admissionOtpVerify');
+  const phoneInput = document.getElementById('admissionPhone');
+  const codeInput = document.getElementById('admissionOtpCode');
+  const confirmWrap = document.getElementById('whatsappConfirmWrap');
+  const confirmInput = document.getElementById('whatsappConfirmed');
+  const state = document.getElementById('admissionRequestState');
+  const result = document.getElementById('admissionTrackingResult');
+  const restart = document.getElementById('admissionOtpRestart');
+  const tokenPattern = /^[A-Za-z0-9_-]{32,100}$/;
+  let requestToken = '';
+
+  function clean(value, max = 1000) {
+    return typeof value === 'string' ? value.trim().slice(0, max) : '';
   }
-  function setState(message, error) {
-    requestState.hidden = !message;
-    requestState.classList.toggle('tracker-error', !!error);
-    requestState.textContent = message || '';
+  function validDate(value) {
+    return typeof value === 'string' && value.length <= 40 && Number.isFinite(Date.parse(value));
   }
-  function setBusy(form, busy) {
-    var button = form.querySelector('button[type="submit"]');
+  function showState(message, tone = 'info') {
+    state.hidden = !message;
+    state.textContent = message || '';
+    state.dataset.tone = tone;
+  }
+  function pending(form, active, waitingLabel) {
+    const button = form?.querySelector('button[type="submit"]');
     if (!button) return;
-    button.disabled = busy;
-    button.classList.toggle('loading-button', busy);
-    button.setAttribute('aria-busy', busy ? 'true' : 'false');
+    if (!button.dataset.label) button.dataset.label = button.textContent;
+    button.disabled = active;
+    button.textContent = active ? waitingLabel : button.dataset.label;
   }
+  function selectedChannel() {
+    return requestForm.querySelector('input[name="admissionChannel"]:checked')?.value || '';
+  }
+  function syncWhatsAppConfirm() {
+    const whatsapp = selectedChannel() === 'whatsapp';
+    confirmWrap.hidden = !whatsapp;
+    confirmWrap.classList.toggle('is-visible', whatsapp);
+    confirmInput.required = whatsapp;
+    if (!whatsapp) confirmInput.checked = false;
+  }
+  requestForm.querySelectorAll('input[name="admissionChannel"]').forEach((input) => input.addEventListener('change', syncWhatsAppConfirm));
+  syncWhatsAppConfirm();
+
   async function post(url, payload) {
-    var response = await fetch(url, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {'Content-Type':'application/json','Accept':'application/json'},
+    const response = await fetch(url, {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload)
     });
-    var body = await response.json().catch(function () { return {}; });
-    if (!response.ok) throw new Error(body.error || 'The service is temporarily unavailable.');
+    const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+    if (!contentType.startsWith('application/json')) throw new Error('The website received an unexpected response. Your details remain in the form.');
+    const body = await response.json().catch(() => null);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('The website received an incomplete response. Your details remain in the form.');
+    if (!response.ok) throw new Error(clean(body.error, 300) || 'The request could not be completed.');
     return body;
   }
-  function channel() {
-    var checked = requestForm.querySelector('input[name="admissionChannel"]:checked');
-    return checked ? checked.value : '';
+  function requestContract(body) {
+    return body.accepted === true
+      && tokenPattern.test(clean(body.requestToken, 100))
+      && Number.isInteger(body.expiresInSeconds)
+      && body.expiresInSeconds > 0
+      && body.expiresInSeconds <= 600
+      && Boolean(clean(body.message, 600));
   }
-  function refreshChannel() {
-    var isWhatsapp = channel() === 'whatsapp';
-    whatsappConfirm.classList.toggle('is-visible', isWhatsapp);
-    whatsappCheckbox.required = isWhatsapp;
-    if (!isWhatsapp) whatsappCheckbox.checked = false;
+  function applicationContract(application) {
+    if (!application || typeof application !== 'object' || Array.isArray(application)) return false;
+    return Boolean(clean(application.reference, 100))
+      && Boolean(clean(application.childName, 160))
+      && Boolean(clean(application.requestedClass, 80))
+      && Boolean(clean(application.status, 80))
+      && validDate(application.submittedAt)
+      && validDate(application.updatedAt)
+      && (application.message === null || application.message === undefined || typeof application.message === 'string')
+      && (application.nextStep === null || application.nextStep === undefined || typeof application.nextStep === 'string')
+      && (application.session === null || application.session === undefined || typeof application.session === 'string');
   }
-  requestForm.querySelectorAll('input[name="admissionChannel"]').forEach(function (input) {
-    input.addEventListener('change', refreshChannel);
-  });
-  refreshChannel();
+  function verifyContract(body) {
+    return body.verified === true
+      && Array.isArray(body.applications)
+      && body.applications.length <= 20
+      && body.applications.every(applicationContract)
+      && Array.isArray(body.portalContinuationTokens)
+      && body.portalContinuationTokens.length <= 10
+      && body.portalContinuationTokens.every((token) => tokenPattern.test(String(token || '')))
+      && typeof body.portalLoginAvailable === 'boolean';
+  }
 
-  requestForm.addEventListener('submit', async function (event) {
-    event.preventDefault();
-    setState('', false);
-    if (!requestForm.reportValidity()) return;
-    setBusy(requestForm, true);
-    try {
-      var choice = channel();
-      var body = await post('/api/admission/track/request', {
-        phone: phoneInput.value,
-        channel: choice,
-        whatsappConfirmed: choice === 'whatsapp' && whatsappCheckbox.checked
-      });
-      requestToken = body.requestToken || '';
-      setState(body.message || 'If eligible, the code is now awaiting protected delivery.', false);
-      verifyForm.hidden = false;
-      requestForm.hidden = true;
-      document.getElementById('admissionOtpCode').focus();
-    } catch (error) {
-      if (/not found/i.test(error.message)) {
-        setState('Secure tracking is not active yet. Ask the school through the Request Centre.', true);
-      } else setState(error.message, true);
-    } finally {
-      setBusy(requestForm, false);
+  function make(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function addField(list, term, value) {
+    if (!value) return;
+    const row = make('div', 'tracker-result-row');
+    row.append(make('dt', '', term), make('dd', '', value));
+    list.append(row);
+  }
+  function statusCard(application) {
+    const article = make('article', 'tracker-result-card');
+    article.append(make('h3', '', `Application ${clean(application.reference, 100)}`));
+    const list = make('dl', 'tracker-result-list');
+    addField(list, 'Child', clean(application.childName, 160));
+    addField(list, 'Requested class', clean(application.requestedClass, 80));
+    addField(list, 'Status', clean(application.status, 80).replaceAll('_', ' '));
+    addField(list, 'Session', clean(application.session, 100));
+    if (validDate(application.submittedAt) && application.submittedAt) addField(list, 'Submitted', new Date(application.submittedAt).toLocaleDateString('en-NG', { dateStyle: 'medium' }));
+    if (validDate(application.updatedAt) && application.updatedAt) addField(list, 'Updated', new Date(application.updatedAt).toLocaleDateString('en-NG', { dateStyle: 'medium' }));
+    article.append(list);
+    if (clean(application.message, 1000)) article.append(make('p', 'tracker-verdict', clean(application.message, 1000)));
+    if (clean(application.nextStep, 1000)) article.append(make('p', 'tracker-next-step', `Next step: ${clean(application.nextStep, 1000)}`));
+    return article;
+  }
+  function renderResults(payload) {
+    result.replaceChildren();
+    const heading = make('h3', '', 'Application status');
+    result.append(heading, make('p', 'tracker-privacy', 'Only unlinked new-pupil applications are shown here. Existing linked pupils require secure parent sign-in.'));
+    if (!payload.applications.length) result.append(make('p', 'tracker-empty', 'No active new-pupil application is available to show. Converted pupil records require full parent sign-in.'));
+    payload.applications.forEach((application) => result.append(statusCard(application)));
+    if (payload.portalContinuationTokens.length && payload.portalLoginAvailable) {
+      try { sessionStorage.setItem('taa_admission_continuations', JSON.stringify(payload.portalContinuationTokens)); } catch {}
+      const link = make('a', 'btn btn-white tracker-portal', 'Continue to secure parent sign-in');
+      link.href = '/portal/login.html';
+      result.append(link);
     }
-  });
-
-  document.getElementById('admissionOtpRestart').addEventListener('click', function () {
-    requestToken = '';
-    verifyForm.reset();
-    verifyForm.hidden = true;
-    requestForm.hidden = false;
-    result.innerHTML = '';
-    setState('', false);
-    phoneInput.focus();
-  });
-
-  function statusLabel(status) {
-    return ({pending:'Received',under_review:'Under review',offered:'Offer made',declined:'Closed',withdrawn:'Withdrawn'})[status] || 'In progress';
-  }
-  function formatDate(value) {
-    try { return new Intl.DateTimeFormat('en-NG', {dateStyle:'medium'}).format(new Date(value)); } catch (error) { return ''; }
-  }
-  function renderApplications(body) {
-    var rows = Array.isArray(body.applications) ? body.applications : [];
-    var cards = rows.map(function (row) {
-      return '<article class="application-card">' +
-        '<p class="sec-tag">' + esc(statusLabel(row.status)) + '</p>' +
-        '<h3>' + esc(row.childName) + '</h3>' +
-        '<div class="application-meta"><span>' + esc(row.requestedClass) + '</span><span>' + esc(row.reference) + '</span></div>' +
-        (row.message ? '<p>' + esc(row.message) + '</p>' : '') +
-        (row.nextStep ? '<p><strong>Next step:</strong> ' + esc(row.nextStep) + '</p>' : '') +
-        '<p class="tracker-privacy">Last updated ' + esc(formatDate(row.updatedAt)) + '</p></article>';
-    }).join('');
-    var tokens = Array.isArray(body.portalContinuationTokens) ? body.portalContinuationTokens : [];
-    if (tokens.length) {
-      try { sessionStorage.setItem('taa_admission_continuations', JSON.stringify(tokens)); } catch (error) {}
-    }
-    var heading = rows.length
-      ? '<h2>Application status</h2><p>Only unlinked new-pupil applications are shown here.</p>'
-      : '<h2>No unlinked application to show</h2><p>No active unlinked new-pupil application was found for this verified account.</p>';
-    var portal = '<div class="private-continuation"><h3>Already admitted or linked?</h3><p>Existing linked pupils are never shown in this lightweight tracker. Sign in with this same parent account to continue privately.</p><a class="btn btn-mint" href="/portal/login.html" id="admissionPortalContinue">Sign in to continue securely</a></div>';
-    result.innerHTML = heading + '<div class="application-list">' + cards + '</div>' + portal;
     result.focus();
   }
 
-  verifyForm.addEventListener('submit', async function (event) {
+  requestForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    setState('', false);
-    if (!requestToken || !verifyForm.reportValidity()) return;
-    setBusy(verifyForm, true);
+    showState('');
+    result.replaceChildren();
+    if (!requestForm.reportValidity()) return;
+    const channel = selectedChannel();
+    pending(requestForm, true, 'Requesting code…');
     try {
-      var body = await post('/api/admission/track/verify', {
-        requestToken: requestToken,
-        code: document.getElementById('admissionOtpCode').value
+      const body = await post('/api/admission-tracking/request', {
+        phone: phoneInput.value,
+        channel,
+        whatsappConfirmed: channel === 'whatsapp' && confirmInput.checked
       });
-      document.getElementById('admissionOtpCode').value = '';
-      requestToken = '';
-      verifyForm.hidden = true;
-      renderApplications(body);
+      if (!requestContract(body)) throw new Error('The website received an incomplete confirmation. The code stage has not been opened; please try again.');
+      requestToken = clean(body.requestToken, 100);
+      requestForm.hidden = true;
+      verifyForm.hidden = false;
+      showState(clean(body.message, 600), 'success');
+      codeInput.focus();
     } catch (error) {
-      setState(error.message, true);
-    } finally {
-      setBusy(verifyForm, false);
+      showState(error.message || 'Admission tracking is temporarily unavailable.', 'error');
+    } finally { pending(requestForm, false, 'Requesting code…'); }
+  });
+
+  verifyForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    showState('');
+    if (!verifyForm.reportValidity() || !tokenPattern.test(requestToken)) {
+      if (!requestToken) showState('Request a new code before checking an application.', 'error');
+      return;
     }
+    pending(verifyForm, true, 'Checking status…');
+    try {
+      const body = await post('/api/admission-tracking/verify', { requestToken, code: codeInput.value.trim() });
+      if (!verifyContract(body)) throw new Error('The website received an incomplete status response. No application result is being shown.');
+      renderResults(body);
+      showState('Private application status retrieved.', 'success');
+    } catch (error) {
+      showState(error.message || 'The code could not be checked.', 'error');
+    } finally { pending(verifyForm, false, 'Checking status…'); }
+  });
+
+  restart.addEventListener('click', () => {
+    requestToken = '';
+    verifyForm.reset();
+    requestForm.hidden = false;
+    verifyForm.hidden = true;
+    result.replaceChildren();
+    showState('');
+    phoneInput.focus();
   });
 })();

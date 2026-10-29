@@ -50,14 +50,14 @@ test('release boundary and evidence contain no secret values or acceptance ficti
 });
 
 test('browser-safe portal config fails closed and omits private settings when its required configuration is absent', async () => {
-  const names = ['PORTAL_ENABLED', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_ANON_KEY', 'DEVELOPER_MANUAL_BOOTSTRAP_ENABLED', 'PUBLIC_CMS_ENABLED', 'PUBLIC_CMS_SEARCH_ENABLED', 'PUBLIC_CMS_CORE_SLOTS_ENABLED', 'PUBLIC_INVENTORY_ENABLED'];
+  const names = ['PORTAL_ENABLED', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_ANON_KEY', 'DEVELOPER_MANUAL_BOOTSTRAP_ENABLED', 'PUBLIC_CMS_ENABLED', 'PUBLIC_CMS_SEARCH_ENABLED', 'PUBLIC_CMS_CORE_SLOTS_ENABLED', 'PUBLIC_CMS_PAGES_ENABLED', 'PUBLIC_INVENTORY_ENABLED'];
   const prior = Object.fromEntries(names.map((name) => [name, process.env[name]]));
   try {
     for (const name of names) delete process.env[name];
     const response = await portalConfig.fetch(new Request('https://school.test/api/portal-config'));
     const body = await response.json();
     assert.equal(response.status, 200);
-    assert.deepEqual(body, { enabled: false, developerBootstrapEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicInventoryEnabled: false });
+    assert.deepEqual(body, { enabled: false, developerBootstrapEnabled: false, publicSearchEnabled: false, coreSlotsEnabled: false, publicPagesEnabled: false, publicInventoryEnabled: false });
     assert.doesNotMatch(JSON.stringify(body), /secret|service|pepper|private|relay|admission/i);
   } finally {
     for (const [name, value] of Object.entries(prior)) value === undefined ? delete process.env[name] : process.env[name] = value;

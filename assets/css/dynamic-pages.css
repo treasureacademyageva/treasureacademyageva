@@ -1,0 +1,27 @@
+/* Controlled CMS Page surfaces. Static pages remain the fail-safe shell. */
+.dynamic-page{padding:clamp(2rem,5vw,4.5rem) 0;background:var(--surface,#fff);color:var(--ink,#18243a)}
+.dynamic-page--supplement{margin-bottom:clamp(1.5rem,4vw,3rem);background:linear-gradient(135deg,rgba(21,140,122,.08),rgba(249,181,42,.08));border-bottom:1px solid rgba(20,58,69,.12)}
+.dynamic-page__container{max-width:920px}
+.dynamic-page__header{margin-bottom:clamp(1.5rem,3vw,2.5rem)}
+.dynamic-page__header h1,.dynamic-page__header h2{max-width:20ch;margin:.35rem 0 .65rem;line-height:1.08}
+.dynamic-page__header--supplement h2{font-size:clamp(1.65rem,4vw,2.45rem)}
+.dynamic-page__summary{max-width:70ch;font-size:clamp(1.03rem,2vw,1.2rem);line-height:1.7;color:var(--muted,#52606d)}
+.dynamic-page__body{display:grid;gap:1rem;font-size:1rem;line-height:1.75}
+.dynamic-page__body h2,.dynamic-page__body h3,.dynamic-page__body h4{margin:1.5rem 0 .15rem;line-height:1.2}
+.dynamic-page__body p,.dynamic-page__body ul,.dynamic-page__body ol,.dynamic-page__body blockquote{max-width:76ch;margin:0}
+.dynamic-page__body ul,.dynamic-page__body ol{padding-left:1.4rem}
+.dynamic-page__body blockquote{padding:1rem 1.25rem;border-left:4px solid var(--mint,#158c7a);background:rgba(21,140,122,.08);border-radius:.35rem}
+.dynamic-page-callout,.dynamic-page-fact{max-width:76ch;padding:1rem 1.15rem;border:1px solid rgba(20,58,69,.14);border-radius:.85rem;background:rgba(21,140,122,.07)}
+.dynamic-page-callout--warning{background:rgba(249,181,42,.14)}
+.dynamic-page-callout--success{background:rgba(46,160,93,.1)}
+.dynamic-page-media{margin:1rem 0;max-width:100%}
+.dynamic-page-media img,.dynamic-page-media video{display:block;width:100%;height:auto;border-radius:1rem;background:#101b2b}
+.dynamic-page-media figcaption{padding:.5rem .2rem;color:var(--muted,#52606d);font-size:.9rem}
+.dynamic-page-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:1rem}
+.dynamic-page-gallery .dynamic-page-media{margin:0}
+.dynamic-page-table{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+.dynamic-page-table table{min-width:36rem}
+.dynamic-page__review{margin:1.5rem 0 0;color:var(--muted,#52606d);font-size:.88rem}
+[data-theme="dark"] .dynamic-page{background:var(--surface,#142136);color:var(--ink,#f4f6fb)}
+[data-theme="dark"] .dynamic-page--supplement{background:linear-gradient(135deg,rgba(53,201,173,.12),rgba(249,181,42,.1));border-color:rgba(255,255,255,.12)}
+@media(max-width:680px){.dynamic-page{padding:2rem 0}.dynamic-page-gallery{grid-template-columns:1fr}.dynamic-page-table table{min-width:32rem}}

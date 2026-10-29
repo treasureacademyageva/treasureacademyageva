@@ -22,6 +22,12 @@ EXPECTED_PHONE = "2348141943478"
 EXPECTED_WHATSAPP = "2349063932487"
 CTA_WORDS = re.compile(r"\b(apply|admission|visit|call|whatsapp|contact|directions|search|fees?)\b", re.I)
 VAGUE = {"click here", "here", "more", "read more", "learn more", "continue"}
+ROUTE_REGISTRY = json.loads((ROOT / "config" / "public-routes.json").read_text(encoding="utf-8"))
+CLEAN_TO_SOURCE = {
+    str(row["canonical"]).split("?", 1)[0].strip("/"): str(row["source"]).lstrip("/")
+    for row in ROUTE_REGISTRY.get("routes", [])
+    if row.get("canonical") is not None and row.get("source")
+}
 
 
 class AuditParser(HTMLParser):
@@ -159,6 +165,7 @@ def local_target(href: str, base: Path) -> str | None:
     except ValueError:
         return None
     if rel.endswith("/"): rel += "index.html"
+    rel = CLEAN_TO_SOURCE.get(rel.strip("/"), rel)
     return "" if rel == "index.html" else rel
 
 
@@ -243,7 +250,8 @@ match = re.search(r"window\.TA_SEARCH_INDEX=(\[.*?\]);", index_source, flags=re.
 if match:
     try:
         for entry in json.loads(match.group(1)):
-            route = str(entry.get("u", "")).split("#", 1)[0].split("?", 1)[0].lstrip("/")
+            route = str(entry.get("u", "")).split("#", 1)[0].split("?", 1)[0].strip("/")
+            route = CLEAN_TO_SOURCE.get(route, route)
             route = "" if route == "index.html" else route
             if route in all_keys:
                 graph.setdefault("search.html", set()).add(route)

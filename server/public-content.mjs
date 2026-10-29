@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { buildSignedCloudinaryDeliveryUrl } from './cms-media.mjs';
+import { PUBLIC_HTML_FALLBACKS } from './public-fallbacks.generated.mjs';
 import { FIXED_SITEMAP_ROUTES } from './public-routes.generated.mjs';
 
 const SITE_ORIGIN = 'https://www.treasureacademyageva.com';
@@ -440,11 +441,11 @@ function navigation(current) {
     ['About', '/about', 'about'], ['Admissions', '/admissions', 'admissions'], ['Classes', '/academics', 'classes'],
     ['News', '/news', 'news'], ['Events', '/events', 'events'], ['Gallery', '/gallery', 'gallery'], ['Contact', '/contact', 'contact']
   ];
-  return `<nav class="lite-nav" aria-label="Primary navigation"><div class="container"><a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Creche · Nursery · Primary — Ageva</small></span></a><div class="lite-links">${links.map(([label, href, key]) => `<a href="${href}"${current === key ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</div><div class="lite-actions"><a class="lite-search" href="/search">Search</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admissions#apply">Apply</a></div></div></nav>`;
+  return `<nav class="lite-nav" aria-label="Primary navigation"><div class="container"><a class="lite-brand" href="/" aria-label="Treasure Academy — homepage"><img class="logo-badge" src="/assets/img/logo.jpg" width="397" height="397" alt="" loading="eager" decoding="async"><span><strong>TREASURE ACADEMY</strong><small>Pre-Nursery · Nursery · Primary — Ageva</small></span></a><div class="lite-links"><a href="/"${current === 'home' ? ' aria-current="page"' : ''}>Home</a>${links.map(([label, href, key]) => `<a href="${href}"${current === key ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</div><div class="lite-actions"><a class="lite-search" href="/search" aria-label="Search the website">Search</a><a class="lite-portal" href="/portal/login.html">Portal</a><button type="button" class="theme-btn icon-action" aria-label="Switch colour theme"></button><a class="btn btn-mint lite-apply" href="/admission-form">Apply</a></div></div></nav>`;
 }
 
 function footer() {
-  return `<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid"><div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" decoding="async"><b>${SITE_NAME}</b></a><p>Creche, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p></div><div class="uf-col"><h2>Published updates</h2><nav class="uf-links" aria-label="Published content"><a href="/news">News</a><a href="/events">Events</a><a href="/events/archive">Event archive</a><a href="/gallery">Gallery</a></nav></div><div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/portal/login.html">Parent &amp; Staff Portal</a><a href="/request-centre">Request Centre</a><a href="/safeguarding">Safeguarding</a><a href="/privacy">Privacy</a><a href="/credits">Website credits</a></nav></div><div class="uf-col uf-contact"><h2>Verified contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p></div></div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span><span><a href="https://paragonhub-kappa.vercel.app/" target="_blank" rel="noopener">Website designed and implemented by Jibril Abdullahi Onoruoiza, Paragon Hub.</a></span></div></div></footer>`;
+  return `<footer class="universal-footer" id="siteFooter"><div class="container"><div class="uf-grid"><div class="uf-col uf-about"><a class="uf-brand" href="/"><img src="/assets/img/logo.jpg" width="397" height="397" alt="" loading="lazy" decoding="async"><b>${SITE_NAME}</b></a><p>Pre-Nursery, Nursery and Primary education in Ageva, Okene. Clear information, caring teaching and strong foundations.</p></div><div class="uf-col"><h2>School updates</h2><nav class="uf-links" aria-label="School updates"><a href="/news">News</a><a href="/events">Events</a><a href="/events/archive">Event archive</a><a href="/gallery">Gallery</a></nav></div><div class="uf-col"><h2>School &amp; support</h2><nav class="uf-links" aria-label="School and support pages"><a href="/portal/login.html">Parent &amp; Staff Portal</a><a href="/request-centre">Request Centre</a><a href="/safeguarding">Safeguarding</a><a href="/privacy">Privacy</a><a href="/credits">Website credits</a></nav></div><div class="uf-col uf-contact"><h2>Contact</h2><p><a href="tel:+2348141943478"><b>+234 814 194 3478</b></a><br><a href="https://wa.me/2349063932487"><b>WhatsApp 09063932487</b></a><br><a href="mailto:treasuregroupofschool@gmail.com">treasuregroupofschool@gmail.com</a></p><p>Opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.</p></div></div></div><div class="uf-bottom"><div class="container"><span>Treasure Academy Ageva Limited · RC 9634403</span><span>© 2026 Treasure Academy, Ageva. All rights reserved.</span><span><a href="https://paragonhub-kappa.vercel.app/" target="_blank" rel="noopener">Website designed and implemented by Jibril Abdullahi Onoruoiza, Paragon Hub.</a></span></div></div></footer>`;
 }
 
 function pageShell({ title, description, canonicalPath, current, main, robots = 'index,follow,max-image-preview:large,max-snippet:-1', structured = [], image = '', imageAlt = SITE_NAME, feed = '', feedPath = '' }) {
@@ -482,8 +483,8 @@ function listPage({ type, bundles, page, totalPages, now, archive = false, media
     : isEvent ? 'Confirmed public events from Treasure Academy, Ageva, with exact Lagos dates and lifecycle status.'
       : 'Reviewed news and public updates from Treasure Academy, Ageva.';
   const cards = bundles.length ? bundles.map((bundle) => listingCard(bundle, type, now, mediaEnabled)).join('')
-    : `<div class="content-empty"><h2>No ${archive ? 'archived events' : isEvent ? 'current events' : 'CMS news'} are published</h2><p>The website will not invent dates or updates. Use the verified school contact if you need current information.</p><a class="btn btn-mint" href="/contact">Contact the school</a></div>`;
-  const main = `<header class="page-hero content-hero"><div class="container"><span class="sec-tag">Verified public content</span><h1>${heading}</h1><p>${description}</p><nav class="content-tabs" aria-label="News, events and gallery"><a href="/news"${!isEvent ? ' aria-current="page"' : ''}>News</a><a href="/events"${isEvent && !archive ? ' aria-current="page"' : ''}>Events</a><a href="/events/archive"${archive ? ' aria-current="page"' : ''}>Event archive</a><a href="/gallery">Gallery</a></nav></div></header><main id="main"><section><div class="container content-wrap"><div class="content-grid">${cards}</div>${pagination(type, page, totalPages, archive)}</div></section></main>`;
+    : `<div class="content-empty"><h2>No ${archive ? 'past events' : isEvent ? 'current events' : 'news updates'} are published</h2><p>The school will add an update only after its details have been approved. Contact the school office if you need current information.</p><a class="btn btn-mint" href="/contact">Contact the school</a></div>`;
+  const main = `<header class="page-hero content-hero"><div class="container"><span class="sec-tag">School updates</span><h1>${heading}</h1><p>${description}</p><nav class="content-tabs" aria-label="News, events and gallery"><a href="/news"${!isEvent ? ' aria-current="page"' : ''}>News</a><a href="/events"${isEvent && !archive ? ' aria-current="page"' : ''}>Events</a><a href="/events/archive"${archive ? ' aria-current="page"' : ''}>Event archive</a><a href="/gallery">Gallery</a></nav></div></header><main id="main"><section><div class="container content-wrap"><div class="content-grid">${cards}</div>${pagination(type, page, totalPages, archive)}</div></section></main>`;
   return pageShell({ title, description, canonicalPath, current: isEvent ? 'events' : 'news', main, robots: bundles.length ? 'index,follow,max-image-preview:large,max-snippet:-1' : 'noindex,follow', feed: isEvent ? 'Treasure Academy Events' : 'Treasure Academy News', feedPath: isEvent ? '/events/feed.xml' : '/news/feed.xml', structured: [breadcrumbs([{ name: 'Home', path: '/' }, { name: heading, path: base }])] });
 }
 
@@ -557,7 +558,7 @@ function galleryPage(items, url) {
   const categories = [...new Set(items.map((item) => item.source.category).filter(Boolean))].sort();
   const years = [...new Set(items.map((item) => lagosYear(item.source.event_starts_at || item.source.published_at)).filter((value) => /^20\d{2}$/.test(value)))].sort().reverse();
   const activeFilter = Boolean(type || source || year || category || page > 1);
-  const cards = selected.length ? selected.map(galleryCard).join('') : `<div class="content-empty"><h2>No approved media matches</h2><p>Gallery items appear only from published News or Events with current provenance, consent and safeguarding approval.</p></div>`;
+  const cards = selected.length ? selected.map(galleryCard).join('') : `<div class="content-empty"><h2>${activeFilter ? 'No gallery items match these filters' : 'No gallery photos are published'}</h2><p>The school adds a picture or video only after its source, permission and safeguarding checks have been approved.</p></div>`;
   const options = (values, selectedValue) => values.map((value) => `<option value="${escapeHtml(value)}"${value === selectedValue ? ' selected' : ''}>${escapeHtml(value)}</option>`).join('');
   const galleryPagePath = (number) => {
     const params = new URLSearchParams();
@@ -572,7 +573,7 @@ function galleryPage(items, url) {
   const galleryPagination = totalPages > 1
     ? `<nav class="content-pagination" aria-label="Gallery pagination">${page > 1 ? `<a rel="prev" href="${escapeHtml(galleryPagePath(page - 1))}">← Previous</a>` : '<span></span>'}<span>Page ${page} of ${totalPages}</span>${page < totalPages ? `<a rel="next" href="${escapeHtml(galleryPagePath(page + 1))}">Next →</a>` : '<span></span>'}</nav>`
     : '';
-  const main = `<header class="page-hero content-hero"><div class="container"><span class="sec-tag">Governed public media</span><h1>Gallery</h1><p>Approved pictures and videos linked to their published News or Event source. Originals and bulk child-media downloads are not public.</p><nav class="content-tabs" aria-label="News, events and gallery"><a href="/news">News</a><a href="/events">Events</a><a href="/gallery" aria-current="page">Gallery</a></nav></div></header><main id="main"><section><div class="container content-wrap"><form class="gallery-filters" method="get" action="/gallery"><label>Media type<select name="type"><option value="">Pictures and videos</option><option value="image"${type === 'image' ? ' selected' : ''}>Pictures</option><option value="video"${type === 'video' ? ' selected' : ''}>Videos</option></select></label><label>Source<select name="source"><option value="">News and Events</option><option value="news"${source === 'news' ? ' selected' : ''}>News</option><option value="event"${source === 'event' ? ' selected' : ''}>Events</option></select></label><label>Year<select name="year"><option value="">All years</option>${options(years, year)}</select></label><label>Category<select name="category"><option value="">All safe categories</option>${options(categories, category)}</select></label><button class="btn btn-mint" type="submit">Apply filters</button>${activeFilter ? '<a class="btn btn-white" href="/gallery">Clear filters</a>' : ''}</form><div class="gallery-grid">${cards}</div>${galleryPagination}</div></section></main>`;
+  const main = `<header class="page-hero content-hero"><div class="container"><span class="sec-tag">School photos</span><h1>Gallery</h1><p>Pictures and videos approved by the school and linked to their published News or Event page. Child images are not offered for bulk download.</p><nav class="content-tabs" aria-label="News, events and gallery"><a href="/news">News</a><a href="/events">Events</a><a href="/gallery" aria-current="page">Gallery</a></nav></div></header><main id="main"><section><div class="container content-wrap"><form class="gallery-filters" method="get" action="/gallery"><label>Media type<select name="type"><option value="">Pictures and videos</option><option value="image"${type === 'image' ? ' selected' : ''}>Pictures</option><option value="video"${type === 'video' ? ' selected' : ''}>Videos</option></select></label><label>Source<select name="source"><option value="">News and Events</option><option value="news"${source === 'news' ? ' selected' : ''}>News</option><option value="event"${source === 'event' ? ' selected' : ''}>Events</option></select></label><label>Year<select name="year"><option value="">All years</option>${options(years, year)}</select></label><label>Category<select name="category"><option value="">All categories</option>${options(categories, category)}</select></label><button class="btn btn-mint" type="submit">Apply filters</button>${activeFilter ? '<a class="btn btn-white" href="/gallery">Clear filters</a>' : ''}</form><div class="gallery-grid">${cards}</div>${galleryPagination}</div></section></main>`;
   return pageShell({ title: 'Gallery — Treasure Academy, Ageva', description: 'Approved public pictures and videos linked to published Treasure Academy News and Events.', canonicalPath: '/gallery', current: 'gallery', main, robots: activeFilter || !items.length ? 'noindex,follow' : 'index,follow,max-image-preview:large,max-snippet:-1', structured: [breadcrumbs([{ name: 'Home', path: '/' }, { name: 'Gallery', path: '/gallery' }])] });
 }
 
@@ -583,7 +584,7 @@ function galleryDetail(item, downloadsEnabled) {
   const data = item.media_type === 'image'
     ? { '@context': 'https://schema.org', '@type': 'ImageObject', name: item.title || item.source.title, caption: item.caption || item.source.summary, contentUrl: absoluteUrl(mediaPath(item, 'asset', 'content-1280')), creditText: item.attribution || SITE_NAME, isPartOf: absoluteUrl(sourcePath) }
     : { '@context': 'https://schema.org', '@type': 'VideoObject', name: item.title || item.source.title, description: item.caption || item.source.summary, thumbnailUrl: absoluteUrl(mediaPath(item, 'asset', 'poster')), contentUrl: absoluteUrl(mediaPath(item, 'asset', 'video-720')), uploadDate: item.source.published_at, isPartOf: absoluteUrl(sourcePath) };
-  const main = `<header class="page-hero content-hero content-hero--detail"><div class="container"><span class="sec-tag">${item.media_type === 'image' ? 'Picture' : 'Video'}</span><h1>${escapeHtml(item.title || item.source.title)}</h1><p>${escapeHtml(item.caption || item.source.summary)}</p></div></header><main id="main"><section><div class="container gallery-viewer">${visual}<div class="gallery-source"><h2>Published source</h2><p>This media appears through one governed relationship. If its source, consent or approval is withdrawn, this viewer and every public placement stop resolving.</p><p><a class="btn btn-mint" href="${escapeHtml(sourcePath)}">Open ${escapeHtml(item.source.content_type)}: ${escapeHtml(item.source.title)}</a></p>${item.attribution ? `<p><strong>Credit:</strong> ${escapeHtml(item.attribution)}</p>` : ''}${canDownload ? `<p><a class="btn btn-white" href="/gallery/${escapeHtml(item.gallerySlug)}/download">Download approved derivative</a></p>` : item.downloadAllowed ? '<p>The approved derivative download feature is currently unavailable.</p>' : '<p>Viewing only. No public download permission is recorded.</p>'}</div></div></section></main>`;
+  const main = `<header class="page-hero content-hero content-hero--detail"><div class="container"><span class="sec-tag">${item.media_type === 'image' ? 'Picture' : 'Video'}</span><h1>${escapeHtml(item.title || item.source.title)}</h1><p>${escapeHtml(item.caption || item.source.summary)}</p></div></header><main id="main"><section><div class="container gallery-viewer">${visual}<div class="gallery-source"><h2>Published source</h2><p>This item stays public only while its source page, permission and school approval remain current. If any of those is withdrawn, the item is removed from public view.</p><p><a class="btn btn-mint" href="${escapeHtml(sourcePath)}">Open ${escapeHtml(item.source.content_type)}: ${escapeHtml(item.source.title)}</a></p>${item.attribution ? `<p><strong>Credit:</strong> ${escapeHtml(item.attribution)}</p>` : ''}${canDownload ? `<p><a class="btn btn-white" href="/gallery/${escapeHtml(item.gallerySlug)}/download">Download approved derivative</a></p>` : item.downloadAllowed ? '<p>The approved derivative download feature is currently unavailable.</p>' : '<p>Viewing only. No public download permission is recorded.</p>'}</div></div></section></main>`;
   return pageShell({ title: `${item.title || item.source.title} — Gallery — ${SITE_NAME}`, description: item.caption || item.source.summary, canonicalPath: `/gallery/${item.gallerySlug}`, current: 'gallery', main, structured: [breadcrumbs([{ name: 'Home', path: '/' }, { name: 'Gallery', path: '/gallery' }, { name: item.title || item.source.title, path: `/gallery/${item.gallerySlug}` }]), data], image: item.media_type === 'image' ? absoluteUrl(mediaPath(item, 'asset', 'hero')) : absoluteUrl(mediaPath(item, 'asset', 'poster')), imageAlt: item.alt_text || item.title || SITE_NAME });
 }
 
@@ -727,6 +728,27 @@ export async function handlePublicContent(request, overrides = {}) {
       const xml = sitemapXml();
       return new Response(request.method === 'HEAD' ? null : xml, { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=30', 'X-Content-Type-Options': 'nosniff' } });
     }
+    // Collection destinations remain useful before public CMS cutover. They do
+    // not query Supabase or Cloudinary and disclose no draft/private record.
+    // Reviewed legacy News is bundled byte-for-byte so the same routes remain
+    // available while all dynamic publication gates are closed.
+    const staticFallback = PUBLIC_HTML_FALLBACKS[publicPath];
+    if (staticFallback && ((route.kind === 'list' && route.type === 'news' && route.page === 1)
+        || (route.kind === 'detail' && route.type === 'news'))) {
+      return response(request.method === 'HEAD' ? null : staticFallback, 200, { 'Cache-Control': 'public, max-age=0, s-maxage=30' });
+    }
+    const now = new Date(overrides.now ? overrides.now() : Date.now());
+    if (route.kind === 'list' && route.type === 'event' && route.page === 1) {
+      const body = listPage({ type: route.type, bundles: [], page: 1, totalPages: 1, now, archive: route.archive, mediaEnabled: false });
+      return response(request.method === 'HEAD' ? null : body, 200, { 'Cache-Control': 'public, max-age=0, s-maxage=30' });
+    }
+    if (route.kind === 'gallery') {
+      return response(request.method === 'HEAD' ? null : galleryPage([], url), 200, { 'Cache-Control': 'public, max-age=0, s-maxage=30' });
+    }
+    if (route.kind === 'feed' && route.type === 'event') {
+      const xml = rss([], route.type);
+      return new Response(request.method === 'HEAD' ? null : xml, { status: 200, headers: { 'Content-Type': 'application/rss+xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=30', 'X-Content-Type-Options': 'nosniff', 'X-Robots-Tag': 'noindex, follow' } });
+    }
     return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
   }
   if (route.page === 1 && /^\/(news|events)\/page\/1$/.test(publicPath)) return redirect(`/${route.type === 'news' ? 'news' : 'events'}`);
@@ -736,7 +758,10 @@ export async function handlePublicContent(request, overrides = {}) {
     const now = new Date(overrides.now ? overrides.now() : Date.now());
     const mediaEnabled = env.PUBLIC_CMS_MEDIA_ENABLED === 'true';
     if (mediaEnabled) publicMediaConfiguration(env);
-    if (['gallery', 'gallery-detail', 'asset', 'download'].includes(route.kind) && !mediaEnabled) {
+    if (!mediaEnabled && route.kind === 'gallery') {
+      return response(request.method === 'HEAD' ? null : galleryPage([], url), 200, { 'Cache-Control': 'public, max-age=0, s-maxage=30' });
+    }
+    if (['gallery-detail', 'asset', 'download'].includes(route.kind) && !mediaEnabled) {
       return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
     }
     if (route.kind === 'sitemap') {
@@ -754,6 +779,9 @@ export async function handlePublicContent(request, overrides = {}) {
     }
     if (route.kind === 'list') {
       let entries = await repository.listEntries(route.type);
+      if (route.type === 'news' && route.page === 1 && entries.length === 0 && PUBLIC_HTML_FALLBACKS['/news']) {
+        return response(request.method === 'HEAD' ? null : PUBLIC_HTML_FALLBACKS['/news'], 200, { 'Cache-Control': 'public, max-age=0, s-maxage=30' });
+      }
       if (route.type === 'event') entries = entries.filter((entry) => eventLifecycle(entry, now).archived === Boolean(route.archive));
       const totalPages = Math.max(1, Math.ceil(entries.length / PAGE_SIZE));
       if (route.page > totalPages || (route.page > 1 && entries.length === 0)) return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
@@ -767,6 +795,9 @@ export async function handlePublicContent(request, overrides = {}) {
       if (!entry) {
         const alias = await repository.alias(publicPath);
         if (alias?.destination_path) return redirect(alias.destination_path);
+        if (route.type === 'news' && PUBLIC_HTML_FALLBACKS[publicPath]) {
+          return response(request.method === 'HEAD' ? null : PUBLIC_HTML_FALLBACKS[publicPath], 200, { 'Cache-Control': 'public, max-age=0, s-maxage=30' });
+        }
         return response(notFoundPage(), 404, { 'X-Robots-Tag': 'noindex, nofollow, noarchive' });
       }
       const bundle = await entryBundle(repository, entry);

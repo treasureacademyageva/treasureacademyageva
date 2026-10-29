@@ -287,6 +287,26 @@
 | Production boundary | No push, deployment, SQL, row, challenge, OTP, environment change, provider/Cloudinary call or activation | Preserved |
 | Evidence and rollback | `RUN-12-PRODUCTION-READINESS-AND-PROVIDER-HOLD-EVIDENCE.md`; matching rollback plan | Recorded |
 
+## Run 14 gate-closed dynamic Page acceptance ledger
+
+| Item | Evidence | Result |
+|---|---|---|
+| Fixed Page surfaces | 48 reviewed non-News routes; code-owned replacement/supplement mode; no developer or portal path | Pass locally |
+| Authorisation | Existing draft/review lifecycle retained; only publish-capable leadership may bind a current published Page | Pass |
+| Held migration | 48 deterministic source-hashed, text-only, media-free candidates; no verification, import, publication, binding or activation | Held safely |
+| Static fallback | Complete static Pages retained; `/news` and six historical details have byte-for-byte reviewed server fallbacks | Pass |
+| Safe rendering | DOM-only structured renderer; existing hero H1 updated rather than duplicated; forms and safety shells preserved | Pass |
+| Media boundary | Current published revision relationship rechecked; bounded signed variants only; arbitrary/external media rejected | Pass |
+| Search | Page text enters Search only through an effective fixed Page surface or approved core slot | Pass |
+| Gate boundary | `PUBLIC_CMS_PAGES_ENABLED=false`, subordinate to `PUBLIC_CMS_ENABLED`; Page media also requires public media gate | Closed |
+| Build integrity | Two complete builds; 710 files; 0 byte changes; protected paths unchanged; no credential findings | Pass |
+| Browser acceptance | Replacement, supplement, XSS, rejected media, SEO, one H1, mobile/dark, axe and unavailable service | Pass |
+| SQL acceptance | 19/19 migrations, 13/13 rollback-safe suites and read-only postflight | Pass locally |
+| Backup/restore | Authenticated encrypted backup, byte-identical decrypt, 116 public and 116 RLS tables restored | Pass locally |
+| Complete regression | Current release QA, 1,590 visitor checks, all security/portal/CMS/content/browser suites | Pass |
+| Production boundary | No push, deployment, SQL, content row, provider call or gate activation | Preserved |
+| Evidence and release plan | `RUN-14-DYNAMIC-PUBLIC-PAGES-ACCEPTANCE-EVIDENCE.md`; `GATED-DYNAMIC-CONTENT-PREVIEW-RELEASE-PLAN-2026-10-29.md` | Recorded |
+
 ## Permanent preservation rules
 
 1. Never rerun the first seven production migrations. Future database work is additive.
@@ -319,6 +339,7 @@
 | CMS homepage placements | Exact default false through `PUBLIC_CMS_PLACEMENTS_ENABLED`; Run 9 placement workflow accepted locally | Verified imported content, authorised audited slots, homepage parity and a separate activation decision |
 | Database-backed public Search | Production `PUBLIC_CMS_SEARCH_ENABLED=false`; Run 10 source/citations/privacy accepted locally | Gate-off Runs 5–10 release, verified current content and Search parity, protected rate/privacy smoke and separate activation |
 | Safe core-page slots | Production `PUBLIC_CMS_CORE_SLOTS_ENABLED=false`; Run 10 fixed mounts and DOM-only renderer accepted locally | Verified imported Page/Announcement records, audited slots, static parity and separate activation |
+| Dynamic public Page surfaces | `PUBLIC_CMS_PAGES_ENABLED=false`; Run 14 fixed routes, held migration, safe renderer and static fallbacks accepted locally | Gate-closed Preview, source verification, leadership publication, route-by-route parity and separate explicit activation |
 | Public inventory availability | Production `PUBLIC_INVENTORY_ENABLED=false`; Run 10 coarse projection/client accepted locally | Office-confirmed catalogue and balances, privacy/output smoke and separate activation; never guess quantities or prices |
 | Governed CMS media | `CMS_MEDIA_ENABLED=false`; Run 6 service and Run 7 library accepted locally; dedicated credentials privately stored; no Cloudinary request/upload | Separately authorised Runs 5–10 Production SQL/source release with gates false, then neutral generated-fixture smoke evidence and an independent activation decision |
 | Media downloads | Off by default | Asset-level permission and metadata-safe derivative proven |

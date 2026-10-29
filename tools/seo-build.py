@@ -30,10 +30,10 @@ DESC = {
  "class.html": "Pre-Nursery, Nursery 1–2, Primary 1–4 and Primary 6 at Treasure Academy, Ageva — what each class covers and the daily activities.",
  "contact.html": "Call, email, WhatsApp or visit Treasure Academy, Ageva — opposite Morak Pure-Water Factory, Ageva, Okene, Kogi State.",
  "credits.html": "Website design and implementation credits for Treasure Academy, Ageva, including publisher, data-controller and Paragon Hub processor roles.",
- "elearning.html": "Three Common Entrance-style practice questions for Primary 6 revision in Mathematics, English and Basic Science. Scores stay on the page.",
+ "elearning.html": "Fifteen Common Entrance-style practice questions for Primary 6 revision across Mathematics, English, Basic Science and General Knowledge. Scores stay on the page.",
  "explore.html": "Explore every part of the Treasure Academy, Ageva website by task — admissions, classes, fees, family information, school news and support.",
  "exams.html": "Examination guidance for Treasure Academy, Ageva — ask the school for the current class timetable. Public candidate records and results are not published.",
- "fees.html": "School fee and safe-payment guidance for Treasure Academy, Ageva: current amounts and approved bank details appear only in the signed-in portal or official invoice.",
+ "fees.html": "Current Treasure Academy new-intake charges, Pre-Nursery and Nursery book lists, writing materials, totals and safe payment guidance.",
  "holiday.html": "Holiday-learning guidance for Treasure Academy, Ageva. Ask the class teacher for current work; assignments are not submitted through the public website.",
  "homework.html": "Homework guidance for Treasure Academy, Ageva. Confirm current work with the class teacher; the public website does not accept assignment submissions.",
  "lost-found.html": "Lost-property guidance for Treasure Academy, Ageva — contact the school office to report or claim an item without publishing a child’s private details.",
@@ -48,7 +48,7 @@ DESC = {
  "receipt.html": "Verify a Treasure Academy receipt through the school office. A public browser-only lookup cannot prove that a payment reached the school.",
  "request-centre.html": "Send a structured request to Treasure Academy, receive a website reference and privately check its status with a tracking code.",
  "search.html": "Search the Treasure Academy, Ageva website — fees, uniform, transport, admissions, calendar and more.",
- "shop.html": "School-material ordering belongs in the signed-in parent portal, with verified stock, current prices and manually verified payment guidance.",
+ "shop.html": "Current nursery book-package totals, writing-material requirements and safe stock-request guidance for Treasure Academy, Ageva.",
  "story.html": "Read the full story from Treasure Academy, Ageva, Okene — news, events and life at our school.",
  "support.html": "How to discuss a proposed contribution safely through the website Request Centre and require official written payment instructions.",
  "testimonials.html": "Private family-feedback guidance for Treasure Academy, Ageva. Unverified sample endorsements have been removed and publication requires review and consent.",
@@ -167,7 +167,10 @@ def build():
     # prevents classes/news entries from collapsing to root-level basenames.
     pages = sorted(p.replace(os.sep, "/") for p in (glob.glob("*.html") + glob.glob("classes/*.html") + glob.glob("news/*.html")))
     changed = 0
+    frozen = {"developer.html", "developer-review.html", "developer-operations.html"}
     for p in pages:
+        if p in frozen:
+            continue
         html = open(p, encoding="utf-8").read()
         orig = html
         desc = DESC.get(p)

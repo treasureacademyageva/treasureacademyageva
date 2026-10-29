@@ -14,6 +14,8 @@ EXPECTED_NOINDEX={"admission-form.html","birthdays.html","board.html","class.htm
 ROUTE_REGISTRY=json.loads((ROOT/'config/public-routes.json').read_text())
 SOURCE_TO_CANONICAL={row['source']:row['canonical'] for row in ROUTE_REGISTRY['routes']}
 CANONICAL_TO_SOURCE={row['canonical']:row['source'] for row in ROUTE_REGISTRY['routes']}
+DYNAMIC_PUBLIC_PATHS={"/events","/events/archive","/gallery"}
+DYNAMIC_INDEXABLE_PATHS={"/events","/gallery"}
 
 class Doc(HTMLParser):
     def __init__(self):
@@ -63,7 +65,9 @@ def resolve_link(page:Path,href:str):
     else:
         path=(page.parent/Path(unquote(u.path))).relative_to(ROOT).as_posix() if u.path else relative(page)
     if path.endswith('/'):path+='index.html'
-    clean='/' + path
+    clean='/' + path.rstrip('/')
+    if clean in DYNAMIC_PUBLIC_PATHS:
+        return None
     if clean in CANONICAL_TO_SOURCE:
         path=CANONICAL_TO_SOURCE[clean].lstrip('/')
     return ROOT/path
@@ -228,6 +232,7 @@ def main():
         if 'noindex' in robots:continue
         for tag,a in doc.tags:
             if tag=='link' and a.get('rel')=='canonical':expected.add(a.get('href',''))
+    expected.update(f"{SITE}{path}" for path in DYNAMIC_INDEXABLE_PATHS)
     if locs!=expected:
         for x in sorted(expected-locs):fail(f'sitemap missing {x}')
         for x in sorted(locs-expected):fail(f'sitemap includes unexpected {x}')
@@ -237,7 +242,7 @@ def main():
         clean=parsed.path or '/'
         source=CANONICAL_TO_SOURCE.get(clean)
         rel=source.lstrip('/') if source else (unquote(clean).lstrip('/') or 'index.html')
-        if not (ROOT/rel).is_file():fail(f'sitemap URL has no deployable file or clean rewrite: {loc}')
+        if clean not in DYNAMIC_INDEXABLE_PATHS and not (ROOT/rel).is_file():fail(f'sitemap URL has no deployable file or clean rewrite: {loc}')
     required_sitemap_paths={f'classes/{name}' for name in ('pre-nursery','nursery-1','nursery-2','primary-1','primary-2','primary-3','primary-4','primary-6')}
     indexed_class_paths={urlsplit(loc).path.lstrip('/') for loc in locs}
     if 'classes/creche' in indexed_class_paths:fail('sitemap must not publish retired Crèche')

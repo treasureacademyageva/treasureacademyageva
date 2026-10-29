@@ -17,18 +17,18 @@ function token(payload) {
   let requestPayload;
   let verifyPayload;
   await admissionPage.route('**/api/public-information', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":"Not found"}' }));
-  await admissionPage.route('**/api/admission/track/request', async (route) => {
+  await admissionPage.route('**/api/admission-tracking/request', async (route) => {
     requestPayload = JSON.parse(route.request().postData() || '{}');
     await route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({
       accepted: true, requestToken: 'opaque-request-token-that-is-long-enough-123456', expiresInSeconds: 300,
       message: 'If this registered phone has an eligible new-pupil application, an authorised dispatcher will send the code using the chosen channel.'
     }) });
   });
-  await admissionPage.route('**/api/admission/track/verify', async (route) => {
+  await admissionPage.route('**/api/admission-tracking/verify', async (route) => {
     verifyPayload = JSON.parse(route.request().postData() || '{}');
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
       verified: true,
-      applications: [{ reference: 'TA-ADM-20990120-AAAA1111', childName: 'Fictional New Applicant', requestedClass: 'Nursery 1', status: 'under_review', message: 'The fictional application is under review.', nextStep: 'Wait for the fictional office review.', updatedAt: '2099-01-20T10:00:00Z' }],
+      applications: [{ reference: 'TA-ADM-20990120-AAAA1111', childName: 'Fictional New Applicant', requestedClass: 'Nursery 1', status: 'under_review', message: 'The fictional application is under review.', nextStep: 'Wait for the fictional office review.', submittedAt: '2099-01-19T10:00:00Z', updatedAt: '2099-01-20T10:00:00Z' }],
       portalContinuationTokens: ['opaque-continuation-token-that-is-long-enough-654321'], portalLoginAvailable: true
     }) });
   });
@@ -43,7 +43,7 @@ function token(payload) {
   await admissionPage.getByLabel('Six-digit code').fill('123456');
   await admissionPage.getByRole('button', { name: 'Check application status' }).click();
   await admissionPage.getByRole('heading', { name: 'Application status' }).waitFor();
-  assert.equal(await admissionPage.getByRole('heading', { name: 'Fictional New Applicant' }).count(), 1);
+  assert.equal(await admissionPage.getByText('Fictional New Applicant', { exact: true }).count(), 1);
   assert.match(await admissionPage.locator('#admissionTrackingResult').innerText(), /Only unlinked new-pupil applications are shown here/);
   assert.deepEqual(verifyPayload, { requestToken: 'opaque-request-token-that-is-long-enough-123456', code: '123456' });
   assert.doesNotMatch(admissionPage.url(), /opaque|123456|TA-ADM/);

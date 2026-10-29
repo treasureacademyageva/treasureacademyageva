@@ -1,13 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 import { createHmac } from 'node:crypto';
+import { buildSignedCloudinaryDeliveryUrl } from './cms-media.mjs';
 
 const TRUE = 'true';
-const ACTIONS = new Set(['search', 'core-slots', 'inventory']);
+const ACTIONS = new Set(['search', 'core-slots', 'inventory', 'page-surface', 'page-media']);
 const CORE_PATHS = new Set([
   '/about', '/academics', '/admissions', '/fees', '/contact', '/calendar',
   '/exams', '/transport', '/uniform', '/shop', '/pta', '/careers',
   '/privacy', '/safeguarding', '/credits', '/request-centre'
 ]);
+const REPLACE_PAGE_PATHS = new Set([
+  '/about', '/academics', '/alumni', '/anthem', '/board', '/calendar', '/careers', '/classes',
+  '/classes/pre-nursery', '/classes/nursery-1', '/classes/nursery-2',
+  '/classes/primary-1', '/classes/primary-2', '/classes/primary-3', '/classes/primary-4', '/classes/primary-6',
+  '/credits', '/exams', '/fees', '/holiday', '/openday', '/photo-day', '/privacy', '/pta',
+  '/safeguarding', '/story', '/support', '/testimonials', '/transport', '/uniform', '/volunteer', '/welcome'
+]);
+const SUPPLEMENT_PAGE_PATHS = new Set([
+  '/', '/admission-form', '/admissions', '/birthdays', '/contact', '/elearning', '/site-map',
+  '/homework', '/lost-found', '/poster', '/reading', '/receipt', '/request-centre', '/search',
+  '/shop', '/website-help'
+]);
+const PAGE_PATHS = new Set([...REPLACE_PAGE_PATHS, ...SUPPLEMENT_PAGE_PATHS]);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_PATH = /^\/(?!\/)[a-zA-Z0-9/_?#=&.%-]*$/;
 const SEARCH_FAMILIES = Object.freeze([
   ['safety', /safeguard|safety|child protection|bully|abuse|welfare/],
@@ -223,6 +238,126 @@ async function coreSlots(env, request, createClientImpl = createClient) {
   }
 }
 
+function normalisePageBlock(row) {
+  const basic = normaliseBlock(row);
+  if (basic) return basic;
+  const type = clean(row?.block_type, 40);
+  const source = row?.payload && typeof row.payload === 'object' && !Array.isArray(row.payload) ? row.payload : {};
+  if (type === 'image' || type === 'video') {
+    const assetId = clean(source.asset_id, 100);
+    if (!UUID.test(assetId)) return null;
+    return { position: Math.max(0, Math.min(99, Number(row?.block_position) || 0)), type, payload: { asset_id: assetId } };
+  }
+  if (type === 'gallery') {
+    const assetIds = (Array.isArray(source.asset_ids) ? source.asset_ids : []).map((value) => clean(value, 100)).filter((value) => UUID.test(value)).slice(0, 24);
+    return assetIds.length ? { position: Math.max(0, Math.min(99, Number(row?.block_position) || 0)), type, payload: { asset_ids: assetIds } } : null;
+  }
+  return null;
+}
+
+function normalisePageMedia(row, surfaceId) {
+  const id = clean(row?.media_id, 100);
+  const type = ['image', 'video'].includes(row?.media_type) ? row.media_type : '';
+  if (!UUID.test(id) || !UUID.test(surfaceId) || !type) return null;
+  const query = new URLSearchParams({ surface: surfaceId, media: id });
+  return {
+    id, type, title: clean(row?.title, 180), alt: clean(row?.alt_text, 500),
+    caption: clean(row?.caption, 500), attribution: clean(row?.attribution, 500),
+    width: Math.max(1, Math.min(20000, Number(row?.width) || (type === 'image' ? 1200 : 1280))),
+    height: Math.max(1, Math.min(20000, Number(row?.height) || (type === 'image' ? 675 : 720))),
+    assetPath: `/api/public/content/page-media?${query.toString()}&variant=${type === 'image' ? 'content-1280' : 'video-720'}`,
+    posterPath: type === 'video' ? `/api/public/content/page-media?${query.toString()}&variant=poster` : null
+  };
+}
+
+async function pageSurface(env, request, createClientImpl = createClient) {
+  if (request.method !== 'GET') return json({ error: 'Method not allowed.' }, 405, { allow: 'GET' });
+  const path = clean(new URL(request.url).searchParams.get('path'), 160);
+  if (!PAGE_PATHS.has(path)) return json({ error: 'Invalid public page path.' }, 400);
+  const client = publicClient(env, createClientImpl);
+  if (!client) return json({ state: 'unavailable', message: 'Current page content is temporarily unavailable.' }, 503);
+  try {
+    const surfaceResult = await client.from('public_cms_published_page_surfaces')
+      .select('id,page_path,render_mode,entry_id,canonical_path,revision_id,title,summary,category,next_review_date,seo_title,seo_description,featured_media_id,social_media_id,updated_at')
+      .eq('page_path', path).limit(1);
+    if (surfaceResult.error) throw surfaceResult.error;
+    const surface = (surfaceResult.data || [])[0];
+    if (!surface) return json({ state: 'empty', path }, 200, { 'cache-control': 'public, max-age=30, stale-while-revalidate=120' });
+    const expectedMode = REPLACE_PAGE_PATHS.has(path) ? 'replace' : 'supplement';
+    if (surface.render_mode !== expectedMode || !UUID.test(String(surface.id || '')) || !UUID.test(String(surface.revision_id || ''))) throw new Error('page_surface_contract');
+    const [blockResult, mediaResult] = await Promise.all([
+      client.from('public_cms_published_blocks').select('revision_id,block_position,block_type,payload')
+        .eq('revision_id', surface.revision_id).order('block_position', { ascending: true }).limit(100),
+      client.from('public_cms_published_media').select('revision_id,placement,placement_position,caption,media_id,media_type,title,alt_text,attribution,width,height,duration_seconds')
+        .eq('revision_id', surface.revision_id).order('placement_position', { ascending: true }).limit(100)
+    ]);
+    if (blockResult.error || mediaResult.error) throw blockResult.error || mediaResult.error;
+    const blocks = (blockResult.data || []).map(normalisePageBlock).filter(Boolean);
+    const media = (mediaResult.data || []).map((row) => normalisePageMedia(row, surface.id)).filter(Boolean);
+    return json({
+      state: 'current', path, mode: expectedMode,
+      page: {
+        id: clean(surface.id, 100), title: clean(surface.title, 180), summary: clean(surface.summary, 600),
+        category: clean(surface.category, 80), seoTitle: clean(surface.seo_title, 70),
+        seoDescription: clean(surface.seo_description, 180), nextReviewDate: surface.next_review_date || null,
+        updatedAt: surface.updated_at || null, blocks, media
+      }
+    }, 200, { 'cache-control': 'public, max-age=30, stale-while-revalidate=120' });
+  } catch {
+    return json({ state: 'unavailable', message: 'Current page content is temporarily unavailable.' }, 503);
+  }
+}
+
+async function pageMedia(env, request, createClientImpl = createClient, fetchImpl = fetch) {
+  if (!['GET', 'HEAD'].includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { allow: 'GET, HEAD' });
+  const url = new URL(request.url);
+  const surfaceId = clean(url.searchParams.get('surface'), 100);
+  const mediaId = clean(url.searchParams.get('media'), 100);
+  const variant = clean(url.searchParams.get('variant'), 40);
+  if (!UUID.test(surfaceId) || !UUID.test(mediaId) || !/^[a-z0-9-]{3,30}$/.test(variant)) return json({ error: 'Not found.' }, 404);
+  const client = publicClient(env, createClientImpl);
+  if (!client) return json({ error: 'Not found.' }, 404);
+  try {
+    const surfaceResult = await client.from('public_cms_published_page_surfaces')
+      .select('id,revision_id').eq('id', surfaceId).limit(1);
+    if (surfaceResult.error) throw surfaceResult.error;
+    const surface = (surfaceResult.data || [])[0];
+    if (!surface || !UUID.test(String(surface.revision_id || ''))) return json({ error: 'Not found.' }, 404);
+    const mediaResult = await client.from('public_cms_published_media')
+      .select('media_id,provider_asset_id,media_type,provider_version').eq('revision_id', surface.revision_id).eq('media_id', mediaId).limit(1);
+    if (mediaResult.error) throw mediaResult.error;
+    const media = (mediaResult.data || [])[0];
+    if (!media) return json({ error: 'Not found.' }, 404);
+    const allowed = media.media_type === 'image'
+      ? new Set(['thumb', 'card', 'content-640', 'content-960', 'content-1280', 'hero'])
+      : new Set(['poster', 'video-720']);
+    if (!allowed.has(variant)) return json({ error: 'Not found.' }, 404);
+    const delivery = buildSignedCloudinaryDeliveryUrl({
+      cloudName: clean(env.CLOUDINARY_CLOUD_NAME, 100), apiSecret: String(env.CLOUDINARY_API_SECRET || ''),
+      publicId: media.provider_asset_id, mediaType: media.media_type,
+      providerVersion: Number(media.provider_version), variant
+    });
+    const upstreamHeaders = { Accept: variant === 'poster' || media.media_type === 'image' ? 'image/*' : 'video/*' };
+    const range = request.headers.get('range');
+    if (range && /^bytes=(?:\d+-\d*|-\d+)$/.test(range)) upstreamHeaders.Range = range;
+    const upstream = await fetchImpl(delivery.url, { method: request.method, headers: upstreamHeaders, redirect: 'error', signal: AbortSignal.timeout(8000) });
+    const contentType = String(upstream.headers.get('content-type') || '').toLowerCase();
+    const expected = variant === 'poster' || media.media_type === 'image' ? 'image/' : 'video/';
+    if (![200, 206].includes(upstream.status) || !contentType.startsWith(expected)) throw new Error('provider_delivery');
+    const headers = new Headers({
+      'Content-Type': contentType, 'Cache-Control': 'public, max-age=60, s-maxage=60',
+      'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+      'Referrer-Policy': 'no-referrer', 'Accept-Ranges': upstream.headers.get('accept-ranges') || 'bytes'
+    });
+    for (const name of ['content-range', 'etag', 'last-modified']) {
+      const value = upstream.headers.get(name); if (value) headers.set(name, value);
+    }
+    return new Response(request.method === 'HEAD' ? null : upstream.body, { status: upstream.status, headers });
+  } catch {
+    return json({ error: 'Not found.' }, 404);
+  }
+}
+
 async function inventory(env, request, createClientImpl = createClient) {
   if (request.method !== 'GET') return json({ error: 'Method not allowed.' }, 405, { allow: 'GET' });
   const client = serviceClient(env, createClientImpl);
@@ -267,9 +402,18 @@ export async function handlePublicDiscovery(request, env = process.env, override
     if (!exactTrue(env.PUBLIC_INVENTORY_ENABLED)) return json({ error: 'Not found.' }, 404);
     return inventory(env, request, createClientImpl);
   }
+  if (action === 'page-surface') {
+    if (!exactTrue(env.PUBLIC_CMS_PAGES_ENABLED)) return json({ error: 'Not found.' }, 404);
+    return pageSurface(env, request, createClientImpl);
+  }
+  if (action === 'page-media') {
+    if (!exactTrue(env.PUBLIC_CMS_PAGES_ENABLED) || !exactTrue(env.PUBLIC_CMS_MEDIA_ENABLED)) return json({ error: 'Not found.' }, 404);
+    return pageMedia(env, request, createClientImpl, overrides.fetch || fetch);
+  }
   return json({ error: 'Not found.' }, 404);
 }
 
 export const publicDiscoveryInternals = Object.freeze({
-  exactTrue, localPath, originAllowed, privateQuery, searchFamily, rateBucket, normaliseResult
+  exactTrue, localPath, originAllowed, privateQuery, searchFamily, rateBucket, normaliseResult,
+  normaliseBlock, normalisePageBlock, normalisePageMedia, PAGE_PATHS, REPLACE_PAGE_PATHS, SUPPLEMENT_PAGE_PATHS
 });
